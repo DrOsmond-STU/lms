@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STU LMS — Platform Pembelajaran & Sertifikasi Mahasiswa</title>
+<meta name="description" content="Purwarupa LMS untuk mahasiswa mengambil sertifikasi Internasional dan BNSP.">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .hero-glow{background:radial-gradient(60% 60% at 80% 20%, rgba(20,184,166,.25), transparent 60%),radial-gradient(50% 50% at 10% 10%, rgba(255,255,255,.08), transparent 60%);}
+</style>
+</head>
+<body class="bg-white text-slate-800">
+
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-sm text-white" style="background:var(--brand-800)">STU</div>
+      <div class="leading-tight"><p class="font-extrabold text-slate-800 text-sm">STU LMS</p><p class="text-[11px] text-slate-400 -mt-0.5">Sertifikasi Mahasiswa</p></div>
+    </a>
+    <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
+      <a href="#sertifikasi" class="hover:text-brand-700">Sertifikasi</a>
+      <a href="#cara-kerja" class="hover:text-brand-700">Cara Kerja</a>
+      <a href="#mitra" class="hover:text-brand-700">Universitas Mitra</a>
+      <a href="cek-sertifikat.html" class="hover:text-brand-700">Cek Sertifikat</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <a href="login.html" class="text-sm font-bold px-4 py-2 rounded-lg text-brand-700 hover:bg-brand-50">Masuk</a>
+      <a href="login.html" class="hidden sm:inline-block text-sm font-bold px-4 py-2 rounded-lg text-white" style="background:var(--brand-800)">Masuk ke LMS</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero-glow" style="background-color:var(--brand-900)">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
+    <div class="text-white">
+      <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
+        <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Purwarupa UI/UX · Data Dummy
+      </span>
+      <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Satu Platform untuk Sertifikasi <span class="text-accent-400">Internasional</span> &amp; <span class="text-accent-400">BNSP</span> Mahasiswa</h1>
+      <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">STU LMS membantu mahasiswa memilih skema sertifikasi, belajar terarah lewat modul &amp; kuis, hingga mengunduh sertifikat resmi yang dapat divalidasi publik.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="login.html" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Masuk ke LMS</a>
+        <a href="cek-sertifikat.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Cek Sertifikat</a>
+      </div>
+      <div class="mt-10 grid grid-cols-3 gap-4 max-w-md" id="stat-row"></div>
+    </div>
+    <div class="relative hidden md:block">
+      <div class="card p-5 shadow-2xl rotate-2">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-bold text-slate-700 text-sm">Sertifikat Saya</p>
+          <span class="badge badge-hijau"><span class="badge-dot"></span>Berlaku</span>
+        </div>
+        <div class="certificate-frame rounded-xl p-5 text-white">
+          <p class="text-[11px] text-white/70">SERTIFIKAT KOMPETENSI INTERNASIONAL</p>
+          <p class="font-extrabold text-lg mt-1">AWS Certified Cloud Practitioner</p>
+          <p class="text-xs text-white/70 mt-2">Raka Prasetya · Universitas Semesta Teknologi Utama</p>
+          <p class="text-[11px] text-white/50 mt-3">No. INTL/AWS-CCP/USTU/2026/00001</p>
+        </div>
+      </div>
+      <div class="card p-4 shadow-xl absolute -bottom-8 -left-8 w-56 -rotate-3">
+        <p class="text-xs font-bold text-slate-500 mb-2">Progres Belajar</p>
+        <p class="text-sm font-bold text-slate-700">Junior Web Developer</p>
+        <div class="progress-track mt-2"><div class="progress-fill" style="width:60%"></div></div>
+        <p class="text-[11px] text-slate-400 mt-1">3 dari 5 modul selesai</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sertifikasi" class="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+    <div>
+      <p class="text-accent-600 font-bold text-xs tracking-widest uppercase mb-1">Katalog Sertifikasi</p>
+      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">Skema Sertifikasi Internasional &amp; BNSP</h2>
+    </div>
+    <a href="login.html" class="text-sm font-bold text-brand-700 flex items-center gap-1 hover:gap-2 transition-all">Lihat semua skema</a>
+  </div>
+  <div id="skema-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"></div>
+</section>
+
+<section id="cara-kerja" class="bg-slate-50 py-16 md:py-20 border-y border-slate-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <p class="text-accent-600 font-bold text-xs tracking-widest uppercase mb-1 text-center">Alur Sertifikasi</p>
+    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 text-center mb-12">Tiga Langkah Menuju Sertifikat</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="card p-6"><div class="w-11 h-11 rounded-xl bg-brand-800 text-white flex items-center justify-center font-extrabold mb-4">1</div><h3 class="font-bold text-slate-800 mb-2">Pilih Sertifikasi</h3><p class="text-sm text-slate-500">Telusuri skema Internasional atau BNSP sesuai minat &amp; program studi, lalu daftar tanpa biaya (ditanggung kampus).</p></div>
+      <div class="card p-6"><div class="w-11 h-11 rounded-xl bg-brand-800 text-white flex items-center justify-center font-extrabold mb-4">2</div><h3 class="font-bold text-slate-800 mb-2">Ikuti Pembelajaran</h3><p class="text-sm text-slate-500">Akses modul video &amp; materi PDF, pantau progres, lalu kerjakan kuis akhir sebagai syarat kelulusan.</p></div>
+      <div class="card p-6"><div class="w-11 h-11 rounded-xl bg-brand-800 text-white flex items-center justify-center font-extrabold mb-4">3</div><h3 class="font-bold text-slate-800 mb-2">Lulus &amp; Unduh Sertifikat</h3><p class="text-sm text-slate-500">Setelah disetujui admin, unduh sertifikat PDF ber-QR yang dapat diverifikasi publik kapan saja.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="mitra" class="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-20">
+  <p class="text-accent-600 font-bold text-xs tracking-widest uppercase mb-1 text-center">Universitas Mitra</p>
+  <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 text-center mb-10">Dipercaya Beberapa Universitas Mitra</h2>
+  <div id="mitra-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"></div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 pb-16 md:pb-24">
+  <div class="rounded-3xl p-10 md:p-14 text-center text-white" style="background:linear-gradient(120deg,var(--brand-900),var(--brand-700))">
+    <h2 class="text-2xl md:text-3xl font-extrabold">Sudah punya sertifikat dari STU LMS?</h2>
+    <p class="text-white/70 mt-2 max-w-xl mx-auto">Validasi keaslian sertifikat peserta secara publik menggunakan nomor sertifikat atau pemindaian QR code.</p>
+    <a href="cek-sertifikat.html" class="inline-flex items-center gap-2 mt-6 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Cek Sertifikat Sekarang</a>
+  </div>
+</section>
+
+<footer class="bg-slate-900 text-slate-300">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid md:grid-cols-4 gap-8">
+    <div>
+      <div class="flex items-center gap-2.5 mb-3"><div class="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-sm text-white" style="background:var(--accent-500)">STU</div><p class="font-extrabold text-white text-sm">STU LMS</p></div>
+      <p class="text-sm text-slate-400">Platform pembelajaran &amp; sertifikasi mahasiswa untuk skema Internasional dan BNSP.</p>
+    </div>
+    <div>
+      <p class="font-bold text-white text-sm mb-3">Tautan</p>
+      <ul class="space-y-2 text-sm text-slate-400">
+        <li><a href="login.html" class="hover:text-white">Masuk ke LMS</a></li>
+        <li><a href="cek-sertifikat.html" class="hover:text-white">Cek Sertifikat</a></li>
+        <li><a href="#sertifikasi" class="hover:text-white">Katalog Sertifikasi</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-bold text-white text-sm mb-3">Kontak</p>
+      <ul class="space-y-2 text-sm text-slate-400">
+        <li>Semesta Teknologi Utama</li>
+        <li>lms@semestateknologiutama.com</li>
+        <li>(021) 555-0100</li>
+      </ul>
+    </div>
+    <div>
+      <p class="font-bold text-white text-sm mb-3">Catatan</p>
+      <p class="text-sm text-slate-400">Purwarupa UI/UX dengan data dummy. Belum terhubung ke sistem produksi.</p>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-5 text-center text-xs text-slate-500">© 2026 Semesta Teknologi Utama — Purwarupa STU LMS</div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+  var skema = Store.getSkema();
+  var univs = Store.getUniversitas();
+  var lulusTotal = Store.getPendaftaran().filter(function(p){return p.status==='lulus';}).length;
+
+  document.getElementById('stat-row').innerHTML = [
+    { n: univs.length, l: 'Universitas Mitra' },
+    { n: skema.length, l: 'Skema Sertifikasi' },
+    { n: lulusTotal + '+', l: 'Mahasiswa Lulus' }
+  ].map(function(s){
+    return '<div><p class="text-2xl font-extrabold text-white">'+s.n+'</p><p class="text-[11px] text-white/50 mt-0.5">'+s.l+'</p></div>';
+  }).join('');
+
+  document.getElementById('skema-grid').innerHTML = skema.slice(0,8).map(function(s){
+    return '<div class="card p-5 hover:shadow-lg transition">' +
+      '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(s.kategori) + '<span class="text-[11px] font-bold text-emerald-600">GRATIS</span></div>' +
+      '<h3 class="font-bold text-slate-800 leading-snug mb-1">'+s.nama+'</h3>' +
+      '<p class="text-xs text-slate-400 mb-3">'+s.penyelenggara+'</p>' +
+      '<div class="flex items-center gap-3 text-[11px] text-slate-500"><span>'+s.durasiJam+' jam</span><span>·</span><span>'+s.level+'</span></div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('mitra-grid').innerHTML = univs.map(function(u){
+    return '<div class="card p-5 flex items-center gap-3">' +
+      '<div class="avatar w-11 h-11 text-sm">'+u.singkatan+'</div>' +
+      '<div><p class="font-bold text-slate-800 text-sm leading-snug">'+u.nama+'</p><p class="text-xs text-slate-400">'+u.kota+' · Akreditasi '+u.akreditasi+'</p></div>' +
+    '</div>';
+  }).join('');
+</script>
+</body>
+</html>

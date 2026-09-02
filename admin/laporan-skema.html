@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Skema Sertifikasi per Universitas — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="laporan-skema" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div><h1 class="text-xl font-extrabold text-slate-800">Laporan Skema Sertifikasi per Universitas</h1><p class="text-sm text-slate-400 mt-0.5">Distribusi peminatan skema Internasional &amp; BNSP di setiap universitas mitra.</p></div>
+      <button id="btn-csv" class="text-sm font-bold border border-slate-200 px-4 py-2.5 rounded-lg hover:bg-slate-50">Unduh CSV</button>
+    </div>
+
+    <div class="card p-5 mb-6"><p class="font-bold text-slate-800 mb-4">Internasional vs BNSP per Universitas</p><div class="h-72"><canvas id="chart-kategori"></canvas></div></div>
+
+    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Matriks Peserta per Skema</p><p class="text-xs text-slate-400">Angka menunjukkan jumlah mahasiswa terdaftar</p></div>
+    <div class="card overflow-x-auto mb-8">
+      <table class="w-full table-clean" id="tabel-matrix"></table>
+    </div>
+
+    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Rekap per Universitas</p></div>
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[760px]">
+        <thead><tr><th>Universitas</th><th>Internasional</th><th>BNSP</th><th>Total Pendaftaran</th><th>Lulus</th></tr></thead>
+        <tbody id="tbody-rekap"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+  var session = Store.getSession();
+  function buatChart(el, cfg) {
+    try { if (window.Chart) return new Chart(el, cfg); } catch (e) { console.warn('Grafik gagal dimuat:', e); }
+  }
+
+  if (session && session.role === 'admin') {
+    var univs = Store.getUniversitas();
+    var skemaList = Store.getSkema();
+    var mhs = Store.getMahasiswa();
+    var pendaftaran = Store.getPendaftaran();
+
+    function pendaftaranUniv(univId) {
+      var mhsIds = mhs.filter(function(m){ return m.universitasId === univId; }).map(function(m){ return m.id; });
+      return pendaftaran.filter(function(p){ return mhsIds.indexOf(p.mahasiswaId) !== -1; });
+    }
+
+    var rekap = univs.map(function(u){
+      var pdUniv = pendaftaranUniv(u.id);
+      var intl = 0, bnsp = 0;
+      pdUniv.forEach(function(p){ var s = Store.skemaById(p.skemaId); if (s) { s.kategori === 'internasional' ? intl++ : bnsp++; } });
+      return { univ: u, intl: intl, bnsp: bnsp, total: pdUniv.length, lulus: pdUniv.filter(function(p){ return p.status === 'lulus'; }).length, pdUniv: pdUniv };
+    });
+
+    document.getElementById('tbody-rekap').innerHTML = rekap.map(function(r){
+      return '<tr>' +
+        '<td class="font-semibold">' + r.univ.nama + '</td>' +
+        '<td><span class="badge badge-biru">' + r.intl + '</span></td>' +
+        '<td><span class="badge badge-abu" style="background:#fff7ed;color:#9a3412">' + r.bnsp + '</span></td>' +
+        '<td>' + r.total + '</td>' +
+        '<td>' + r.lulus + '</td>' +
+      '</tr>';
+    }).join('');
+
+    buatChart(document.getElementById('chart-kategori'), {
+      type: 'bar',
+      data: {
+        labels: rekap.map(function(r){ return r.univ.singkatan; }),
+        datasets: [
+          { label: 'Internasional', data: rekap.map(function(r){ return r.intl; }), backgroundColor: '#1a5c97', borderRadius: 6 },
+          { label: 'BNSP', data: rekap.map(function(r){ return r.bnsp; }), backgroundColor: '#d97706', borderRadius: 6 }
+        ]
+      },
+      options: { plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+
+    // Matriks skema x universitas
+    var thead = '<thead><tr><th>Skema Sertifikasi</th>' + univs.map(function(u){ return '<th class="text-center">' + u.singkatan + '</th>'; }).join('') + '<th class="text-center">Total</th></tr></thead>';
+    var tbody = '<tbody>' + skemaList.map(function(s){
+      var totalBaris = 0;
+      var cells = univs.map(function(u){
+        var jumlah = rekap.filter(function(r){ return r.univ.id === u.id; })[0].pdUniv.filter(function(p){ return p.skemaId === s.id; }).length;
+        totalBaris += jumlah;
+        return '<td class="text-center">' + (jumlah || '<span class="text-slate-300">0</span>') + '</td>';
+      }).join('');
+      return '<tr><td class="font-semibold">' + s.nama + '<br>' + UI.kategoriTag(s.kategori) + '</td>' + cells + '<td class="text-center font-bold">' + totalBaris + '</td></tr>';
+    }).join('') + '</tbody>';
+    document.getElementById('tabel-matrix').innerHTML = thead + tbody;
+
+    document.getElementById('btn-csv').addEventListener('click', function(){
+      var rows = [['Skema'].concat(univs.map(function(u){ return u.singkatan; })).concat(['Total'])];
+      skemaList.forEach(function(s){
+        var totalBaris = 0;
+        var cells = univs.map(function(u){
+          var jumlah = rekap.filter(function(r){ return r.univ.id === u.id; })[0].pdUniv.filter(function(p){ return p.skemaId === s.id; }).length;
+          totalBaris += jumlah;
+          return jumlah;
+        });
+        rows.push([s.nama].concat(cells).concat([totalBaris]));
+      });
+      var csv = rows.map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+      var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'laporan-skema-per-universitas.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Kelas — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="instruktur" data-active="kelas" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
+</main>
+
+<div id="modal-tambah" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Materi</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form-modul" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Judul Materi</label><input id="input-judul" type="text" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Tipe Materi</label>
+        <select id="input-tipe" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm">
+          <option value="video">Video</option>
+          <option value="pdf">Dokumen PDF</option>
+        </select>
+      </div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Durasi / Keterangan</label><input id="input-durasi" type="text" placeholder="Contoh: 35 menit" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Materi</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'instruktur') {
+    var kelasId = UI.qs('id');
+    var el = document.getElementById('konten');
+
+    function render() {
+      var kelas = Store.kelasById(kelasId);
+      if (!kelas) { el.innerHTML = '<div class="card p-10 text-center text-slate-400">Kelas tidak ditemukan. <a href="kelas.html" class="text-brand-700 font-bold">Kembali</a></div>'; return; }
+      var s = Store.skemaById(kelas.skemaId);
+      var peserta = Store.pendaftaranByKelas(kelas.skemaId);
+
+      el.innerHTML =
+        '<a href="kelas.html" class="text-xs font-bold text-slate-400 hover:text-brand-700 flex items-center gap-1 mb-4">&larr; Kembali ke Kelas Saya</a>' +
+        '<div class="card p-5 mb-6">' +
+          '<div class="flex flex-wrap items-center justify-between gap-3">' +
+            '<div>' + UI.kategoriTag(s.kategori) + '<h1 class="text-lg font-extrabold text-slate-800 mt-2">' + s.nama + '</h1><p class="text-xs text-slate-400 mt-1">Batch ' + kelas.batch + ' · ' + peserta.length + ' peserta terdaftar</p></div>' +
+            '<a href="peserta.html?kelas=' + kelas.id + '" class="text-xs font-bold border border-slate-200 rounded-lg px-4 py-2.5 hover:bg-slate-50">Lihat Peserta &amp; Nilai</a>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="flex items-center justify-between mb-4"><h2 class="font-bold text-slate-800">Materi &amp; Kuis Kelas</h2><button id="btn-tambah" class="text-xs font-bold text-white rounded-lg px-4 py-2.5 flex items-center gap-1.5" style="background:var(--brand-800)">' + UI.Icon.plus + ' Tambah Materi</button></div>' +
+        '<div class="card divide-y divide-slate-100">' + kelas.modul.map(function(m, idx){
+          var iconTipe = m.tipe === 'video' ? 'play' : m.tipe === 'quiz' ? 'check' : 'doc';
+          var tipeLabel = m.tipe === 'video' ? 'Video' : m.tipe === 'quiz' ? 'Kuis' : 'Dokumen PDF';
+          return '<div class="flex items-center gap-3 p-4">' +
+            '<span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold flex-shrink-0">' + (idx+1) + '</span>' +
+            '<span class="text-slate-400">' + UI.Icon[iconTipe] + '</span>' +
+            '<div class="flex-1"><p class="text-sm font-semibold text-slate-700">' + m.judul + '</p><p class="text-xs text-slate-400">' + tipeLabel + ' · ' + m.durasi + '</p></div>' +
+            (m.tipe === 'quiz' ? '<span class="text-[11px] font-bold text-slate-400">' + kelas.kuis.length + ' soal</span>' : '<span class="badge badge-abu">Aktif</span>') +
+          '</div>';
+        }).join('') + '</div>';
+
+      document.getElementById('btn-tambah').addEventListener('click', function(){ document.getElementById('modal-tambah').classList.remove('hidden'); document.getElementById('modal-tambah').classList.add('flex'); });
+    }
+
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('modal-close').addEventListener('click', function(){ document.getElementById('modal-tambah').classList.add('hidden'); document.getElementById('modal-tambah').classList.remove('flex'); });
+
+    document.getElementById('form-modul').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahModulKelas(kelasId, {
+        judul: document.getElementById('input-judul').value,
+        tipe: document.getElementById('input-tipe').value,
+        durasi: document.getElementById('input-durasi').value
+      });
+      document.getElementById('modal-tambah').classList.add('hidden');
+      document.getElementById('modal-tambah').classList.remove('flex');
+      document.getElementById('form-modul').reset();
+      UI.toast('Materi berhasil ditambahkan', 'sukses');
+      render();
+    });
+
+    render();
+  }
+</script>
+</body>
+</html>

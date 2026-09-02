@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masuk — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<div class="min-h-screen grid lg:grid-cols-2">
+  <div class="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden" style="background:linear-gradient(150deg,var(--brand-900),var(--brand-700))">
+    <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-accent-500/20"></div>
+    <div class="absolute -left-16 bottom-10 w-56 h-56 rounded-full bg-white/5"></div>
+    <a href="index.html" class="flex items-center gap-2.5 relative">
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center font-extrabold text-white" style="background:var(--accent-500);color:#06251f">STU</div>
+      <p class="font-extrabold">STU LMS</p>
+    </a>
+    <div class="relative">
+      <h1 class="text-3xl font-extrabold leading-tight mb-4">Belajar terarah, lulus dengan sertifikat yang diakui.</h1>
+      <p class="text-white/70 max-w-md">Kelola pembelajaran sertifikasi Internasional &amp; BNSP mahasiswa Anda dalam satu platform — mulai dari pendaftaran, materi, kuis, hingga penerbitan sertifikat.</p>
+    </div>
+    <p class="relative text-xs text-white/40">© 2026 Semesta Teknologi Utama — Purwarupa STU LMS</p>
+  </div>
+
+  <div class="flex items-center justify-center p-6 sm:p-10">
+    <div class="w-full max-w-sm">
+      <div class="lg:hidden flex items-center gap-2.5 mb-8 justify-center">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-white text-sm" style="background:var(--brand-800)">STU</div>
+        <p class="font-extrabold text-slate-800">STU LMS</p>
+      </div>
+
+      <h2 class="text-xl font-extrabold text-slate-800">Masuk ke Akun Anda</h2>
+      <p class="text-sm text-slate-400 mt-1 mb-6">Purwarupa demo — pilih peran, lalu klik Masuk (kata sandi bebas).</p>
+
+      <div class="grid grid-cols-3 gap-2 mb-6 p-1 bg-slate-100 rounded-xl" id="role-tabs">
+        <button data-role="mahasiswa" class="role-tab text-xs font-bold py-2 rounded-lg">Mahasiswa</button>
+        <button data-role="instruktur" class="role-tab text-xs font-bold py-2 rounded-lg">Instruktur</button>
+        <button data-role="admin" class="role-tab text-xs font-bold py-2 rounded-lg">Admin</button>
+      </div>
+
+      <div id="demo-info" class="card p-4 mb-5 flex items-center gap-3 fade-in"></div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="text-xs font-bold text-slate-500 mb-1 block">Email</label>
+          <input id="email-input" type="email" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 mb-1 block">Kata Sandi</label>
+          <input id="password-input" type="password" placeholder="•••••••• (bebas, ini demo)" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
+        </div>
+        <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg transition" style="background:var(--brand-800)">Masuk sebagai <span id="btn-role-label">Mahasiswa</span></button>
+      </form>
+
+      <p class="text-center text-xs text-slate-400 mt-6"><a href="cek-sertifikat.html" class="font-bold text-brand-700">Cek Sertifikat</a> tanpa perlu masuk &nbsp;·&nbsp; <a href="index.html" class="font-bold text-brand-700">Kembali ke Beranda</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+  var ROLES = {
+    mahasiswa: { label: 'Mahasiswa', nama: 'Raka Prasetya', email: 'raka.prasetya@stu.ac.id', sub: 'Teknik Informatika · Universitas Semesta Teknologi Utama', dest: 'mahasiswa/dashboard.html' },
+    instruktur: { label: 'Instruktur', nama: 'Dr. Andi Wijaya, S.Kom., M.T.', email: 'andi.wijaya@stu.ac.id', sub: 'Instruktur Cloud Computing & Infrastruktur', dest: 'instruktur/dashboard.html' },
+    admin: { label: 'Admin', nama: 'Dewi Anggraini', email: 'dewi.anggraini@semestateknologiutama.com', sub: 'Super Admin LMS · Multi-Universitas', dest: 'admin/dashboard.html' }
+  };
+  var currentRole = 'mahasiswa';
+
+  function paint() {
+    document.querySelectorAll('.role-tab').forEach(function(btn){
+      var active = btn.dataset.role === currentRole;
+      btn.className = 'role-tab text-xs font-bold py-2 rounded-lg transition ' + (active ? 'bg-white shadow text-brand-800' : 'text-slate-500 hover:text-slate-700');
+    });
+    var r = ROLES[currentRole];
+    document.getElementById('email-input').value = r.email;
+    document.getElementById('btn-role-label').textContent = r.label;
+    document.getElementById('demo-info').innerHTML =
+      '<span class="avatar w-10 h-10 text-xs">' + UI.inisial(r.nama) + '</span>' +
+      '<div><p class="text-sm font-bold text-slate-700">' + r.nama + '</p><p class="text-xs text-slate-400">' + r.sub + '</p></div>';
+  }
+
+  document.getElementById('role-tabs').addEventListener('click', function(e){
+    var btn = e.target.closest('.role-tab');
+    if (!btn) return;
+    currentRole = btn.dataset.role;
+    paint();
+  });
+
+  document.getElementById('login-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    Store.login(currentRole);
+    UI.toast('Berhasil masuk sebagai ' + ROLES[currentRole].label, 'sukses');
+    setTimeout(function(){ window.location.href = ROLES[currentRole].dest; }, 350);
+  });
+
+  var redirectRole = UI.qs('peran');
+  if (redirectRole && ROLES[redirectRole]) currentRole = redirectRole;
+  paint();
+</script>
+</body>
+</html>

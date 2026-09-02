@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sertifikat Saya — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="mahasiswa" data-active="sertifikat" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6">
+      <h1 class="text-xl font-extrabold text-slate-800">Sertifikat Saya</h1>
+      <p class="text-sm text-slate-400 mt-0.5">Unduh sertifikat resmi Anda dalam format PDF lengkap dengan QR verifikasi.</p>
+    </div>
+
+    <div id="area-menunggu"></div>
+    <div id="grid-sertifikat" class="grid sm:grid-cols-2 gap-5"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="../assets/js/certificate.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'mahasiswa') {
+    var mhsId = session.userId;
+
+    function render() {
+      var pendaftaran = Store.pendaftaranMahasiswa(mhsId);
+      var menunggu = pendaftaran.filter(function(p){ return p.status === 'menunggu_approval'; });
+      var sertifikat = Store.sertifikatMahasiswa(mhsId);
+
+      document.getElementById('area-menunggu').innerHTML = menunggu.length ? (
+        '<div class="card p-5 mb-6 border-amber-200 bg-amber-50/40">' +
+          '<div class="flex items-start gap-3"><span class="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">' + UI.Icon.clock + '</span>' +
+          '<div><p class="font-bold text-slate-700 text-sm mb-1">Menunggu Persetujuan Admin</p>' +
+          '<p class="text-xs text-slate-500 mb-2">' + menunggu.length + ' skema telah Anda selesaikan dan sedang menunggu approval admin sebelum sertifikat diterbitkan:</p>' +
+          '<ul class="text-xs text-slate-600 space-y-1">' + menunggu.map(function(p){ var s = Store.skemaById(p.skemaId); return '<li>• ' + s.nama + ' (skor kuis: ' + p.skorKuis + ')</li>'; }).join('') + '</ul></div></div>' +
+        '</div>'
+      ) : '';
+
+      document.getElementById('grid-sertifikat').innerHTML = sertifikat.length ? sertifikat.map(function(c){
+        var lengkap = Certificate.lengkapi(c);
+        var st = lengkap.statusEfektif;
+        var skema = lengkap.skema;
+        return '<div class="card p-0 overflow-hidden">' +
+          '<div class="certificate-frame p-5 text-white">' +
+            '<div class="flex items-start justify-between gap-3 mb-2">' + UI.kategoriTag(skema.kategori) + UI.badgeSertifikat(st) + '</div>' +
+            '<p class="font-extrabold leading-snug">' + skema.nama + '</p>' +
+            '<p class="text-xs text-white/70 mt-1">' + skema.penyelenggara + '</p>' +
+          '</div>' +
+          '<div class="p-5">' +
+            '<dl class="grid grid-cols-2 gap-3 text-xs mb-4">' +
+              '<div><dt class="text-slate-400">Nomor</dt><dd class="font-mono font-semibold text-slate-700 truncate">' + c.nomor + '</dd></div>' +
+              '<div><dt class="text-slate-400">Terbit</dt><dd class="font-semibold text-slate-700">' + UI.formatTanggalSingkat(c.tanggalTerbit) + '</dd></div>' +
+              '<div><dt class="text-slate-400">Berlaku Hingga</dt><dd class="font-semibold text-slate-700">' + UI.formatTanggalSingkat(c.berlakuHingga) + '</dd></div>' +
+            '</dl>' +
+            '<div class="flex flex-wrap gap-2">' +
+              '<button data-id="' + c.id + '" class="btn-unduh flex-1 text-xs font-bold text-white rounded-lg py-2.5 flex items-center justify-center gap-1.5" style="background:var(--brand-800)">' + UI.Icon.download + ' Unduh PDF</button>' +
+              '<a href="../cek-sertifikat.html?no=' + encodeURIComponent(c.nomor) + '" target="_blank" class="flex-1 text-center text-xs font-bold border border-slate-200 rounded-lg py-2.5">Lihat Validasi</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') : '<div class="col-span-full card p-10 text-center text-slate-400 text-sm">Anda belum memiliki sertifikat yang diterbitkan.</div>';
+
+      document.querySelectorAll('.btn-unduh').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cert = Store.getSertifikat().filter(function(x){ return x.id === btn.dataset.id; })[0];
+          btn.textContent = 'Menyiapkan PDF...';
+          Certificate.unduhPDF(Certificate.lengkapi(cert));
+          UI.toast('Sertifikat PDF sedang diunduh', 'sukses');
+          setTimeout(function(){ render(); }, 400);
+        });
+      });
+    }
+
+    render();
+  }
+</script>
+</body>
+</html>

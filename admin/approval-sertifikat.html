@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Approval Sertifikat — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="approval" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Approval &amp; Penerbitan Sertifikat</h1><p class="text-sm text-slate-400 mt-0.5">Setujui kelulusan mahasiswa untuk menerbitkan sertifikat resmi bernomor unik.</p></div>
+
+    <div class="card overflow-x-auto mb-8">
+      <table class="w-full table-clean min-w-[900px]">
+        <thead><tr><th>Peserta</th><th>Universitas</th><th>Skema Sertifikasi</th><th>Skor Kuis</th><th>Tanggal Selesai</th><th>Aksi</th></tr></thead>
+        <tbody id="tbody-approval"></tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between mb-4"><h2 class="font-bold text-slate-800">Sertifikat Terbit Terbaru</h2></div>
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[760px]">
+        <thead><tr><th>Nomor Sertifikat</th><th>Peserta</th><th>Skema</th><th>Tanggal Terbit</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="tbody-terbit"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script src="../assets/js/certificate.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    function render() {
+      var menunggu = Store.getPendaftaran().filter(function(p){ return p.status === 'menunggu_approval'; });
+      document.getElementById('tbody-approval').innerHTML = menunggu.length ? menunggu.map(function(p){
+        var m = Store.mahasiswaById(p.mahasiswaId), s = Store.skemaById(p.skemaId), u = Store.universitasById(m.universitasId);
+        return '<tr>' +
+          '<td><div class="flex items-center gap-2.5"><span class="avatar w-8 h-8 text-[11px]">' + UI.inisial(m.nama) + '</span><div><p class="font-semibold text-slate-700">' + m.nama + '</p><p class="text-xs text-slate-400">' + m.npm + '</p></div></div></td>' +
+          '<td>' + u.nama + '</td>' +
+          '<td>' + s.nama + '<br><span class="text-xs text-slate-400">' + (s.kategori === 'internasional' ? 'Internasional' : 'BNSP') + '</span></td>' +
+          '<td class="font-bold text-emerald-600">' + p.skorKuis + ' <span class="text-xs text-slate-400 font-normal">(min. ' + s.skorMinimal + ')</span></td>' +
+          '<td>' + UI.formatTanggalSingkat(p.tanggalSelesai) + '</td>' +
+          '<td><div class="flex gap-2"><button data-id="' + p.id + '" class="btn-setujui text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:#0e9488">Setujui &amp; Terbitkan</button><button data-id="' + p.id + '" class="btn-tolak text-xs font-bold text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg hover:bg-rose-50">Tolak</button></div></td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="6" class="text-center text-slate-400 py-8">Tidak ada pengajuan yang menunggu approval.</td></tr>';
+
+      var terbit = Store.getSertifikat().sort(function(a,b){ return b.tanggalTerbit.localeCompare(a.tanggalTerbit); }).slice(0, 8);
+      document.getElementById('tbody-terbit').innerHTML = terbit.length ? terbit.map(function(c){
+        var lengkap = Certificate.lengkapi(c);
+        return '<tr>' +
+          '<td class="font-mono text-xs">' + c.nomor + '</td>' +
+          '<td>' + (lengkap.mahasiswa ? lengkap.mahasiswa.nama : '-') + '</td>' +
+          '<td>' + (lengkap.skema ? lengkap.skema.nama : '-') + '</td>' +
+          '<td>' + UI.formatTanggalSingkat(c.tanggalTerbit) + '</td>' +
+          '<td>' + UI.badgeSertifikat(lengkap.statusEfektif) + '</td>' +
+          '<td>' + (c.status !== 'dicabut' ? '<button data-id="' + c.id + '" class="btn-cabut text-xs font-bold text-rose-600 hover:underline">Cabut</button>' : '<span class="text-xs text-slate-300">—</span>') + '</td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="6" class="text-center text-slate-400 py-8">Belum ada sertifikat diterbitkan.</td></tr>';
+
+      document.querySelectorAll('.btn-setujui').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cert = Store.setujuiSertifikat(btn.dataset.id);
+          UI.toast('Sertifikat diterbitkan: ' + cert.nomor, 'sukses');
+          render();
+        });
+      });
+      document.querySelectorAll('.btn-tolak').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var catatan = window.prompt('Catatan penolakan (opsional):') || '';
+          Store.tolakKelulusan(btn.dataset.id, catatan);
+          UI.toast('Pengajuan ditolak', 'peringatan');
+          render();
+        });
+      });
+      document.querySelectorAll('.btn-cabut').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var catatan = window.prompt('Alasan pencabutan sertifikat:');
+          if (catatan === null) return;
+          Store.cabutSertifikat(btn.dataset.id, catatan);
+          UI.toast('Sertifikat dicabut', 'peringatan');
+          render();
+        });
+      });
+    }
+
+    render();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Pengguna — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="master-user" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div><h1 class="text-xl font-extrabold text-slate-800">Master Pengguna</h1><p class="text-sm text-slate-400 mt-0.5">Kelola akun mahasiswa, instruktur, dan admin lintas universitas.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Pengguna</button>
+    </div>
+
+    <div class="flex bg-slate-100 rounded-lg p-1 mb-6 w-fit" id="tabs">
+      <button data-t="mahasiswa" class="tb-btn text-xs font-bold px-4 py-2 rounded-lg">Mahasiswa</button>
+      <button data-t="instruktur" class="tb-btn text-xs font-bold px-4 py-2 rounded-lg">Instruktur</button>
+      <button data-t="admin" class="tb-btn text-xs font-bold px-4 py-2 rounded-lg">Admin</button>
+    </div>
+
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[720px]" id="tabel"></table>
+    </div>
+  </div>
+</main>
+
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50 overflow-y-auto">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 my-8">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Pengguna</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <div class="flex bg-slate-100 rounded-lg p-1 mb-4 w-fit" id="modal-tabs">
+      <button data-t="mahasiswa" class="mt-btn text-xs font-bold px-4 py-2 rounded-lg">Mahasiswa</button>
+      <button data-t="instruktur" class="mt-btn text-xs font-bold px-4 py-2 rounded-lg">Instruktur</button>
+    </div>
+    <form id="form-mhs" class="space-y-3">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Lengkap</label><input id="mh-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">NPM</label><input id="mh-npm" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Semester</label><input id="mh-semester" type="number" min="1" max="14" value="1" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      </div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Universitas</label><select id="mh-univ" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Program Studi</label><input id="mh-prodi" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Email</label><input id="mh-email" type="email" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg mt-2" style="background:var(--brand-800)">Simpan Mahasiswa</button>
+    </form>
+    <form id="form-ins" class="space-y-3 hidden">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Lengkap &amp; Gelar</label><input id="in-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Universitas</label><select id="in-univ" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Bidang Keahlian</label><input id="in-keahlian" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Email</label><input id="in-email" type="email" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg mt-2" style="background:var(--brand-800)">Simpan Instruktur</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+    var tabAktif = 'mahasiswa';
+
+    function paintTabs() {
+      document.querySelectorAll('.tb-btn').forEach(function(b){
+        var on = b.dataset.t === tabAktif;
+        b.className = 'tb-btn text-xs font-bold px-4 py-2 rounded-lg transition ' + (on ? 'bg-white shadow text-brand-800' : 'text-slate-500');
+      });
+    }
+
+    function renderTabel() {
+      var tabel = document.getElementById('tabel');
+      if (tabAktif === 'mahasiswa') {
+        var mhsList = Store.getMahasiswa();
+        tabel.innerHTML = '<thead><tr><th>Nama</th><th>NPM</th><th>Universitas</th><th>Prodi</th><th>Aksi</th></tr></thead><tbody>' +
+          mhsList.map(function(m){
+            var u = Store.universitasById(m.universitasId);
+            return '<tr><td class="font-semibold">' + m.nama + '</td><td>' + m.npm + '</td><td>' + (u ? u.singkatan : '-') + '</td><td>' + m.prodi + '</td><td><button data-id="' + m.id + '" class="btn-hapus text-xs font-bold text-rose-600 hover:underline">Hapus</button></td></tr>';
+          }).join('') + '</tbody>';
+      } else if (tabAktif === 'instruktur') {
+        var insList = Store.getInstruktur();
+        tabel.innerHTML = '<thead><tr><th>Nama</th><th>Universitas</th><th>Keahlian</th><th>Kelas Diampu</th><th>Aksi</th></tr></thead><tbody>' +
+          insList.map(function(i){
+            var u = Store.universitasById(i.universitasId);
+            var jumlahKelas = Store.getKelas().filter(function(k){ return k.instrukturId === i.id; }).length;
+            return '<tr><td class="font-semibold">' + i.nama + '</td><td>' + (u ? u.singkatan : '-') + '</td><td>' + i.keahlian + '</td><td>' + jumlahKelas + '</td><td><button data-id="' + i.id + '" class="btn-hapus text-xs font-bold text-rose-600 hover:underline">Hapus</button></td></tr>';
+          }).join('') + '</tbody>';
+      } else {
+        tabel.innerHTML = '<thead><tr><th>Nama</th><th>Jabatan</th><th>Email</th></tr></thead><tbody>' +
+          LMS_DATA.admin.map(function(a){ return '<tr><td class="font-semibold">' + a.nama + '</td><td>' + a.jabatan + '</td><td>' + a.email + '</td></tr>'; }).join('') + '</tbody>';
+      }
+
+      document.querySelectorAll('.btn-hapus').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (!confirm('Hapus pengguna ini?')) return;
+          Store.hapus(btn.dataset.id);
+          UI.toast('Pengguna dihapus', 'peringatan');
+          renderTabel();
+        });
+      });
+    }
+
+    document.getElementById('tabs').addEventListener('click', function(e){
+      var btn = e.target.closest('.tb-btn');
+      if (!btn) return;
+      tabAktif = btn.dataset.t;
+      paintTabs();
+      renderTabel();
+    });
+
+    var univOptions = Store.getUniversitas().map(function(u){ return '<option value="' + u.id + '">' + u.nama + '</option>'; }).join('');
+    document.getElementById('mh-univ').innerHTML = univOptions;
+    document.getElementById('in-univ').innerHTML = univOptions;
+
+    var modalTab = 'mahasiswa';
+    function paintModalTabs() {
+      document.querySelectorAll('.mt-btn').forEach(function(b){
+        var on = b.dataset.t === modalTab;
+        b.className = 'mt-btn text-xs font-bold px-4 py-2 rounded-lg transition ' + (on ? 'bg-white shadow text-brand-800' : 'text-slate-500');
+      });
+      document.getElementById('form-mhs').classList.toggle('hidden', modalTab !== 'mahasiswa');
+      document.getElementById('form-ins').classList.toggle('hidden', modalTab !== 'instruktur');
+    }
+    document.getElementById('modal-tabs').addEventListener('click', function(e){
+      var btn = e.target.closest('.mt-btn');
+      if (!btn) return;
+      modalTab = btn.dataset.t;
+      paintModalTabs();
+    });
+
+    function toggleModal(show) {
+      document.getElementById('modal').classList.toggle('hidden', !show);
+      document.getElementById('modal').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('btn-tambah').addEventListener('click', function(){ toggleModal(true); });
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+
+    document.getElementById('form-mhs').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahMahasiswa({
+        nama: document.getElementById('mh-nama').value,
+        npm: document.getElementById('mh-npm').value,
+        universitasId: document.getElementById('mh-univ').value,
+        prodi: document.getElementById('mh-prodi').value,
+        semester: parseInt(document.getElementById('mh-semester').value, 10),
+        email: document.getElementById('mh-email').value
+      });
+      document.getElementById('form-mhs').reset();
+      toggleModal(false);
+      UI.toast('Mahasiswa berhasil ditambahkan', 'sukses');
+      tabAktif = 'mahasiswa'; paintTabs(); renderTabel();
+    });
+
+    document.getElementById('form-ins').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahInstruktur({
+        nama: document.getElementById('in-nama').value,
+        universitasId: document.getElementById('in-univ').value,
+        keahlian: document.getElementById('in-keahlian').value,
+        email: document.getElementById('in-email').value
+      });
+      document.getElementById('form-ins').reset();
+      toggleModal(false);
+      UI.toast('Instruktur berhasil ditambahkan', 'sukses');
+      tabAktif = 'instruktur'; paintTabs(); renderTabel();
+    });
+
+    paintTabs();
+    paintModalTabs();
+    renderTabel();
+  }
+</script>
+</body>
+</html>

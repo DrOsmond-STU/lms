@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Instruktur — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="instruktur" data-active="dashboard" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'instruktur') {
+    var ins = Store.instrukturById(session.userId);
+    var univ = Store.universitasById(ins.universitasId);
+    var kelasSaya = Store.getKelas().filter(function(k){ return k.instrukturId === ins.id; });
+    var pesertaSemua = [];
+    kelasSaya.forEach(function(k){ pesertaSemua = pesertaSemua.concat(Store.pendaftaranByKelas(k.skemaId)); });
+    var lulus = pesertaSemua.filter(function(p){ return p.status === 'lulus'; });
+    var menunggu = pesertaSemua.filter(function(p){ return p.status === 'menunggu_approval'; });
+    var berjalan = pesertaSemua.filter(function(p){ return p.status === 'berjalan' || p.status === 'terdaftar'; });
+    var tingkatLulus = pesertaSemua.length ? Math.round((lulus.length / pesertaSemua.length) * 100) : 0;
+
+    var stat = [
+      { n: kelasSaya.length, l: 'Kelas Diampu', icon: 'layers', bg: 'bg-brand-50 text-brand-700' },
+      { n: pesertaSemua.length, l: 'Total Peserta', icon: 'users', bg: 'bg-blue-50 text-blue-700' },
+      { n: menunggu.length, l: 'Menunggu Approval Admin', icon: 'clock', bg: 'bg-amber-50 text-amber-700' },
+      { n: tingkatLulus + '%', l: 'Tingkat Kelulusan', icon: 'chart', bg: 'bg-emerald-50 text-emerald-700' }
+    ];
+
+    document.getElementById('konten').innerHTML =
+      '<div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Halo, ' + ins.nama.split(',')[0] + ' 👋</h1><p class="text-sm text-slate-400 mt-0.5">' + univ.nama + ' · ' + ins.keahlian + '</p></div>' +
+
+      '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">' +
+        stat.map(function(s){ return '<div class="card p-5 stat-card"><div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3 ' + s.bg + '">' + UI.Icon[s.icon] + '</div><p class="text-2xl font-extrabold text-slate-800">' + s.n + '</p><p class="text-xs text-slate-400 mt-0.5">' + s.l + '</p></div>'; }).join('') +
+      '</div>' +
+
+      '<div class="flex items-center justify-between mb-4"><h2 class="font-bold text-slate-800">Kelas yang Diampu</h2><a href="kelas.html" class="text-xs font-bold text-brand-700">Lihat semua</a></div>' +
+      '<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">' + kelasSaya.map(function(k){
+        var s = Store.skemaById(k.skemaId);
+        var peserta = Store.pendaftaranByKelas(k.skemaId);
+        return '<a href="kelas-kelola.html?id=' + k.id + '" class="card p-5 block hover:shadow-md transition">' +
+          '<div class="mb-3">' + UI.kategoriTag(s.kategori) + '</div>' +
+          '<h3 class="font-bold text-slate-800 text-sm leading-snug mb-2">' + s.nama + '</h3>' +
+          '<p class="text-xs text-slate-400 mb-4">Batch ' + k.batch + ' · ' + k.modul.length + ' modul</p>' +
+          '<div class="flex items-center justify-between text-xs"><span class="font-semibold text-slate-500">' + peserta.length + ' peserta</span><span class="font-bold text-brand-700 flex items-center gap-1">Kelola ' + UI.Icon.arrowRight + '</span></div>' +
+        '</a>';
+      }).join('') + '</div>';
+  }
+</script>
+</body>
+</html>

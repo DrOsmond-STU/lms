@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peserta & Nilai — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="instruktur" data-active="peserta" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Peserta &amp; Nilai</h1><p class="text-sm text-slate-400 mt-0.5">Pantau progres peserta dan berikan nilai kuis secara manual bila diperlukan.</p></div>
+
+    <div class="flex flex-wrap gap-3 mb-5">
+      <select id="filter-kelas" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600"></select>
+      <select id="filter-status" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600">
+        <option value="semua">Semua Status</option>
+        <option value="terdaftar">Terdaftar</option>
+        <option value="berjalan">Berjalan</option>
+        <option value="menunggu_approval">Menunggu Approval</option>
+        <option value="lulus">Lulus</option>
+        <option value="tidak_lulus">Belum Lulus</option>
+      </select>
+    </div>
+
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[760px]">
+        <thead><tr><th>Peserta</th><th>Universitas</th><th>Skema</th><th>Progres</th><th>Skor</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="tbody-peserta"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'instruktur') {
+    var ins = Store.instrukturById(session.userId);
+    var kelasSaya = Store.getKelas().filter(function(k){ return k.instrukturId === ins.id; });
+    var kelasFilterAwal = UI.qs('kelas') || 'semua';
+    var statusFilter = 'semua';
+
+    document.getElementById('filter-kelas').innerHTML = '<option value="semua">Semua Kelas</option>' + kelasSaya.map(function(k){
+      var s = Store.skemaById(k.skemaId);
+      return '<option value="' + k.id + '"' + (k.id === kelasFilterAwal ? ' selected' : '') + '>' + s.nama + '</option>';
+    }).join('');
+
+    function render() {
+      var kelasIdAktif = document.getElementById('filter-kelas').value;
+      var daftarKelas = kelasIdAktif === 'semua' ? kelasSaya : kelasSaya.filter(function(k){ return k.id === kelasIdAktif; });
+      var baris = [];
+      daftarKelas.forEach(function(k){
+        var s = Store.skemaById(k.skemaId);
+        Store.pendaftaranByKelas(k.skemaId).forEach(function(p){
+          if (statusFilter !== 'semua' && p.status !== statusFilter) return;
+          baris.push({ p: p, k: k, s: s });
+        });
+      });
+
+      document.getElementById('tbody-peserta').innerHTML = baris.length ? baris.map(function(row){
+        var mhs = Store.mahasiswaById(row.p.mahasiswaId);
+        var univ = Store.universitasById(mhs.universitasId);
+        return '<tr>' +
+          '<td><div class="flex items-center gap-2.5"><span class="avatar w-8 h-8 text-[11px]">' + UI.inisial(mhs.nama) + '</span><div><p class="font-semibold text-slate-700">' + mhs.nama + '</p><p class="text-xs text-slate-400">' + mhs.npm + '</p></div></div></td>' +
+          '<td>' + univ.singkatan + '</td>' +
+          '<td>' + row.s.nama + '</td>' +
+          '<td><div class="w-28"><div class="progress-track mb-1"><div class="progress-fill" style="width:' + row.p.progres + '%"></div></div><span class="text-xs text-slate-400">' + row.p.progres + '%</span></div></td>' +
+          '<td class="font-semibold">' + (row.p.skorKuis !== null ? row.p.skorKuis : '-') + '</td>' +
+          '<td>' + UI.badgePendaftaran(row.p.status) + '</td>' +
+          '<td><button data-id="' + row.p.id + '" data-min="' + row.s.skorMinimal + '" class="btn-nilai text-xs font-bold text-brand-700 hover:underline">Input/Ubah Nilai</button></td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="7" class="text-center text-slate-400 py-8">Tidak ada peserta pada filter ini.</td></tr>';
+
+      document.querySelectorAll('.btn-nilai').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var nilai = window.prompt('Masukkan skor kuis peserta (0-100):');
+          if (nilai === null) return;
+          var skor = parseInt(nilai, 10);
+          if (isNaN(skor) || skor < 0 || skor > 100) { UI.toast('Skor tidak valid', 'error'); return; }
+          Store.submitKuis(btn.dataset.id, skor, parseInt(btn.dataset.min, 10));
+          UI.toast('Nilai berhasil disimpan', 'sukses');
+          render();
+        });
+      });
+    }
+
+    document.getElementById('filter-kelas').addEventListener('change', render);
+    document.getElementById('filter-status').addEventListener('change', function(e){ statusFilter = e.target.value; render(); });
+    render();
+  }
+</script>
+</body>
+</html>

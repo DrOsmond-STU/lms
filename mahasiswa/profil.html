@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Saya — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="mahasiswa" data-active="profil" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'mahasiswa') {
+    var mhs = Store.mahasiswaById(session.userId);
+    var univ = Store.universitasById(mhs.universitasId);
+    var pendaftaran = Store.pendaftaranMahasiswa(mhs.id);
+    var sertifikat = Store.sertifikatMahasiswa(mhs.id);
+
+    document.getElementById('konten').innerHTML =
+      '<h1 class="text-xl font-extrabold text-slate-800 mb-6">Profil Saya</h1>' +
+      '<div class="grid lg:grid-cols-3 gap-6">' +
+        '<div class="card p-6 text-center h-fit">' +
+          '<span class="avatar w-20 h-20 text-2xl mx-auto mb-4">' + UI.inisial(mhs.nama) + '</span>' +
+          '<p class="font-extrabold text-slate-800">' + mhs.nama + '</p>' +
+          '<p class="text-xs text-slate-400 mt-1">NPM ' + mhs.npm + '</p>' +
+          '<span class="inline-block mt-3 text-[11px] font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Mahasiswa Aktif</span>' +
+          '<div class="grid grid-cols-2 gap-3 mt-6 text-left">' +
+            '<div class="bg-slate-50 rounded-lg p-3"><p class="text-lg font-extrabold text-slate-800">' + pendaftaran.length + '</p><p class="text-[11px] text-slate-400">Sertifikasi Diikuti</p></div>' +
+            '<div class="bg-slate-50 rounded-lg p-3"><p class="text-lg font-extrabold text-slate-800">' + sertifikat.length + '</p><p class="text-[11px] text-slate-400">Sertifikat Terbit</p></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="lg:col-span-2 space-y-6">' +
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-4">Informasi Akademik</h2>' +
+            '<dl class="grid sm:grid-cols-2 gap-4 text-sm">' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Nama Lengkap</dt><dd class="font-semibold text-slate-700">' + mhs.nama + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">NPM</dt><dd class="font-semibold text-slate-700">' + mhs.npm + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Universitas</dt><dd class="font-semibold text-slate-700">' + univ.nama + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Program Studi</dt><dd class="font-semibold text-slate-700">' + mhs.prodi + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Semester</dt><dd class="font-semibold text-slate-700">' + mhs.semester + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Email</dt><dd class="font-semibold text-slate-700">' + mhs.email + '</dd></div>' +
+            '</dl>' +
+            '<p class="text-xs text-slate-400 mt-4">*Data akademik disinkronkan otomatis dari Sistem Informasi Akademik universitas dan tidak dapat diubah di sini.</p>' +
+          '</div>' +
+
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-4">Riwayat Sertifikasi</h2>' +
+            (pendaftaran.length ? '<div class="overflow-x-auto"><table class="w-full table-clean"><thead><tr><th>Skema</th><th>Tgl Daftar</th><th>Status</th><th>Skor</th></tr></thead><tbody>' +
+              pendaftaran.map(function(p){
+                var s = Store.skemaById(p.skemaId);
+                return '<tr><td class="font-semibold">' + s.nama + '</td><td>' + UI.formatTanggalSingkat(p.tanggalDaftar) + '</td><td>' + UI.badgePendaftaran(p.status) + '</td><td>' + (p.skorKuis !== null ? p.skorKuis : '-') + '</td></tr>';
+              }).join('') + '</tbody></table></div>' : '<p class="text-sm text-slate-400">Belum ada riwayat sertifikasi.</p>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+</script>
+</body>
+</html>

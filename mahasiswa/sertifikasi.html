@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilih Sertifikasi — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="mahasiswa" data-active="sertifikasi" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6">
+      <h1 class="text-xl font-extrabold text-slate-800">Pilih Sertifikasi</h1>
+      <p class="text-sm text-slate-400 mt-0.5">Telusuri skema sertifikasi Internasional maupun BNSP — gratis, ditanggung kampus.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-3 items-center mb-6">
+      <div class="flex bg-slate-100 rounded-lg p-1" id="filter-kategori">
+        <button data-k="semua" class="fk-btn text-xs font-bold px-3.5 py-2 rounded-lg">Semua</button>
+        <button data-k="internasional" class="fk-btn text-xs font-bold px-3.5 py-2 rounded-lg">Internasional</button>
+        <button data-k="bnsp" class="fk-btn text-xs font-bold px-3.5 py-2 rounded-lg">BNSP</button>
+      </div>
+      <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-xs text-slate-400">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-4 h-4"><circle cx="10.5" cy="10.5" r="6"/><path d="m20 20-4.3-4.3" stroke-linecap="round"/></svg>
+        <input id="cari" type="text" placeholder="Cari skema sertifikasi..." class="text-sm outline-none w-full text-slate-600">
+      </div>
+    </div>
+
+    <div id="grid-skema" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'mahasiswa') {
+    var mhsId = session.userId;
+    var kategoriAktif = 'semua';
+    var kataKunci = '';
+
+    function render() {
+      var list = Store.getSkema().filter(function(s){
+        var cocokKategori = kategoriAktif === 'semua' || s.kategori === kategoriAktif;
+        var cocokKata = s.nama.toLowerCase().indexOf(kataKunci.toLowerCase()) !== -1 || s.penyelenggara.toLowerCase().indexOf(kataKunci.toLowerCase()) !== -1;
+        return cocokKategori && cocokKata;
+      });
+      document.getElementById('grid-skema').innerHTML = list.length ? list.map(function(s){
+        var pendaftaran = Store.pendaftaranSkema(mhsId, s.id);
+        return '<div class="card p-5 flex flex-col">' +
+          '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(s.kategori) + '<span class="text-[11px] font-bold text-emerald-600">GRATIS</span></div>' +
+          '<h3 class="font-bold text-slate-800 leading-snug mb-1">' + s.nama + '</h3>' +
+          '<p class="text-xs text-slate-400 mb-3">' + s.penyelenggara + '</p>' +
+          '<p class="text-xs text-slate-500 line-clamp-3 mb-4 flex-1">' + s.deskripsi + '</p>' +
+          '<div class="flex items-center gap-3 text-[11px] text-slate-500 mb-4">' +
+            '<span class="flex items-center gap-1">' + UI.Icon.clock + s.durasiJam + ' jam</span><span>·</span><span>' + s.level + '</span>' +
+          '</div>' +
+          '<div class="flex items-center gap-2">' +
+            '<a href="sertifikasi-detail.html?id=' + s.id + '" class="flex-1 text-center text-xs font-bold border border-slate-200 rounded-lg py-2.5 hover:bg-slate-50">Lihat Detail</a>' +
+            (pendaftaran ? '<span class="flex-1 text-center">' + UI.badgePendaftaran(pendaftaran.status) + '</span>' : '<button data-id="' + s.id + '" class="btn-daftar flex-1 text-xs font-bold text-white rounded-lg py-2.5" style="background:var(--brand-800)">Daftar</button>') +
+          '</div>' +
+        '</div>';
+      }).join('') : '<div class="col-span-full card p-10 text-center text-slate-400 text-sm">Tidak ada skema yang cocok dengan pencarian Anda.</div>';
+    }
+
+    document.getElementById('filter-kategori').addEventListener('click', function(e){
+      var btn = e.target.closest('.fk-btn');
+      if (!btn) return;
+      kategoriAktif = btn.dataset.k;
+      paintFilter();
+      render();
+    });
+    function paintFilter() {
+      document.querySelectorAll('.fk-btn').forEach(function(b){
+        var aktif = b.dataset.k === kategoriAktif;
+        b.className = 'fk-btn text-xs font-bold px-3.5 py-2 rounded-lg transition ' + (aktif ? 'bg-white shadow text-brand-800' : 'text-slate-500');
+      });
+    }
+    document.getElementById('cari').addEventListener('input', function(e){ kataKunci = e.target.value; render(); });
+    document.getElementById('grid-skema').addEventListener('click', function(e){
+      var btn = e.target.closest('.btn-daftar');
+      if (!btn) return;
+      Store.daftarSertifikasi(mhsId, btn.dataset.id);
+      UI.toast('Berhasil mendaftar sertifikasi!', 'sukses');
+      render();
+    });
+
+    paintFilter();
+    render();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+/* STU LMS — purwarupa: gaya tambahan di luar utility Tailwind */
+
+:root {
+  --brand-900: #0b2f52;
+  --brand-800: #0e3a63;
+  --brand-700: #124a7d;
+  --brand-600: #1a5c97;
+  --brand-500: #2470b3;
+  --accent-500: #14b8a6;
+  --gold-500: #d4a017;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar halus */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Sidebar link aktif */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #cbd8e8;
+  transition: background-color .15s ease, color .15s ease;
+}
+.nav-link:hover { background-color: rgba(255,255,255,0.08); color: #fff; }
+.nav-link.active { background-color: var(--accent-500); color: #06251f; font-weight: 700; }
+.nav-link .nav-icon { width: 1.15rem; height: 1.15rem; flex-shrink: 0; }
+
+.nav-group-label {
+  font-size: 0.68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #7c93ad;
+  padding: 0.9rem 0.85rem 0.3rem;
+  font-weight: 700;
+}
+
+/* Kartu */
+.card {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid #e6ebf1;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+/* Badge status */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badge-dot { width: .4rem; height: .4rem; border-radius: 999px; }
+
+.badge-hijau { background: #dcfce7; color: #166534; }
+.badge-hijau .badge-dot { background: #22c55e; }
+.badge-biru { background: #dbeafe; color: #1e40af; }
+.badge-biru .badge-dot { background: #3b82f6; }
+.badge-kuning { background: #fef3c7; color: #92400e; }
+.badge-kuning .badge-dot { background: #f59e0b; }
+.badge-merah { background: #fee2e2; color: #991b1b; }
+.badge-merah .badge-dot { background: #ef4444; }
+.badge-abu { background: #f1f5f9; color: #475569; }
+.badge-abu .badge-dot { background: #94a3b8; }
+.badge-ungu { background: #ede9fe; color: #5b21b6; }
+.badge-ungu .badge-dot { background: #8b5cf6; }
+
+/* Tag kategori skema */
+.tag-internasional { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+.tag-bnsp { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+
+/* Progress bar */
+.progress-track { background: #eef1f5; border-radius: 999px; height: .5rem; overflow: hidden; }
+.progress-fill { background: linear-gradient(90deg, var(--brand-600), var(--accent-500)); height: 100%; border-radius: 999px; transition: width .4s ease; }
+
+/* Opsi kuis */
+.quiz-opsi {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: .75rem .9rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: .75rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.quiz-opsi:hover { border-color: var(--brand-500); background: #f7fafc; }
+.quiz-opsi.dipilih { border-color: var(--brand-600); background: #eaf3fb; }
+.quiz-opsi.benar { border-color: #22c55e; background: #f0fdf4; }
+.quiz-opsi.salah { border-color: #ef4444; background: #fef2f2; }
+
+/* Modul list */
+.modul-item { display: flex; align-items: center; gap: .85rem; padding: .85rem 1rem; border-radius: .75rem; border: 1px solid #e6ebf1; }
+.modul-item.selesai { background: #f0fdf9; border-color: #ccf3e8; }
+
+/* Skeleton avatar */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--brand-700);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120px 80px at 100% 0%, rgba(20,184,166,.10), transparent 70%);
+  pointer-events: none;
+}
+
+.certificate-frame {
+  background: linear-gradient(135deg, #0b2f52 0%, #124a7d 55%, #14b8a6 130%);
+}
+
+[x-cloak] { display: none !important; }
+
+.fade-in { animation: fadeIn .35s ease both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+.table-clean th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; padding: .65rem .9rem; border-bottom: 1px solid #e6ebf1; }
+.table-clean td { padding: .8rem .9rem; border-bottom: 1px solid #f1f5f9; font-size: .875rem; color: #1e293b; }
+.table-clean tr:last-child td { border-bottom: none; }

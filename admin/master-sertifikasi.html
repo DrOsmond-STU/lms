@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Skema Sertifikasi — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="master-sertifikasi" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div><h1 class="text-xl font-extrabold text-slate-800">Master Skema Sertifikasi</h1><p class="text-sm text-slate-400 mt-0.5">Kelola skema sertifikasi Internasional &amp; BNSP yang tersedia.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Skema</button>
+    </div>
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[820px]">
+        <thead><tr><th>Skema</th><th>Kategori</th><th>Penyelenggara</th><th>Level</th><th>Durasi</th><th>Skor Min.</th><th>Aksi</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50 overflow-y-auto">
+  <div class="bg-white rounded-2xl w-full max-w-lg p-6 my-8">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Skema Sertifikasi</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Skema</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kategori</label><select id="f-kategori" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="internasional">Internasional</option><option value="bnsp">BNSP</option></select></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kode Skema</label><input id="f-kode" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      </div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Penyelenggara / LSP</label><input id="f-penyelenggara" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Level</label><input id="f-level" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Durasi (jam)</label><input id="f-durasi" type="number" min="1" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Skor Min.</label><input id="f-skor" type="number" min="0" max="100" value="70" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      </div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Deskripsi</label><textarea id="f-deskripsi" rows="3" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></textarea></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Skema</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    function render() {
+      var list = Store.getSkema();
+      document.getElementById('tbody').innerHTML = list.map(function(s){
+        return '<tr>' +
+          '<td class="font-semibold">' + s.nama + '<br><span class="text-xs text-slate-400 font-normal font-mono">' + s.kodeSkema + '</span></td>' +
+          '<td>' + UI.kategoriTag(s.kategori) + '</td>' +
+          '<td>' + s.penyelenggara + '</td>' +
+          '<td>' + s.level + '</td>' +
+          '<td>' + s.durasiJam + ' jam</td>' +
+          '<td>' + s.skorMinimal + '</td>' +
+          '<td><button data-id="' + s.id + '" class="btn-hapus text-xs font-bold text-rose-600 hover:underline">Hapus</button></td>' +
+        '</tr>';
+      }).join('');
+
+      document.querySelectorAll('.btn-hapus').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (!confirm('Hapus skema sertifikasi ini?')) return;
+          Store.hapus(btn.dataset.id);
+          UI.toast('Skema dihapus', 'peringatan');
+          render();
+        });
+      });
+    }
+
+    function toggleModal(show) {
+      document.getElementById('modal').classList.toggle('hidden', !show);
+      document.getElementById('modal').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('btn-tambah').addEventListener('click', function(){ toggleModal(true); });
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+
+    document.getElementById('form').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahSkema({
+        nama: document.getElementById('f-nama').value,
+        kategori: document.getElementById('f-kategori').value,
+        kodeSkema: document.getElementById('f-kode').value,
+        penyelenggara: document.getElementById('f-penyelenggara').value,
+        level: document.getElementById('f-level').value,
+        durasiJam: parseInt(document.getElementById('f-durasi').value, 10),
+        skorMinimal: parseInt(document.getElementById('f-skor').value, 10),
+        deskripsi: document.getElementById('f-deskripsi').value,
+        tags: []
+      });
+      document.getElementById('form').reset();
+      toggleModal(false);
+      UI.toast('Skema sertifikasi berhasil ditambahkan', 'sukses');
+      render();
+    });
+
+    render();
+  }
+</script>
+</body>
+</html>

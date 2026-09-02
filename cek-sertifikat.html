@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cek Sertifikat — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<header class="bg-white border-b border-slate-100">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-sm text-white" style="background:var(--brand-800)">STU</div>
+      <div class="leading-tight"><p class="font-extrabold text-slate-800 text-sm">STU LMS</p><p class="text-[11px] text-slate-400 -mt-0.5">Validasi Sertifikat</p></div>
+    </a>
+    <a href="login.html" class="text-sm font-bold px-4 py-2 rounded-lg text-white" style="background:var(--brand-800)">Masuk ke LMS</a>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+  <div class="text-center mb-8">
+    <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-brand-50 text-brand-700 px-3 py-1.5 rounded-full mb-4">Validasi Publik</span>
+    <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">Cek Keaslian Sertifikat</h1>
+    <p class="text-slate-500 mt-2 max-w-lg mx-auto">Masukkan nomor sertifikat yang tertera pada dokumen, atau pindai QR code pada sertifikat untuk memverifikasi keasliannya.</p>
+  </div>
+
+  <form id="form-cek" class="card p-3 flex flex-col sm:flex-row gap-2 mb-8">
+    <input id="input-nomor" type="text" placeholder="Contoh: INTL/AWS-CCP/USTU/2026/00001" class="flex-1 px-4 py-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
+    <button type="submit" class="font-bold text-white px-6 py-3 rounded-lg" style="background:var(--brand-800)">Cek Sertifikat</button>
+  </form>
+
+  <div id="hasil" class="fade-in"></div>
+
+  <div id="contoh-nomor" class="mt-10">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Coba nomor contoh</p>
+    <div id="contoh-list" class="flex flex-wrap gap-2"></div>
+  </div>
+</main>
+
+<footer class="text-center text-xs text-slate-400 pb-10">© 2026 Semesta Teknologi Utama — Purwarupa STU LMS</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="assets/js/certificate.js"></script>
+<script>
+  function kartuHasil(nomor) {
+    var hasil = Certificate.cari(nomor);
+    if (!hasil) {
+      return '<div class="card p-8 text-center border-rose-200">' +
+        '<div class="w-14 h-14 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">' + UI.Icon.x + '</div>' +
+        '<h3 class="font-bold text-slate-800">Sertifikat Tidak Ditemukan</h3>' +
+        '<p class="text-sm text-slate-500 mt-1">Nomor "<span class="font-mono font-semibold">' + nomor.replace(/</g,'') + '</span>" tidak terdaftar di sistem STU LMS. Periksa kembali penulisan nomor sertifikat.</p>' +
+      '</div>';
+    }
+    var st = hasil.statusEfektif;
+    var warna = st === 'aktif' ? { ring: 'border-emerald-200', icon: 'bg-emerald-50 text-emerald-600' } : st === 'kedaluwarsa' ? { ring: 'border-amber-200', icon: 'bg-amber-50 text-amber-600' } : { ring: 'border-rose-200', icon: 'bg-rose-50 text-rose-600' };
+    var mhs = hasil.mahasiswa, skema = hasil.skema, univ = hasil.universitas, cert = hasil.cert;
+    return '<div class="card p-0 overflow-hidden ' + warna.ring + '">' +
+      '<div class="certificate-frame p-6 text-white">' +
+        '<div class="flex items-start justify-between gap-3">' +
+          '<div>' + UI.kategoriTag(skema ? skema.kategori : '') + '<p class="font-extrabold text-lg mt-2 leading-snug">' + (skema ? skema.nama : '-') + '</p><p class="text-xs text-white/70 mt-1">' + (skema ? skema.penyelenggara : '-') + '</p></div>' +
+          UI.badgeSertifikat(st) +
+        '</div>' +
+      '</div>' +
+      '<div class="p-6">' +
+        '<div class="flex items-center gap-3 mb-5">' +
+          '<span class="avatar w-11 h-11 text-sm" style="background:var(--brand-700)">' + (mhs ? UI.inisial(mhs.nama) : '?') + '</span>' +
+          '<div><p class="font-bold text-slate-800">' + (mhs ? mhs.nama : '-') + '</p><p class="text-xs text-slate-400">' + (mhs ? 'NPM ' + mhs.npm : '') + (univ ? ' · ' + univ.nama : '') + '</p></div>' +
+        '</div>' +
+        '<dl class="grid sm:grid-cols-2 gap-4 text-sm">' +
+          '<div><dt class="text-xs text-slate-400 mb-0.5">Nomor Sertifikat</dt><dd class="font-mono font-semibold text-slate-700">' + cert.nomor + '</dd></div>' +
+          '<div><dt class="text-xs text-slate-400 mb-0.5">Status</dt><dd>' + UI.badgeSertifikat(st) + '</dd></div>' +
+          '<div><dt class="text-xs text-slate-400 mb-0.5">Tanggal Terbit</dt><dd class="font-semibold text-slate-700">' + UI.formatTanggal(cert.tanggalTerbit) + '</dd></div>' +
+          '<div><dt class="text-xs text-slate-400 mb-0.5">Berlaku Hingga</dt><dd class="font-semibold text-slate-700">' + UI.formatTanggal(cert.berlakuHingga) + '</dd></div>' +
+        '</dl>' +
+        (st === 'dicabut' && cert.catatanPencabutan ? '<p class="mt-4 text-xs bg-rose-50 text-rose-700 rounded-lg p-3">Catatan pencabutan: ' + cert.catatanPencabutan + '</p>' : '') +
+        (st === 'aktif' ? '<p class="mt-4 text-xs bg-emerald-50 text-emerald-700 rounded-lg p-3">Sertifikat ini tervalidasi asli dan diterbitkan resmi oleh STU LMS.</p>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  function jalankanPencarian(nomor) {
+    document.getElementById('hasil').innerHTML = kartuHasil(nomor);
+  }
+
+  document.getElementById('form-cek').addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = document.getElementById('input-nomor').value.trim();
+    if (!v) return;
+    jalankanPencarian(v);
+  });
+
+  var contohNomor = Store.getSertifikat().slice(0,3).map(function(c){ return c.nomor; });
+  document.getElementById('contoh-list').innerHTML = contohNomor.map(function(n){
+    return '<button data-n="' + n + '" class="contoh-btn text-xs font-mono bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:border-brand-400 hover:text-brand-700">' + n + '</button>';
+  }).join('');
+  document.getElementById('contoh-list').addEventListener('click', function(e){
+    var btn = e.target.closest('.contoh-btn');
+    if (!btn) return;
+    document.getElementById('input-nomor').value = btn.dataset.n;
+    jalankanPencarian(btn.dataset.n);
+  });
+
+  var noParam = UI.qs('no');
+  if (noParam) {
+    document.getElementById('input-nomor').value = noParam;
+    jalankanPencarian(noParam);
+  }
+</script>
+</body>
+</html>
