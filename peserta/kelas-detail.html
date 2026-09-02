@@ -17,7 +17,7 @@
     fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
   } } }
 </script>
-<link rel="stylesheet" href="../assets/css/style.css?v=4">
+<link rel="stylesheet" href="../assets/css/style.css?v=5">
 <style>
   .kelas-tab{white-space:nowrap;font-size:.8rem;font-weight:700;padding:.55rem 1rem;border-radius:.5rem;color:#64748b;flex-shrink:0;}
   .kelas-tab.active{background:#fff;color:var(--brand-800);box-shadow:0 1px 2px rgba(16,24,40,.08);}
@@ -31,10 +31,10 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
 </main>
 
-<script src="../assets/js/data.js?v=4"></script>
-<script src="../assets/js/store.js?v=4"></script>
-<script src="../assets/js/ui.js?v=4"></script>
-<script src="../assets/js/layout.js?v=4"></script>
+<script src="../assets/js/data.js?v=5"></script>
+<script src="../assets/js/store.js?v=5"></script>
+<script src="../assets/js/ui.js?v=5"></script>
+<script src="../assets/js/layout.js?v=5"></script>
 <script>
   var session = Store.getSession();
   if (session && session.role === 'peserta') {
@@ -128,7 +128,7 @@
           '<div class="rounded-xl border-2 border-dashed border-slate-200 p-10 text-center mb-5">' +
             '<span class="w-14 h-14 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-3">' + UI.Icon.doc + '</span>' +
             '<p class="text-sm font-semibold text-slate-600">Materi PDF (' + m.durasi + ')</p>' +
-            '<p class="text-xs text-slate-400 mt-1">Pratinjau dokumen tidak tersedia pada purwarupa ini.</p>' +
+            '<p class="text-xs text-slate-400 mt-1">Pratinjau dokumen akan segera tersedia.</p>' +
           '</div>' +
           '<h2 class="font-bold text-slate-800 mb-2">' + m.judul + '</h2>' +
           '<p class="text-sm text-slate-500 mb-5">Pelajari materi PDF di atas, lalu tandai modul ini sebagai selesai untuk melanjutkan progres Anda.</p>' +
@@ -362,7 +362,7 @@
       }
       function bindLive() {
         document.querySelectorAll('.btn-join-live').forEach(function(btn){
-          btn.addEventListener('click', function(){ UI.toast('Simulasi: membuka ' + btn.dataset.link, 'info'); });
+          btn.addEventListener('click', function(){ UI.toast('Membuka ' + btn.dataset.link, 'info'); });
         });
       }
 

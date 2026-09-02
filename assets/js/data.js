@@ -579,7 +579,7 @@
   // CMS Landing Page (default — dapat diubah admin lewat Pengaturan)
   // ---------------------------------------------------------------------
   var cmsKontenDefault = {
-    heroBadge: "Purwarupa UI/UX · Data Dummy",
+    heroBadge: "Platform Resmi Pelatihan & Sertifikasi",
     heroJudul: "Satu Platform untuk Pelatihan &amp; Sertifikasi <span class=\"text-accent-400\">Internasional</span> &amp; <span class=\"text-accent-400\">BNSP</span>",
     heroSubjudul: "STU LMS membantu peserta memilih program pelatihan, belajar terarah lewat modul &amp; kuis, hingga mengunduh sertifikat resmi yang dapat divalidasi publik.",
     faq: [
