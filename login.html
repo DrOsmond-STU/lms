@@ -31,7 +31,7 @@
     </a>
     <div class="relative">
       <h1 class="text-3xl font-extrabold leading-tight mb-4">Belajar terarah, lulus dengan sertifikat yang diakui.</h1>
-      <p class="text-white/70 max-w-md">Kelola pembelajaran sertifikasi Internasional &amp; BNSP mahasiswa Anda dalam satu platform — mulai dari pendaftaran, materi, kuis, hingga penerbitan sertifikat.</p>
+      <p class="text-white/70 max-w-md">Kelola pembelajaran sertifikasi Internasional &amp; BNSP peserta Anda dalam satu platform — mulai dari pendaftaran, materi, kuis, hingga penerbitan sertifikat.</p>
     </div>
     <p class="relative text-xs text-white/40">© 2026 Semesta Teknologi Utama — Purwarupa STU LMS</p>
   </div>
@@ -43,30 +43,72 @@
         <p class="font-extrabold text-slate-800">STU LMS</p>
       </div>
 
-      <h2 class="text-xl font-extrabold text-slate-800">Masuk ke Akun Anda</h2>
-      <p class="text-sm text-slate-400 mt-1 mb-6">Purwarupa demo — pilih peran, lalu klik Masuk (kata sandi bebas).</p>
-
-      <div class="grid grid-cols-3 gap-2 mb-6 p-1 bg-slate-100 rounded-xl" id="role-tabs">
-        <button data-role="mahasiswa" class="role-tab text-xs font-bold py-2 rounded-lg">Mahasiswa</button>
-        <button data-role="instruktur" class="role-tab text-xs font-bold py-2 rounded-lg">Instruktur</button>
-        <button data-role="admin" class="role-tab text-xs font-bold py-2 rounded-lg">Admin</button>
+      <div class="flex bg-slate-100 rounded-xl p-1 mb-6" id="outer-tabs">
+        <button data-tab="masuk" class="outer-tab flex-1 text-sm font-bold py-2 rounded-lg">Masuk</button>
+        <button data-tab="daftar" class="outer-tab flex-1 text-sm font-bold py-2 rounded-lg">Daftar</button>
       </div>
 
-      <div id="demo-info" class="card p-4 mb-5 flex items-center gap-3 fade-in"></div>
+      <div id="panel-masuk">
+        <h2 class="text-xl font-extrabold text-slate-800">Masuk ke Akun Anda</h2>
+        <p class="text-sm text-slate-400 mt-1 mb-6">Purwarupa demo — pilih peran, lalu klik Masuk (kata sandi bebas).</p>
 
-      <form id="login-form" class="space-y-4">
-        <div>
-          <label class="text-xs font-bold text-slate-500 mb-1 block">Email</label>
-          <input id="email-input" type="email" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
+        <div class="grid grid-cols-3 gap-2 mb-6 p-1 bg-slate-100 rounded-xl" id="role-tabs">
+          <button data-role="peserta" class="role-tab text-xs font-bold py-2 rounded-lg">Peserta</button>
+          <button data-role="trainer" class="role-tab text-xs font-bold py-2 rounded-lg">Trainer</button>
+          <button data-role="admin" class="role-tab text-xs font-bold py-2 rounded-lg">Admin</button>
         </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 mb-1 block">Kata Sandi</label>
-          <input id="password-input" type="password" placeholder="•••••••• (bebas, ini demo)" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
-        </div>
-        <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg transition" style="background:var(--brand-800)">Masuk sebagai <span id="btn-role-label">Mahasiswa</span></button>
-      </form>
 
-      <p class="text-center text-xs text-slate-400 mt-6"><a href="cek-sertifikat.html" class="font-bold text-brand-700">Cek Sertifikat</a> tanpa perlu masuk &nbsp;·&nbsp; <a href="index.html" class="font-bold text-brand-700">Kembali ke Beranda</a></p>
+        <div id="demo-info" class="card p-4 mb-5 flex items-center gap-3 fade-in"></div>
+
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label class="text-xs font-bold text-slate-500 mb-1 block">Email</label>
+            <input id="email-input" type="email" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1"><label class="text-xs font-bold text-slate-500 block">Kata Sandi</label><a href="forgot-password.html" class="text-xs font-bold text-brand-700">Lupa Kata Sandi?</a></div>
+            <input id="password-input" type="password" placeholder="•••••••• (bebas, ini demo)" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500" required>
+          </div>
+          <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg transition" style="background:var(--brand-800)">Masuk sebagai <span id="btn-role-label">Peserta</span></button>
+        </form>
+
+        <div class="flex items-center gap-3 my-5"><div class="flex-1 h-px bg-slate-200"></div><span class="text-xs text-slate-400">atau</span><div class="flex-1 h-px bg-slate-200"></div></div>
+        <button id="btn-google" type="button" class="w-full flex items-center justify-center gap-2 border border-slate-200 rounded-lg py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">
+          <svg viewBox="0 0 24 24" class="w-4 h-4"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1C3.4 21.3 7.4 24 12 24Z"/><path fill="#FBBC05" d="M5.4 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.4C.5 8.3 0 10.1 0 12s.5 3.7 1.4 5.4l4-3.1Z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.4 0 3.4 2.7 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8Z"/></svg>
+          Masuk dengan Google
+        </button>
+
+        <p class="text-center text-xs text-slate-400 mt-6"><a href="cek-sertifikat.html" class="font-bold text-brand-700">Cek Sertifikat</a> tanpa perlu masuk &nbsp;·&nbsp; <a href="index.html" class="font-bold text-brand-700">Kembali ke Beranda</a></p>
+      </div>
+
+      <div id="panel-daftar" class="hidden">
+        <div id="daftar-step-1">
+          <h2 class="text-xl font-extrabold text-slate-800">Buat Akun Peserta</h2>
+          <p class="text-sm text-slate-400 mt-1 mb-6">Pendaftaran akun Trainer/Admin dilakukan oleh administrator organisasi Anda.</p>
+          <form id="form-daftar" class="space-y-4">
+            <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Lengkap</label><input id="d-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"></div>
+            <div><label class="text-xs font-bold text-slate-500 mb-1 block">Email atau Nomor HP</label><input id="d-email" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"></div>
+            <div><label class="text-xs font-bold text-slate-500 mb-1 block">Organisasi</label><select id="d-org" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+            <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kata Sandi</label><input id="d-pw" type="password" required placeholder="Minimal 8 karakter" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40"></div>
+            <label class="flex items-start gap-2 text-xs text-slate-500"><input id="d-terms" type="checkbox" required class="mt-0.5"> Saya menyetujui <a href="syarat-ketentuan.html" class="font-bold text-brand-700" target="_blank">Syarat &amp; Ketentuan</a> dan <a href="privasi.html" class="font-bold text-brand-700" target="_blank">Kebijakan Privasi</a>.</label>
+            <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Daftar &amp; Kirim Kode OTP</button>
+          </form>
+        </div>
+        <div id="daftar-step-2" class="hidden">
+          <h2 class="text-xl font-extrabold text-slate-800">Verifikasi Akun</h2>
+          <p class="text-sm text-slate-400 mt-1 mb-6">Masukkan kode OTP yang "dikirim" ke <span id="d-email-tampil" class="font-semibold text-slate-600"></span>. Untuk purwarupa ini, gunakan kode <span class="font-mono font-bold text-brand-700">123456</span>.</p>
+          <form id="form-daftar-otp" class="space-y-4">
+            <input id="d-otp" type="text" inputmode="numeric" maxlength="6" required placeholder="123456" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm tracking-[0.3em] font-mono text-center focus:outline-none focus:ring-2 focus:ring-brand-500/40">
+            <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Verifikasi &amp; Aktifkan Akun</button>
+          </form>
+        </div>
+        <div id="daftar-step-3" class="hidden text-center py-4">
+          <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><path d="m4.5 12.5 5 5 10-11" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h2 class="text-lg font-extrabold text-slate-800 mb-1">Akun Berhasil Dibuat</h2>
+          <p class="text-sm text-slate-400 mb-6">Untuk mencoba pengalaman lengkap, silakan masuk memakai akun demo pada tab Masuk.</p>
+          <button id="btn-ke-masuk" type="button" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Ke Halaman Masuk</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -76,11 +118,11 @@
 <script src="assets/js/ui.js"></script>
 <script>
   var ROLES = {
-    mahasiswa: { label: 'Mahasiswa', nama: 'Raka Prasetya', email: 'raka.prasetya@stu.ac.id', sub: 'Teknik Informatika · Universitas Semesta Teknologi Utama', dest: 'mahasiswa/dashboard.html' },
-    instruktur: { label: 'Instruktur', nama: 'Dr. Andi Wijaya, S.Kom., M.T.', email: 'andi.wijaya@stu.ac.id', sub: 'Instruktur Cloud Computing & Infrastruktur', dest: 'instruktur/dashboard.html' },
-    admin: { label: 'Admin', nama: 'Dewi Anggraini', email: 'dewi.anggraini@semestateknologiutama.com', sub: 'Super Admin LMS · Multi-Universitas', dest: 'admin/dashboard.html' }
+    peserta: { label: 'Peserta', nama: 'Raka Prasetya', email: 'raka.prasetya@stu.ac.id', sub: 'Teknik Informatika · Universitas Semesta Teknologi Utama', dest: 'peserta/dashboard.html' },
+    trainer: { label: 'Trainer', nama: 'Dr. Andi Wijaya, S.Kom., M.T.', email: 'andi.wijaya@stu.ac.id', sub: 'Trainer Cloud Computing & Infrastruktur', dest: 'trainer/dashboard.html' },
+    admin: { label: 'Admin', nama: 'Dewi Anggraini', email: 'dewi.anggraini@semestateknologiutama.com', sub: 'Super Admin LMS · Multi-Organisasi', dest: 'admin/dashboard.html' }
   };
-  var currentRole = 'mahasiswa';
+  var currentRole = 'peserta';
 
   function paint() {
     document.querySelectorAll('.role-tab').forEach(function(btn){
@@ -112,6 +154,50 @@
   var redirectRole = UI.qs('peran');
   if (redirectRole && ROLES[redirectRole]) currentRole = redirectRole;
   paint();
+
+  // Tab luar: Masuk / Daftar
+  function paintOuterTabs(tab) {
+    document.querySelectorAll('.outer-tab').forEach(function(b){
+      var on = b.dataset.tab === tab;
+      b.className = 'outer-tab flex-1 text-sm font-bold py-2 rounded-lg transition ' + (on ? 'bg-white shadow text-brand-800' : 'text-slate-500');
+    });
+    document.getElementById('panel-masuk').classList.toggle('hidden', tab !== 'masuk');
+    document.getElementById('panel-daftar').classList.toggle('hidden', tab !== 'daftar');
+  }
+  document.getElementById('outer-tabs').addEventListener('click', function(e){
+    var btn = e.target.closest('.outer-tab');
+    if (!btn) return;
+    paintOuterTabs(btn.dataset.tab);
+  });
+  paintOuterTabs('masuk');
+
+  document.getElementById('btn-google').addEventListener('click', function(){
+    UI.toast('Simulasi: akan mengarahkan ke autentikasi Google (SSO belum aktif di purwarupa ini)', 'info');
+  });
+
+  // Daftar (Register) — simulasi OTP
+  document.getElementById('d-org').innerHTML = Store.getUniversitas().map(function(u){ return '<option value="' + u.id + '">' + u.nama + '</option>'; }).join('');
+
+  document.getElementById('form-daftar').addEventListener('submit', function(e){
+    e.preventDefault();
+    document.getElementById('d-email-tampil').textContent = document.getElementById('d-email').value;
+    document.getElementById('daftar-step-1').classList.add('hidden');
+    document.getElementById('daftar-step-2').classList.remove('hidden');
+    UI.toast('Kode OTP terkirim (simulasi)', 'info');
+  });
+  document.getElementById('form-daftar-otp').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (document.getElementById('d-otp').value.trim() !== '123456') { UI.toast('Kode OTP salah. Gunakan 123456 untuk demo ini.', 'error'); return; }
+    document.getElementById('daftar-step-2').classList.add('hidden');
+    document.getElementById('daftar-step-3').classList.remove('hidden');
+  });
+  document.getElementById('btn-ke-masuk').addEventListener('click', function(){
+    paintOuterTabs('masuk');
+    document.getElementById('daftar-step-1').classList.remove('hidden');
+    document.getElementById('daftar-step-2').classList.add('hidden');
+    document.getElementById('daftar-step-3').classList.add('hidden');
+    document.getElementById('form-daftar').reset();
+  });
 </script>
 </body>
 </html>

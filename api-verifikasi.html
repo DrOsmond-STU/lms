@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Verifikasi Sertifikat — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .code-block{background:#0b1220;color:#d1e7ff;border-radius:.85rem;padding:1.1rem 1.25rem;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.8rem;line-height:1.6;overflow-x:auto;white-space:pre;}
+</style>
+</head>
+<body class="bg-white text-slate-800">
+
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center font-extrabold text-sm text-white" style="background:var(--brand-800)">STU</div>
+      <p class="font-extrabold text-slate-800 text-sm">STU LMS</p>
+    </a>
+    <a href="login.html" class="text-sm font-bold px-4 py-2 rounded-lg text-white" style="background:var(--brand-800)">Masuk ke LMS</a>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+  <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-brand-50 text-brand-700 px-3 py-1.5 rounded-full mb-4">Untuk Pengembang &amp; Mitra</span>
+  <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-3">API Verifikasi Sertifikat</h1>
+  <p class="text-sm text-slate-500 max-w-2xl mb-10">STU LMS menyediakan API publik untuk memvalidasi sertifikat secara otomatis dari sistem pihak ketiga — portal HRIS perusahaan, sistem rekrutmen, atau aplikasi mitra lainnya — tanpa perlu login.</p>
+
+  <div class="card p-6 mb-8">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="badge badge-hijau"><span class="badge-dot"></span>GET</span>
+      <code class="text-sm font-mono text-slate-700">/api/v1/certificates/verify/{code}</code>
+    </div>
+    <p class="text-sm text-slate-500 mb-4">Mengembalikan status sertifikat dan informasi non-sensitif yang telah diizinkan untuk dipublikasikan.</p>
+
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Contoh Permintaan</p>
+    <div class="code-block mb-5">curl -X GET "https://lms.semestateknologiutama.com/api/v1/certificates/verify/INTL%2FAWS-CCP%2FUSTU%2F2026%2F00001" \
+  -H "Authorization: Bearer &lt;API_KEY&gt;"</div>
+
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Contoh Respons (200 OK)</p>
+    <div class="code-block">{
+  "status": "valid",
+  "certificate_number": "INTL/AWS-CCP/USTU/2026/00001",
+  "participant": "Raka Prasetya",
+  "course": "AWS Certified Cloud Practitioner",
+  "issued_date": "2026-02-22",
+  "valid_until": "2029-02-22",
+  "verification_url": "https://lms.semestateknologiutama.com/cek-sertifikat.html?no=INTL%2FAWS-CCP%2FUSTU%2F2026%2F00001"
+}</div>
+  </div>
+
+  <div class="card p-6 mb-8">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Kemungkinan Nilai <code>status</code></p>
+    <div class="flex flex-wrap gap-2 mb-2">
+      <span class="badge badge-hijau"><span class="badge-dot"></span>valid</span>
+      <span class="badge badge-kuning"><span class="badge-dot"></span>expired</span>
+      <span class="badge badge-merah"><span class="badge-dot"></span>revoked</span>
+      <span class="badge badge-abu"><span class="badge-dot"></span>not_found</span>
+    </div>
+  </div>
+
+  <div class="card p-6">
+    <p class="font-bold text-slate-800 mb-1">Coba Sekarang</p>
+    <p class="text-sm text-slate-500 mb-4">Simulasi permintaan API menggunakan data purwarupa ini (dijalankan di browser Anda, tidak ada server sungguhan).</p>
+    <form id="form-try" class="flex flex-col sm:flex-row gap-2 mb-5">
+      <input id="input-code" type="text" placeholder="Contoh: INTL/AWS-CCP/USTU/2026/00001" class="flex-1 px-4 py-3 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
+      <button type="submit" class="font-bold text-white px-6 py-3 rounded-lg" style="background:var(--brand-800)">Kirim Request</button>
+    </form>
+    <div id="hasil-try"></div>
+  </div>
+</main>
+
+<footer class="text-center text-xs text-slate-400 pb-10 pt-16">© 2026 Semesta Teknologi Utama — Purwarupa STU LMS</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/certificate.js"></script>
+<script>
+  function origin() { return window.location.origin + window.location.pathname.replace(/[^/]*$/, ''); }
+
+  document.getElementById('form-try').addEventListener('submit', function(e){
+    e.preventDefault();
+    var kode = document.getElementById('input-code').value.trim();
+    var hasilEl = document.getElementById('hasil-try');
+    if (!kode) return;
+    var lengkap = Certificate.cari(kode);
+    var respons, statusHttp;
+    if (!lengkap) {
+      respons = { status: 'not_found', certificate_number: kode };
+      statusHttp = '404 Not Found';
+    } else {
+      var statusMap = { aktif: 'valid', kedaluwarsa: 'expired', dicabut: 'revoked' };
+      respons = {
+        status: statusMap[lengkap.statusEfektif] || lengkap.statusEfektif,
+        certificate_number: lengkap.cert.nomor,
+        participant: lengkap.peserta ? lengkap.peserta.nama : null,
+        course: lengkap.pelatihan ? lengkap.pelatihan.nama : null,
+        issued_date: lengkap.cert.tanggalTerbit,
+        valid_until: lengkap.cert.berlakuHingga,
+        verification_url: origin() + 'cek-sertifikat.html?no=' + encodeURIComponent(lengkap.cert.nomor)
+      };
+      statusHttp = '200 OK';
+    }
+    hasilEl.innerHTML =
+      '<p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Respons (' + statusHttp + ')</p>' +
+      '<div class="code-block">' + JSON.stringify(respons, null, 2).replace(/</g,'&lt;') + '</div>';
+  });
+</script>
+</body>
+</html>

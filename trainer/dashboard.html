@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Instruktur — STU LMS</title>
+<title>Dashboard Trainer — STU LMS</title>
 <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="instruktur" data-active="dashboard" data-base="../"></div>
+<div id="shell" data-role="trainer" data-active="dashboard" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
@@ -33,7 +33,7 @@
 <script src="../assets/js/layout.js"></script>
 <script>
   var session = Store.getSession();
-  if (session && session.role === 'instruktur') {
+  if (session && session.role === 'trainer') {
     var ins = Store.instrukturById(session.userId);
     var univ = Store.universitasById(ins.universitasId);
     var kelasSaya = Store.getKelas().filter(function(k){ return k.instrukturId === ins.id; });

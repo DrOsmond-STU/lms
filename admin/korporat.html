@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corporate Training — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="korporat" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Corporate Training</h1><p class="text-sm text-slate-400 mt-0.5">Kelola akun korporat, pendaftaran massal karyawan, dan pantau progres tim.</p></div>
+    <select id="filter-korporat" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 mb-5"></select>
+    <div id="konten"></div>
+  </div>
+</main>
+
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Daftarkan Karyawan (Massal)</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form-bulk" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Karyawan (satu per baris)</label><textarea id="b-nama" rows="4" required placeholder="Contoh:&#10;Budi Santoso&#10;Sari Wulandari" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></textarea></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Pelatihan</label><select id="b-pelatihan" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Daftarkan Semua</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+    var korporatList = Store.getUniversitas().filter(function(u){ return u.tipe === 'korporat'; });
+    document.getElementById('filter-korporat').innerHTML = korporatList.map(function(u){ return '<option value="' + u.id + '">' + u.nama + '</option>'; }).join('');
+    document.getElementById('b-pelatihan').innerHTML = Store.getSkema().map(function(s){ return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
+
+    function render() {
+      var orgId = document.getElementById('filter-korporat').value;
+      var org = Store.universitasById(orgId);
+      var karyawan = Store.getMahasiswa().filter(function(m){ return m.universitasId === orgId; });
+      var pendaftaranSemua = [];
+      karyawan.forEach(function(k){ pendaftaranSemua = pendaftaranSemua.concat(Store.pendaftaranMahasiswa(k.id)); });
+      var lulus = pendaftaranSemua.filter(function(p){ return p.status === 'lulus'; });
+      var rataProgres = pendaftaranSemua.length ? Math.round(pendaftaranSemua.reduce(function(s,p){ return s+p.progres; },0) / pendaftaranSemua.length) : 0;
+
+      document.getElementById('konten').innerHTML =
+        '<div class="card p-6 mb-6">' +
+          '<div class="flex flex-wrap items-center justify-between gap-4">' +
+            '<div class="flex items-center gap-3"><span class="avatar w-12 h-12">' + org.singkatan + '</span><div><p class="font-extrabold text-slate-800">' + org.nama + '</p><p class="text-xs text-slate-400">' + (org.industri || '-') + ' · ' + org.kota + '</p><p class="text-xs text-slate-400 mt-0.5">PIC: ' + (org.picKorporat || '-') + '</p></div></div>' +
+            '<button id="btn-bulk" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg flex items-center gap-1.5" style="background:var(--brand-800)">' + UI.Icon.plus + ' Daftarkan Karyawan</button>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 gap-4 mt-5">' +
+            '<div class="bg-slate-50 rounded-lg p-3 text-center"><p class="text-xl font-extrabold text-slate-800">' + karyawan.length + '</p><p class="text-[11px] text-slate-400">Karyawan Terdaftar</p></div>' +
+            '<div class="bg-slate-50 rounded-lg p-3 text-center"><p class="text-xl font-extrabold text-slate-800">' + rataProgres + '%</p><p class="text-[11px] text-slate-400">Rata-rata Progres</p></div>' +
+            '<div class="bg-slate-50 rounded-lg p-3 text-center"><p class="text-xl font-extrabold text-slate-800">' + lulus.length + '</p><p class="text-[11px] text-slate-400">Telah Lulus</p></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card overflow-x-auto">' +
+          '<table class="w-full table-clean min-w-[760px]"><thead><tr><th>Karyawan</th><th>Departemen</th><th>Pelatihan</th><th>Progres</th><th>Status</th></tr></thead><tbody>' +
+          (pendaftaranSemua.length ? pendaftaranSemua.map(function(p){
+            var k = Store.mahasiswaById(p.mahasiswaId), s = Store.skemaById(p.skemaId);
+            return '<tr><td><div class="flex items-center gap-2.5"><span class="avatar w-8 h-8 text-[11px]">' + UI.inisial(k.nama) + '</span><p class="font-semibold text-slate-700">' + k.nama + '</p></div></td>' +
+              '<td>' + (k.departemen || '-') + '</td><td>' + s.nama + '</td>' +
+              '<td><div class="w-24"><div class="progress-track mb-1"><div class="progress-fill" style="width:' + p.progres + '%"></div></div><span class="text-xs text-slate-400">' + p.progres + '%</span></div></td>' +
+              '<td>' + UI.badgePendaftaran(p.status) + '</td></tr>';
+          }).join('') : '<tr><td colspan="5" class="text-center text-slate-400 py-8">Belum ada karyawan terdaftar pada pelatihan.</td></tr>') +
+          '</tbody></table>' +
+        '</div>';
+
+      document.getElementById('btn-bulk').addEventListener('click', function(){ toggleModal(true); });
+    }
+
+    function toggleModal(show) {
+      document.getElementById('modal').classList.toggle('hidden', !show);
+      document.getElementById('modal').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+
+    document.getElementById('form-bulk').addEventListener('submit', function(e){
+      e.preventDefault();
+      var orgId = document.getElementById('filter-korporat').value;
+      var nama = document.getElementById('b-nama').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+      var pelatihanId = document.getElementById('b-pelatihan').value;
+      nama.forEach(function(n, idx){
+        var baru = Store.tambahMahasiswa({ nama: n, npm: 'BULK-' + Date.now().toString(36) + '-' + idx, universitasId: orgId, departemen: 'Belum Ditentukan', email: n.toLowerCase().replace(/\s+/g,'.') + '@perusahaan.co.id' });
+        Store.daftarSertifikasi(baru.id, pelatihanId);
+      });
+      document.getElementById('form-bulk').reset();
+      toggleModal(false);
+      UI.toast(nama.length + ' karyawan berhasil didaftarkan', 'sukses');
+      render();
+    });
+
+    document.getElementById('filter-korporat').addEventListener('change', render);
+    render();
+  }
+</script>
+</body>
+</html>

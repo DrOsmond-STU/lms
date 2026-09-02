@@ -21,13 +21,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="mahasiswa" data-active="sertifikasi" data-base="../"></div>
+<div id="shell" data-role="peserta" data-active="sertifikasi" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     <div class="mb-6">
       <h1 class="text-xl font-extrabold text-slate-800">Pilih Sertifikasi</h1>
-      <p class="text-sm text-slate-400 mt-0.5">Telusuri skema sertifikasi Internasional maupun BNSP — gratis, ditanggung kampus.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Telusuri pelatihan Internasional maupun BNSP — gratis, ditanggung kampus.</p>
     </div>
 
     <div class="flex flex-wrap gap-3 items-center mb-6">
@@ -38,11 +38,11 @@
       </div>
       <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 flex-1 max-w-xs text-slate-400">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-4 h-4"><circle cx="10.5" cy="10.5" r="6"/><path d="m20 20-4.3-4.3" stroke-linecap="round"/></svg>
-        <input id="cari" type="text" placeholder="Cari skema sertifikasi..." class="text-sm outline-none w-full text-slate-600">
+        <input id="cari" type="text" placeholder="Cari pelatihan..." class="text-sm outline-none w-full text-slate-600">
       </div>
     </div>
 
-    <div id="grid-skema" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <div id="grid-pelatihan" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
   </div>
 </main>
 
@@ -52,7 +52,7 @@
 <script src="../assets/js/layout.js"></script>
 <script>
   var session = Store.getSession();
-  if (session && session.role === 'mahasiswa') {
+  if (session && session.role === 'peserta') {
     var mhsId = session.userId;
     var kategoriAktif = 'semua';
     var kataKunci = '';
@@ -63,7 +63,7 @@
         var cocokKata = s.nama.toLowerCase().indexOf(kataKunci.toLowerCase()) !== -1 || s.penyelenggara.toLowerCase().indexOf(kataKunci.toLowerCase()) !== -1;
         return cocokKategori && cocokKata;
       });
-      document.getElementById('grid-skema').innerHTML = list.length ? list.map(function(s){
+      document.getElementById('grid-pelatihan').innerHTML = list.length ? list.map(function(s){
         var pendaftaran = Store.pendaftaranSkema(mhsId, s.id);
         return '<div class="card p-5 flex flex-col">' +
           '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(s.kategori) + '<span class="text-[11px] font-bold text-emerald-600">GRATIS</span></div>' +
@@ -78,7 +78,7 @@
             (pendaftaran ? '<span class="flex-1 text-center">' + UI.badgePendaftaran(pendaftaran.status) + '</span>' : '<button data-id="' + s.id + '" class="btn-daftar flex-1 text-xs font-bold text-white rounded-lg py-2.5" style="background:var(--brand-800)">Daftar</button>') +
           '</div>' +
         '</div>';
-      }).join('') : '<div class="col-span-full card p-10 text-center text-slate-400 text-sm">Tidak ada skema yang cocok dengan pencarian Anda.</div>';
+      }).join('') : '<div class="col-span-full card p-10 text-center text-slate-400 text-sm">Tidak ada pelatihan yang cocok dengan pencarian Anda.</div>';
     }
 
     document.getElementById('filter-kategori').addEventListener('click', function(e){
@@ -95,7 +95,7 @@
       });
     }
     document.getElementById('cari').addEventListener('input', function(e){ kataKunci = e.target.value; render(); });
-    document.getElementById('grid-skema').addEventListener('click', function(e){
+    document.getElementById('grid-pelatihan').addEventListener('click', function(e){
       var btn = e.target.closest('.btn-daftar');
       if (!btn) return;
       Store.daftarSertifikasi(mhsId, btn.dataset.id);

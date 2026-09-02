@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master Universitas — STU LMS</title>
+<title>Master Organisasi — STU LMS</title>
 <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,17 +21,17 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="admin" data-active="master-universitas" data-base="../"></div>
+<div id="shell" data-role="admin" data-active="master-organisasi" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div><h1 class="text-xl font-extrabold text-slate-800">Master Universitas</h1><p class="text-sm text-slate-400 mt-0.5">Kelola daftar universitas mitra STU LMS.</p></div>
-      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg flex items-center gap-1.5" style="background:var(--brand-800)">+ Tambah Universitas</button>
+      <div><h1 class="text-xl font-extrabold text-slate-800">Master Organisasi</h1><p class="text-sm text-slate-400 mt-0.5">Kelola daftar organisasi mitra STU LMS.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg flex items-center gap-1.5" style="background:var(--brand-800)">+ Tambah Organisasi</button>
     </div>
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[640px]">
-        <thead><tr><th>Universitas</th><th>Singkatan</th><th>Kota</th><th>Akreditasi</th><th>Mahasiswa</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Organisasi</th><th>Tipe</th><th>Singkatan</th><th>Kota</th><th>Peserta</th><th>Aksi</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -40,15 +40,17 @@
 
 <div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
   <div class="bg-white rounded-2xl w-full max-w-md p-6">
-    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Universitas</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Organisasi</h3><button id="modal-close" class="text-slate-400"></button></div>
     <form id="form" class="space-y-4">
-      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Universitas</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Organisasi</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Tipe</label><select id="f-tipe" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="institusi">Institusi (Universitas/Lembaga)</option><option value="korporat">Korporat (Perusahaan)</option></select></div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="text-xs font-bold text-slate-500 mb-1 block">Singkatan</label><input id="f-singkatan" required maxlength="8" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm uppercase"></div>
-        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Akreditasi</label><select id="f-akreditasi" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option>A</option><option>B</option><option>C</option></select></div>
+        <div id="wrap-akreditasi"><label class="text-xs font-bold text-slate-500 mb-1 block">Akreditasi</label><select id="f-akreditasi" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option>A</option><option>B</option><option>C</option></select></div>
+        <div id="wrap-industri" class="hidden col-span-2"><label class="text-xs font-bold text-slate-500 mb-1 block">Industri</label><input id="f-industri" placeholder="Contoh: Manufaktur, Perbankan" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
       </div>
       <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kota</label><input id="f-kota" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
-      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Universitas</button>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Organisasi</button>
     </form>
   </div>
 </div>
@@ -66,10 +68,10 @@
       document.getElementById('tbody').innerHTML = list.map(function(u){
         var jumlah = Store.getMahasiswa().filter(function(m){ return m.universitasId === u.id; }).length;
         return '<tr>' +
-          '<td class="font-semibold">' + u.nama + '</td>' +
-          '<td><span class="badge badge-biru">' + u.singkatan + '</span></td>' +
+          '<td class="font-semibold">' + u.nama + '<br><span class="text-xs text-slate-400 font-normal">' + (u.tipe === 'korporat' ? (u.industri || '-') : 'Akreditasi ' + u.akreditasi) + '</span></td>' +
+          '<td>' + (u.tipe === 'korporat' ? '<span class="badge badge-ungu"><span class="badge-dot"></span>Korporat</span>' : '<span class="badge badge-biru"><span class="badge-dot"></span>Institusi</span>') + '</td>' +
+          '<td><span class="badge badge-abu">' + u.singkatan + '</span></td>' +
           '<td>' + u.kota + '</td>' +
-          '<td>' + u.akreditasi + '</td>' +
           '<td>' + jumlah + '</td>' +
           '<td><button data-id="' + u.id + '" class="btn-hapus text-xs font-bold text-rose-600 hover:underline">Hapus</button></td>' +
         '</tr>';
@@ -77,9 +79,9 @@
 
       document.querySelectorAll('.btn-hapus').forEach(function(btn){
         btn.addEventListener('click', function(){
-          if (!confirm('Hapus universitas ini dari daftar mitra?')) return;
+          if (!confirm('Hapus organisasi ini dari daftar mitra?')) return;
           Store.hapus(btn.dataset.id);
-          UI.toast('Universitas dihapus', 'peringatan');
+          UI.toast('Organisasi dihapus', 'peringatan');
           render();
         });
       });
@@ -93,17 +95,26 @@
     document.getElementById('btn-tambah').addEventListener('click', function(){ toggleModal(true); });
     document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
 
+    document.getElementById('f-tipe').addEventListener('change', function(e){
+      var korporat = e.target.value === 'korporat';
+      document.getElementById('wrap-akreditasi').classList.toggle('hidden', korporat);
+      document.getElementById('wrap-industri').classList.toggle('hidden', !korporat);
+    });
+
     document.getElementById('form').addEventListener('submit', function(e){
       e.preventDefault();
+      var tipe = document.getElementById('f-tipe').value;
       Store.tambahUniversitas({
         nama: document.getElementById('f-nama').value,
+        tipe: tipe,
         singkatan: document.getElementById('f-singkatan').value.toUpperCase(),
         kota: document.getElementById('f-kota').value,
-        akreditasi: document.getElementById('f-akreditasi').value
+        akreditasi: tipe === 'korporat' ? '-' : document.getElementById('f-akreditasi').value,
+        industri: tipe === 'korporat' ? document.getElementById('f-industri').value : undefined
       });
       document.getElementById('form').reset();
       toggleModal(false);
-      UI.toast('Universitas berhasil ditambahkan', 'sukses');
+      UI.toast('Organisasi berhasil ditambahkan', 'sukses');
       render();
     });
 

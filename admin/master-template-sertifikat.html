@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Template Sertifikat — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="master-template" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div><h1 class="text-xl font-extrabold text-slate-800">Template Sertifikat</h1><p class="text-sm text-slate-400 mt-0.5">Kelola desain &amp; versi template yang digunakan mesin penerbitan sertifikat.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Template</button>
+    </div>
+    <div id="grid-template" class="grid sm:grid-cols-2 gap-5"></div>
+  </div>
+</main>
+
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Template</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Template</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kategori</label><select id="f-kategori" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="internasional">Internasional</option><option value="bnsp">BNSP</option></select></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Versi</label><input id="f-versi" placeholder="v1.0" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      </div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Deskripsi</label><textarea id="f-deskripsi" rows="2" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></textarea></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Template</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    function render() {
+      var list = Store.getTemplateSertifikat();
+      document.getElementById('grid-template').innerHTML = list.map(function(t){
+        return '<div class="card p-0 overflow-hidden ' + (t.statusAktif ? '' : 'opacity-60') + '">' +
+          '<div class="certificate-frame p-5 text-white">' +
+            '<div class="flex items-center justify-between mb-2">' + UI.kategoriTag(t.kategori) + (t.statusAktif ? '<span class="badge badge-hijau"><span class="badge-dot"></span>Aktif</span>' : '<span class="badge badge-abu"><span class="badge-dot"></span>Nonaktif</span>') + '</div>' +
+            '<p class="font-extrabold text-sm leading-snug">' + t.nama + '</p>' +
+            '<p class="text-[11px] text-white/70 mt-1">Versi ' + t.versi + '</p>' +
+          '</div>' +
+          '<div class="p-5">' +
+            '<p class="text-sm text-slate-500 mb-4">' + t.deskripsi + '</p>' +
+            '<div class="flex gap-2">' +
+              '<button data-id="' + t.id + '" class="btn-toggle flex-1 text-xs font-bold border border-slate-200 rounded-lg py-2 hover:bg-slate-50">' + (t.statusAktif ? 'Nonaktifkan' : 'Aktifkan') + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      document.querySelectorAll('.btn-toggle').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          Store.toggleTemplateAktif(btn.dataset.id);
+          render();
+        });
+      });
+    }
+
+    function toggleModal(show) {
+      document.getElementById('modal').classList.toggle('hidden', !show);
+      document.getElementById('modal').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('btn-tambah').addEventListener('click', function(){ toggleModal(true); });
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+
+    document.getElementById('form').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahTemplateSertifikat({
+        nama: document.getElementById('f-nama').value,
+        kategori: document.getElementById('f-kategori').value,
+        versi: document.getElementById('f-versi').value,
+        deskripsi: document.getElementById('f-deskripsi').value
+      });
+      document.getElementById('form').reset();
+      toggleModal(false);
+      UI.toast('Template berhasil ditambahkan', 'sukses');
+      render();
+    });
+
+    render();
+  }
+</script>
+</body>
+</html>

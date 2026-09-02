@@ -26,12 +26,12 @@
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div><h1 class="text-xl font-extrabold text-slate-800">Master Kelas</h1><p class="text-sm text-slate-400 mt-0.5">Kelola kelas/batch untuk setiap skema sertifikasi beserta instrukturnya.</p></div>
+      <div><h1 class="text-xl font-extrabold text-slate-800">Master Kelas</h1><p class="text-sm text-slate-400 mt-0.5">Kelola kelas/batch untuk setiap pelatihan beserta instrukturnya.</p></div>
       <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Kelas</button>
     </div>
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[820px]">
-        <thead><tr><th>Skema</th><th>Instruktur</th><th>Batch</th><th>Kuota</th><th>Peserta</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Pelatihan</th><th>Trainer</th><th>Batch</th><th>Kuota</th><th>Peserta</th><th>Aksi</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -42,8 +42,8 @@
   <div class="bg-white rounded-2xl w-full max-w-md p-6">
     <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Kelas</h3><button id="modal-close" class="text-slate-400"></button></div>
     <form id="form" class="space-y-4">
-      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Skema Sertifikasi</label><select id="f-skema" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
-      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Instruktur Pengampu</label><select id="f-instruktur" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Pelatihan</label><select id="f-pelatihan" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Trainer Pengampu</label><select id="f-trainer" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Batch</label><input id="f-batch" required placeholder="Batch Ganjil 2026" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
         <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kuota</label><input id="f-kuota" type="number" min="1" value="30" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
@@ -87,8 +87,8 @@
       });
     }
 
-    document.getElementById('f-skema').innerHTML = Store.getSkema().map(function(s){ return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
-    document.getElementById('f-instruktur').innerHTML = Store.getInstruktur().map(function(i){ return '<option value="' + i.id + '">' + i.nama + '</option>'; }).join('');
+    document.getElementById('f-pelatihan').innerHTML = Store.getSkema().map(function(s){ return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
+    document.getElementById('f-trainer').innerHTML = Store.getInstruktur().map(function(i){ return '<option value="' + i.id + '">' + i.nama + '</option>'; }).join('');
 
     function toggleModal(show) {
       document.getElementById('modal').classList.toggle('hidden', !show);
@@ -101,8 +101,8 @@
     document.getElementById('form').addEventListener('submit', function(e){
       e.preventDefault();
       Store.tambahKelas({
-        skemaId: document.getElementById('f-skema').value,
-        instrukturId: document.getElementById('f-instruktur').value,
+        skemaId: document.getElementById('f-pelatihan').value,
+        instrukturId: document.getElementById('f-trainer').value,
         batch: document.getElementById('f-batch').value,
         kuota: parseInt(document.getElementById('f-kuota').value, 10),
         kuis: []

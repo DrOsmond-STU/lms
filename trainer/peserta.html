@@ -21,12 +21,18 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="instruktur" data-active="peserta" data-base="../"></div>
+<div id="shell" data-role="trainer" data-active="peserta" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Peserta &amp; Nilai</h1><p class="text-sm text-slate-400 mt-0.5">Pantau progres peserta dan berikan nilai kuis secara manual bila diperlukan.</p></div>
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Peserta &amp; Nilai</h1><p class="text-sm text-slate-400 mt-0.5">Pantau progres peserta, nilai kuis/ujian, dan penilaian tugas.</p></div>
 
+    <div class="flex bg-slate-100 rounded-lg p-1 mb-5 w-fit" id="tabs-nilai">
+      <button data-t="kuis" class="tn-btn text-xs font-bold px-4 py-2 rounded-lg">Kuis &amp; Ujian</button>
+      <button data-t="tugas" class="tn-btn text-xs font-bold px-4 py-2 rounded-lg">Tugas</button>
+    </div>
+
+    <div id="panel-kuis">
     <div class="flex flex-wrap gap-3 mb-5">
       <select id="filter-kelas" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600"></select>
       <select id="filter-status" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600">
@@ -41,9 +47,19 @@
 
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[760px]">
-        <thead><tr><th>Peserta</th><th>Universitas</th><th>Skema</th><th>Progres</th><th>Skor</th><th>Status</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Peserta</th><th>Organisasi</th><th>Pelatihan</th><th>Progres</th><th>Skor</th><th>Status</th><th>Aksi</th></tr></thead>
         <tbody id="tbody-peserta"></tbody>
       </table>
+    </div>
+    </div>
+
+    <div id="panel-tugas" class="hidden">
+      <div class="card overflow-x-auto">
+        <table class="w-full table-clean min-w-[760px]">
+          <thead><tr><th>Peserta</th><th>Tugas</th><th>Kelas</th><th>Dikumpulkan</th><th>Status</th><th>Nilai</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-tugas"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </main>
@@ -54,7 +70,7 @@
 <script src="../assets/js/layout.js"></script>
 <script>
   var session = Store.getSession();
-  if (session && session.role === 'instruktur') {
+  if (session && session.role === 'trainer') {
     var ins = Store.instrukturById(session.userId);
     var kelasSaya = Store.getKelas().filter(function(k){ return k.instrukturId === ins.id; });
     var kelasFilterAwal = UI.qs('kelas') || 'semua';
@@ -107,6 +123,57 @@
     document.getElementById('filter-kelas').addEventListener('change', render);
     document.getElementById('filter-status').addEventListener('change', function(e){ statusFilter = e.target.value; render(); });
     render();
+
+    function renderTugas() {
+      var baris = [];
+      kelasSaya.forEach(function(k){
+        Store.tugasByKelas(k.id).forEach(function(t){
+          Store.pengumpulanByTugas(t.id).forEach(function(sub){
+            baris.push({ sub: sub, tugas: t, kelas: k });
+          });
+        });
+      });
+      document.getElementById('tbody-tugas').innerHTML = baris.length ? baris.map(function(row){
+        var mhs = Store.mahasiswaById(row.sub.mahasiswaId);
+        return '<tr>' +
+          '<td><div class="flex items-center gap-2.5"><span class="avatar w-8 h-8 text-[11px]">' + UI.inisial(mhs.nama) + '</span><p class="font-semibold text-slate-700">' + mhs.nama + '</p></div></td>' +
+          '<td>' + row.tugas.judul + '</td>' +
+          '<td>' + Store.skemaById(row.kelas.skemaId).nama + '</td>' +
+          '<td>' + UI.formatTanggalSingkat(row.sub.tanggalKumpul) + '<br><span class="text-xs text-slate-400 font-mono">' + row.sub.fileNama + '</span></td>' +
+          '<td>' + UI.badgeTugas(row.sub.status) + '</td>' +
+          '<td class="font-semibold">' + (row.sub.nilai !== null ? row.sub.nilai : '-') + '</td>' +
+          '<td><button data-id="' + row.sub.id + '" class="btn-nilai-tugas text-xs font-bold text-brand-700 hover:underline">Nilai</button></td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="7" class="text-center text-slate-400 py-8">Belum ada tugas yang dikumpulkan peserta.</td></tr>';
+
+      document.querySelectorAll('.btn-nilai-tugas').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var nilai = window.prompt('Nilai tugas (0-100):');
+          if (nilai === null) return;
+          var skor = parseInt(nilai, 10);
+          if (isNaN(skor) || skor < 0 || skor > 100) { UI.toast('Nilai tidak valid', 'error'); return; }
+          var status = skor >= 70 ? 'approved' : 'revision';
+          var feedback = window.prompt('Catatan/feedback untuk peserta (opsional):') || (status === 'approved' ? 'Kerja bagus!' : 'Perlu perbaikan, silakan revisi.');
+          Store.nilaiTugas(btn.dataset.id, skor, feedback, status);
+          UI.toast('Nilai tugas tersimpan', 'sukses');
+          renderTugas();
+        });
+      });
+    }
+    renderTugas();
+
+    document.getElementById('tabs-nilai').addEventListener('click', function(e){
+      var btn = e.target.closest('.tn-btn');
+      if (!btn) return;
+      document.querySelectorAll('.tn-btn').forEach(function(b){
+        var on = b === btn;
+        b.className = 'tn-btn text-xs font-bold px-4 py-2 rounded-lg transition ' + (on ? 'bg-white shadow text-brand-800' : 'text-slate-500');
+      });
+      document.getElementById('panel-kuis').classList.toggle('hidden', btn.dataset.t !== 'kuis');
+      document.getElementById('panel-tugas').classList.toggle('hidden', btn.dataset.t !== 'tugas');
+    });
+    document.querySelector('.tn-btn[data-t="kuis"]').className = 'tn-btn text-xs font-bold px-4 py-2 rounded-lg bg-white shadow text-brand-800';
+    document.querySelector('.tn-btn[data-t="tugas"]').className = 'tn-btn text-xs font-bold px-4 py-2 rounded-lg text-slate-500';
   }
 </script>
 </body>

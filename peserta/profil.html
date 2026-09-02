@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Saya — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="peserta" data-active="profil" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'peserta') {
+    var mhs = Store.mahasiswaById(session.userId);
+    var univ = Store.universitasById(mhs.universitasId);
+    var pendaftaran = Store.pendaftaranMahasiswa(mhs.id);
+    var sertifikat = Store.sertifikatMahasiswa(mhs.id);
+
+    document.getElementById('konten').innerHTML =
+      '<h1 class="text-xl font-extrabold text-slate-800 mb-6">Profil Saya</h1>' +
+      '<div class="grid lg:grid-cols-3 gap-6">' +
+        '<div class="card p-6 text-center h-fit">' +
+          '<span class="avatar w-20 h-20 text-2xl mx-auto mb-4">' + UI.inisial(mhs.nama) + '</span>' +
+          '<p class="font-extrabold text-slate-800">' + mhs.nama + '</p>' +
+          '<p class="text-xs text-slate-400 mt-1">No. Peserta ' + mhs.npm + '</p>' +
+          '<span class="inline-block mt-3 text-[11px] font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Peserta Aktif</span>' +
+          '<div class="grid grid-cols-2 gap-3 mt-6 text-left">' +
+            '<div class="bg-slate-50 rounded-lg p-3"><p class="text-lg font-extrabold text-slate-800">' + pendaftaran.length + '</p><p class="text-[11px] text-slate-400">Sertifikasi Diikuti</p></div>' +
+            '<div class="bg-slate-50 rounded-lg p-3"><p class="text-lg font-extrabold text-slate-800">' + sertifikat.length + '</p><p class="text-[11px] text-slate-400">Sertifikat Terbit</p></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="lg:col-span-2 space-y-6">' +
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-4">Informasi Akademik</h2>' +
+            '<dl class="grid sm:grid-cols-2 gap-4 text-sm">' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Nama Lengkap</dt><dd class="font-semibold text-slate-700">' + mhs.nama + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">No. Peserta</dt><dd class="font-semibold text-slate-700">' + mhs.npm + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Organisasi</dt><dd class="font-semibold text-slate-700">' + univ.nama + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Program Studi</dt><dd class="font-semibold text-slate-700">' + mhs.prodi + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Semester</dt><dd class="font-semibold text-slate-700">' + mhs.semester + '</dd></div>' +
+              '<div><dt class="text-xs text-slate-400 mb-0.5">Email</dt><dd class="font-semibold text-slate-700">' + mhs.email + '</dd></div>' +
+            '</dl>' +
+            '<p class="text-xs text-slate-400 mt-4">*Data akademik disinkronkan otomatis dari Sistem Informasi Akademik organisasi dan tidak dapat diubah di sini.</p>' +
+          '</div>' +
+
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-4">Riwayat Sertifikasi</h2>' +
+            (pendaftaran.length ? '<div class="overflow-x-auto"><table class="w-full table-clean"><thead><tr><th>Pelatihan</th><th>Tgl Daftar</th><th>Status</th><th>Skor</th></tr></thead><tbody>' +
+              pendaftaran.map(function(p){
+                var s = Store.skemaById(p.skemaId);
+                return '<tr><td class="font-semibold">' + s.nama + '</td><td>' + UI.formatTanggalSingkat(p.tanggalDaftar) + '</td><td>' + UI.badgePendaftaran(p.status) + '</td><td>' + (p.skorKuis !== null ? p.skorKuis : '-') + '</td></tr>';
+              }).join('') + '</tbody></table></div>' : '<p class="text-sm text-slate-400">Belum ada riwayat sertifikasi.</p>') +
+          '</div>' +
+
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-4">Keamanan Akun</h2>' +
+            '<div class="flex items-center justify-between py-2">' +
+              '<div><p class="text-sm font-semibold text-slate-700">Autentikasi Dua Faktor (2FA)</p><p class="text-xs text-slate-400 mt-0.5">Lapisan keamanan tambahan saat masuk (simulasi purwarupa).</p></div>' +
+              '<button id="toggle-2fa" class="toggle-switch" data-on="false"><span class="toggle-knob"></span></button>' +
+            '</div>' +
+            '<div class="flex items-center justify-between py-2 border-t border-slate-100 mt-2 pt-4">' +
+              '<div><p class="text-sm font-semibold text-slate-700">Notifikasi Email</p><p class="text-xs text-slate-400 mt-0.5">Terima ringkasan aktivitas lewat email.</p></div>' +
+              '<button id="toggle-email" class="toggle-switch" data-on="true"><span class="toggle-knob"></span></button>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="card p-6">' +
+            '<h2 class="font-bold text-slate-800 mb-1">Privasi Data</h2>' +
+            '<p class="text-sm text-slate-400 mb-4">Sesuai hak privasi Anda, permintaan berikut akan diproses oleh admin dan tercatat pada audit trail sistem.</p>' +
+            '<div class="flex flex-col sm:flex-row gap-3" id="area-privasi"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    renderPrivasi();
+    var t2fa = document.getElementById('toggle-2fa'), temail = document.getElementById('toggle-email');
+    [t2fa, temail].forEach(function(t){
+      t.addEventListener('click', function(){
+        var on = t.dataset.on === 'true';
+        t.dataset.on = (!on).toString();
+        t.classList.toggle('on', !on);
+      });
+      if (t.dataset.on === 'true') t.classList.add('on');
+    });
+
+    function renderPrivasi() {
+      var permintaan = Store.getPermintaanPrivasi().filter(function(p){ return p.mahasiswaId === mhs.id; });
+      var ekspor = permintaan.filter(function(p){ return p.tipe === 'ekspor_data'; }).slice(-1)[0];
+      var hapus = permintaan.filter(function(p){ return p.tipe === 'hapus_akun'; }).slice(-1)[0];
+      document.getElementById('area-privasi').innerHTML =
+        (ekspor ? '<span class="flex-1 inline-flex items-center justify-center gap-2 text-sm font-bold border border-slate-200 rounded-lg py-2.5">Ekspor Data: ' + UI.badgePrivasi(ekspor.status) + '</span>'
+          : '<button id="btn-ekspor" class="flex-1 text-sm font-bold border border-slate-200 rounded-lg py-2.5 hover:bg-slate-50">Ajukan Ekspor Data Saya</button>') +
+        (hapus ? '<span class="flex-1 inline-flex items-center justify-center gap-2 text-sm font-bold border border-rose-200 text-rose-700 rounded-lg py-2.5">Hapus Akun: ' + UI.badgePrivasi(hapus.status) + '</span>'
+          : '<button id="btn-hapus-akun" class="flex-1 text-sm font-bold border border-rose-200 text-rose-600 rounded-lg py-2.5 hover:bg-rose-50">Ajukan Penghapusan Akun</button>');
+      var be = document.getElementById('btn-ekspor');
+      if (be) be.addEventListener('click', function(){ Store.ajukanPermintaanPrivasi(mhs.id, 'ekspor_data'); UI.toast('Permintaan ekspor data diajukan', 'sukses'); renderPrivasi(); });
+      var bh = document.getElementById('btn-hapus-akun');
+      if (bh) bh.addEventListener('click', function(){
+        if (!confirm('Yakin ingin mengajukan penghapusan akun? Admin akan meninjau permintaan ini.')) return;
+        Store.ajukanPermintaanPrivasi(mhs.id, 'hapus_akun'); UI.toast('Permintaan penghapusan akun diajukan', 'peringatan'); renderPrivasi();
+      });
+    }
+  }
+</script>
+<style>
+  .toggle-switch{width:2.75rem;height:1.5rem;border-radius:999px;background:#e2e8f0;position:relative;transition:background-color .15s ease;flex-shrink:0;}
+  .toggle-switch.on{background:var(--brand-700);}
+  .toggle-knob{position:absolute;top:.15rem;left:.15rem;width:1.2rem;height:1.2rem;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s ease;}
+  .toggle-switch.on .toggle-knob{transform:translateX(1.25rem);}
+</style>
+</body>
+</html>

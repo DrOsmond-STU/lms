@@ -6,20 +6,25 @@
   "use strict";
 
   var NAV = {
-    mahasiswa: [
+    peserta: [
       { group: null, items: [
-        { href: "mahasiswa/dashboard.html", icon: "dashboard", label: "Dashboard", key: "dashboard" },
-        { href: "mahasiswa/sertifikasi.html", icon: "cert", label: "Pilih Sertifikasi", key: "sertifikasi" },
-        { href: "mahasiswa/pembelajaran.html", icon: "book", label: "Pembelajaran Saya", key: "pembelajaran" },
-        { href: "mahasiswa/sertifikat-saya.html", icon: "shield", label: "Sertifikat Saya", key: "sertifikat" },
-        { href: "mahasiswa/profil.html", icon: "user", label: "Profil", key: "profil" }
+        { href: "peserta/dashboard.html", icon: "dashboard", label: "Dashboard", key: "dashboard" },
+        { href: "peserta/sertifikasi.html", icon: "cert", label: "Pilih Pelatihan", key: "sertifikasi" },
+        { href: "peserta/pembelajaran.html", icon: "book", label: "Pembelajaran Saya", key: "pembelajaran" },
+        { href: "peserta/jadwal.html", icon: "calendar", label: "Jadwal", key: "jadwal" },
+        { href: "peserta/sertifikat-saya.html", icon: "shield", label: "Sertifikat Saya", key: "sertifikat" },
+        { href: "peserta/pencapaian.html", icon: "trophy", label: "Pencapaian", key: "pencapaian" },
+        { href: "peserta/notifikasi.html", icon: "bell2", label: "Notifikasi", key: "notifikasi" },
+        { href: "peserta/profil.html", icon: "user", label: "Profil", key: "profil" }
       ]}
     ],
-    instruktur: [
+    trainer: [
       { group: null, items: [
-        { href: "instruktur/dashboard.html", icon: "dashboard", label: "Dashboard", key: "dashboard" },
-        { href: "instruktur/kelas.html", icon: "layers", label: "Kelas Saya", key: "kelas" },
-        { href: "instruktur/peserta.html", icon: "users", label: "Peserta & Nilai", key: "peserta" }
+        { href: "trainer/dashboard.html", icon: "dashboard", label: "Dashboard", key: "dashboard" },
+        { href: "trainer/kelas.html", icon: "layers", label: "Kelas Saya", key: "kelas" },
+        { href: "trainer/peserta.html", icon: "users", label: "Peserta & Nilai", key: "peserta" },
+        { href: "trainer/diskusi.html", icon: "chat", label: "Diskusi", key: "diskusi" },
+        { href: "trainer/laporan.html", icon: "chart", label: "Laporan", key: "laporan" }
       ]}
     ],
     admin: [
@@ -28,30 +33,41 @@
         { href: "admin/approval-sertifikat.html", icon: "check", label: "Approval Sertifikat", key: "approval" }
       ]},
       { group: "Master Data", items: [
-        { href: "admin/master-sertifikasi.html", icon: "cert", label: "Skema Sertifikasi", key: "master-sertifikasi" },
-        { href: "admin/master-kelas.html", icon: "layers", label: "Kelas", key: "master-kelas" },
-        { href: "admin/master-universitas.html", icon: "building", label: "Universitas", key: "master-universitas" },
-        { href: "admin/master-user.html", icon: "users", label: "Pengguna", key: "master-user" }
+        { href: "admin/master-sertifikasi.html", icon: "cert", label: "Program Pelatihan", key: "master-sertifikasi" },
+        { href: "admin/master-kelas.html", icon: "layers", label: "Kelas & Jadwal", key: "master-kelas" },
+        { href: "admin/master-organisasi.html", icon: "building", label: "Organisasi", key: "master-organisasi" },
+        { href: "admin/master-user.html", icon: "users", label: "Pengguna", key: "master-user" },
+        { href: "admin/master-template-sertifikat.html", icon: "palette", label: "Template Sertifikat", key: "master-template" }
+      ]},
+      { group: "Operasional", items: [
+        { href: "admin/enrollment.html", icon: "clipboard", label: "Enrollment", key: "enrollment" },
+        { href: "admin/pembayaran.html", icon: "creditCard", label: "Pembayaran", key: "pembayaran" },
+        { href: "admin/korporat.html", icon: "briefcase", label: "Corporate Training", key: "korporat" },
+        { href: "admin/basis-data-sertifikat.html", icon: "doc", label: "Basis Data Sertifikat", key: "basis-data-sertifikat" }
       ]},
       { group: "Laporan", items: [
-        { href: "admin/laporan-user.html", icon: "chart", label: "Pengguna per Universitas", key: "laporan-user" },
-        { href: "admin/laporan-skema.html", icon: "doc", label: "Skema Sertifikasi per Universitas", key: "laporan-skema" }
+        { href: "admin/laporan-user.html", icon: "chart", label: "Pengguna per Organisasi", key: "laporan-user" },
+        { href: "admin/laporan-pelatihan.html", icon: "doc", label: "Pelatihan per Organisasi", key: "laporan-pelatihan" },
+        { href: "admin/laporan-operasional.html", icon: "history", label: "Laporan Operasional", key: "laporan-operasional" }
+      ]},
+      { group: "Pengaturan", items: [
+        { href: "admin/pengaturan.html", icon: "settings", label: "Pengaturan Sistem", key: "pengaturan" }
       ]}
     ]
   };
 
-  var ROLE_LABEL = { mahasiswa: "Mahasiswa", instruktur: "Instruktur", admin: "Administrator" };
+  var ROLE_LABEL = { peserta: "Peserta", trainer: "Trainer", admin: "Administrator" };
 
   function currentUserDisplay(role, userId) {
-    if (role === "mahasiswa") {
+    if (role === "peserta") {
       var m = Store.mahasiswaById(userId);
       var u = m ? Store.universitasById(m.universitasId) : null;
-      return { nama: m ? m.nama : "Mahasiswa", sub: (u ? u.singkatan : "") + (m ? " · " + m.prodi : "") };
+      return { nama: m ? m.nama : "Peserta", sub: (u ? u.singkatan : "") + (m ? " · " + m.prodi : "") };
     }
-    if (role === "instruktur") {
+    if (role === "trainer") {
       var ins = Store.instrukturById(userId);
       var uni = ins ? Store.universitasById(ins.universitasId) : null;
-      return { nama: ins ? ins.nama : "Instruktur", sub: uni ? uni.singkatan + " · Instruktur" : "Instruktur" };
+      return { nama: ins ? ins.nama : "Trainer", sub: uni ? uni.singkatan + " · Trainer" : "Trainer" };
     }
     var adm = LMS_DATA.admin.filter(function (a) { return a.id === userId; })[0];
     return { nama: adm ? adm.nama : "Admin", sub: adm ? adm.jabatan : "Administrator" };
@@ -98,7 +114,7 @@
       '<aside id="stu-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 flex-col text-white hidden lg:flex" style="background:linear-gradient(180deg,var(--brand-900),var(--brand-800) 60%,#0a2440)">' +
         '<div class="h-16 flex items-center gap-2.5 px-5 border-b border-white/10">' +
           '<div class="w-9 h-9 rounded-lg bg-accent-500 text-brand-900 font-extrabold flex items-center justify-center text-sm" style="background:var(--accent-500)">STU</div>' +
-          '<div class="leading-tight"><p class="font-extrabold text-sm tracking-wide">STU LMS</p><p class="text-[11px] text-white/50">Sertifikasi Mahasiswa</p></div>' +
+          '<div class="leading-tight"><p class="font-extrabold text-sm tracking-wide">STU LMS</p><p class="text-[11px] text-white/50">Sertifikasi Peserta</p></div>' +
         "</div>" +
         '<nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">' + buildSidebar(role, activeKey, base) + "</nav>" +
         '<div class="px-3 py-4 border-t border-white/10">' +
@@ -126,7 +142,7 @@
         '<button id="stu-menu-btn" class="lg:hidden text-slate-600">' + UI.Icon.menu + "</button>" +
         '<div class="hidden md:flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 flex-1 max-w-sm text-slate-400">' + UI.Icon.search + '<input type="text" placeholder="Cari kelas, sertifikasi, peserta..." class="bg-transparent outline-none text-sm text-slate-600 w-full"></div>' +
         '<div class="flex-1 md:hidden"></div>' +
-        '<span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ' + (role === "admin" ? "bg-indigo-50 text-indigo-700" : role === "instruktur" ? "bg-teal-50 text-teal-700" : "bg-blue-50 text-blue-700") + '">' + (ROLE_LABEL[role] || "") + "</span>" +
+        '<span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ' + (role === "admin" ? "bg-indigo-50 text-indigo-700" : role === "trainer" ? "bg-teal-50 text-teal-700" : "bg-blue-50 text-blue-700") + '">' + (ROLE_LABEL[role] || "") + "</span>" +
         '<div class="relative">' +
           '<button id="stu-notif-btn" class="relative text-slate-500 hover:text-slate-700 p-2 rounded-lg hover:bg-slate-100">' + UI.Icon.bell + '<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span></button>' +
           '<div id="stu-notif-panel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">' +
@@ -140,7 +156,7 @@
             '<span class="hidden md:block text-slate-400">' + UI.Icon.chevronDown + "</span>" +
           "</button>" +
           '<div id="stu-user-panel" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">' +
-            (role === "mahasiswa" ? '<a href="' + base + 'mahasiswa/profil.html" class="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">Profil Saya</a>' : "") +
+            (role === "peserta" ? '<a href="' + base + 'peserta/profil.html" class="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">Profil Saya</a>' : "") +
             '<a href="' + base + 'cek-sertifikat.html" class="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50">Cek Sertifikat</a>' +
             '<button id="stu-logout-2" class="block w-full text-left px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 border-t border-slate-100">Keluar</button>' +
           "</div>" +

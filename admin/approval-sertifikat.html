@@ -25,11 +25,11 @@
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Approval &amp; Penerbitan Sertifikat</h1><p class="text-sm text-slate-400 mt-0.5">Setujui kelulusan mahasiswa untuk menerbitkan sertifikat resmi bernomor unik.</p></div>
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Approval &amp; Penerbitan Sertifikat</h1><p class="text-sm text-slate-400 mt-0.5">Setujui kelulusan peserta untuk menerbitkan sertifikat resmi bernomor unik.</p></div>
 
     <div class="card overflow-x-auto mb-8">
       <table class="w-full table-clean min-w-[900px]">
-        <thead><tr><th>Peserta</th><th>Universitas</th><th>Skema Sertifikasi</th><th>Skor Kuis</th><th>Tanggal Selesai</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Peserta</th><th>Organisasi</th><th>Pelatihan</th><th>Skor Kuis</th><th>Tanggal Selesai</th><th>Aksi</th></tr></thead>
         <tbody id="tbody-approval"></tbody>
       </table>
     </div>
@@ -37,7 +37,7 @@
     <div class="flex items-center justify-between mb-4"><h2 class="font-bold text-slate-800">Sertifikat Terbit Terbaru</h2></div>
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[760px]">
-        <thead><tr><th>Nomor Sertifikat</th><th>Peserta</th><th>Skema</th><th>Tanggal Terbit</th><th>Status</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Nomor Sertifikat</th><th>Peserta</th><th>Pelatihan</th><th>Tanggal Terbit</th><th>Status</th><th>Aksi</th></tr></thead>
         <tbody id="tbody-terbit"></tbody>
       </table>
     </div>
@@ -72,8 +72,8 @@
         var lengkap = Certificate.lengkapi(c);
         return '<tr>' +
           '<td class="font-mono text-xs">' + c.nomor + '</td>' +
-          '<td>' + (lengkap.mahasiswa ? lengkap.mahasiswa.nama : '-') + '</td>' +
-          '<td>' + (lengkap.skema ? lengkap.skema.nama : '-') + '</td>' +
+          '<td>' + (lengkap.peserta ? lengkap.peserta.nama : '-') + '</td>' +
+          '<td>' + (lengkap.pelatihan ? lengkap.pelatihan.nama : '-') + '</td>' +
           '<td>' + UI.formatTanggalSingkat(c.tanggalTerbit) + '</td>' +
           '<td>' + UI.badgeSertifikat(lengkap.statusEfektif) + '</td>' +
           '<td>' + (c.status !== 'dicabut' ? '<button data-id="' + c.id + '" class="btn-cabut text-xs font-bold text-rose-600 hover:underline">Cabut</button>' : '<span class="text-xs text-slate-300">—</span>') + '</td>' +

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Mahasiswa — STU LMS</title>
+<title>Dashboard Peserta — STU LMS</title>
 <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="mahasiswa" data-active="dashboard" data-base="../"></div>
+<div id="shell" data-role="peserta" data-active="dashboard" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
@@ -34,7 +34,7 @@
 <script src="../assets/js/certificate.js"></script>
 <script>
   var session = Store.getSession();
-  if (session && session.role === 'mahasiswa') {
+  if (session && session.role === 'peserta') {
     var mhs = Store.mahasiswaById(session.userId);
     var univ = Store.universitasById(mhs.universitasId);
     var pendaftaran = Store.pendaftaranMahasiswa(mhs.id);
@@ -53,21 +53,21 @@
     ];
 
     function kartuPembelajaran(p) {
-      var skema = Store.skemaById(p.skemaId);
+      var pelatihan = Store.skemaById(p.skemaId);
       var kelas = Store.kelasBySkemaId(p.skemaId);
       return '<a href="kelas-detail.html?id=' + kelas.id + '" class="card p-5 block hover:shadow-md transition">' +
-        '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(skema.kategori) + UI.badgePendaftaran(p.status) + '</div>' +
-        '<h3 class="font-bold text-slate-800 text-sm leading-snug mb-3">' + skema.nama + '</h3>' +
+        '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(pelatihan.kategori) + UI.badgePendaftaran(p.status) + '</div>' +
+        '<h3 class="font-bold text-slate-800 text-sm leading-snug mb-3">' + pelatihan.nama + '</h3>' +
         '<div class="progress-track mb-1.5"><div class="progress-fill" style="width:' + p.progres + '%"></div></div>' +
         '<p class="text-xs text-slate-400">' + p.progres + '% selesai</p>' +
       '</a>';
     }
 
     function kartuSertifikat(c) {
-      var skema = Store.skemaById(c.skemaId);
+      var pelatihan = Store.skemaById(c.skemaId);
       return '<div class="card p-5">' +
-        '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(skema.kategori) + UI.badgeSertifikat(c.status) + '</div>' +
-        '<h3 class="font-bold text-slate-800 text-sm leading-snug mb-2">' + skema.nama + '</h3>' +
+        '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(pelatihan.kategori) + UI.badgeSertifikat(c.status) + '</div>' +
+        '<h3 class="font-bold text-slate-800 text-sm leading-snug mb-2">' + pelatihan.nama + '</h3>' +
         '<p class="text-xs text-slate-400 font-mono mb-4">' + c.nomor + '</p>' +
         '<a href="sertifikat-saya.html" class="text-xs font-bold text-brand-700 flex items-center gap-1">Lihat Sertifikat ' + UI.Icon.arrowRight + '</a>' +
       '</div>';

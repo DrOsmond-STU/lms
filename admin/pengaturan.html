@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengaturan Sistem — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .toggle-switch{width:2.75rem;height:1.5rem;border-radius:999px;background:#e2e8f0;position:relative;transition:background-color .15s ease;flex-shrink:0;}
+  .toggle-switch.on{background:var(--brand-700);}
+  .toggle-knob{position:absolute;top:.15rem;left:.15rem;width:1.2rem;height:1.2rem;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s ease;}
+  .toggle-switch.on .toggle-knob{transform:translateX(1.25rem);}
+  .set-tab{white-space:nowrap;font-size:.8rem;font-weight:700;padding:.55rem 1rem;border-radius:.5rem;color:#64748b;flex-shrink:0;}
+  .set-tab.active{background:#fff;color:var(--brand-800);box-shadow:0 1px 2px rgba(16,24,40,.08);}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="pengaturan" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Pengaturan Sistem</h1><p class="text-sm text-slate-400 mt-0.5">CMS, notifikasi, keamanan, privasi data, integrasi API, dan audit trail.</p></div>
+
+    <div class="flex gap-1 bg-slate-100 rounded-lg p-1 mb-6 overflow-x-auto" id="tabs">
+      <button data-t="cms" class="set-tab">CMS Beranda</button>
+      <button data-t="notifikasi" class="set-tab">Notifikasi</button>
+      <button data-t="keamanan" class="set-tab">Keamanan</button>
+      <button data-t="privasi" class="set-tab">Privasi Data</button>
+      <button data-t="integrasi" class="set-tab">Integrasi &amp; API</button>
+      <button data-t="audit" class="set-tab">Audit Trail</button>
+    </div>
+
+    <div id="area-tab"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    // ---------------- CMS ----------------
+    function tabCms() {
+      var cms = Store.getCmsKonten();
+      return '<div class="card p-6 mb-5">' +
+          '<p class="font-bold text-slate-800 mb-4">Konten Hero Beranda</p>' +
+          '<form id="form-cms" class="space-y-4">' +
+            '<div><label class="text-xs font-bold text-slate-500 mb-1 block">Badge</label><input id="c-badge" value="' + cms.heroBadge.replace(/"/g,'&quot;') + '" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>' +
+            '<div><label class="text-xs font-bold text-slate-500 mb-1 block">Judul (boleh HTML sederhana)</label><textarea id="c-judul" rows="2" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm font-mono">' + cms.heroJudul + '</textarea></div>' +
+            '<div><label class="text-xs font-bold text-slate-500 mb-1 block">Subjudul</label><textarea id="c-sub" rows="2" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm">' + cms.heroSubjudul + '</textarea></div>' +
+            '<div class="flex gap-2"><button type="submit" class="text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan &amp; Terbitkan</button><a href="../index.html" target="_blank" class="text-xs font-bold border border-slate-200 px-4 py-2.5 rounded-lg hover:bg-slate-50">Lihat Beranda</a></div>' +
+          '</form>' +
+        '</div>' +
+        '<div class="card p-6 mb-5">' +
+          '<p class="font-bold text-slate-800 mb-4">FAQ</p>' +
+          '<div id="area-faq" class="space-y-3 mb-3">' + cms.faq.map(function(f, i){ return faqRow(f, i); }).join('') + '</div>' +
+          '<button id="btn-tambah-faq" type="button" class="text-xs font-bold text-brand-700">+ Tambah FAQ</button>' +
+          '<button id="btn-simpan-faq" type="button" class="block mt-4 text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan FAQ</button>' +
+        '</div>' +
+        '<div class="card p-6">' +
+          '<p class="font-bold text-slate-800 mb-4">Testimoni</p>' +
+          '<div id="area-testimoni" class="space-y-3 mb-3">' + cms.testimoni.map(function(t, i){ return testiRow(t, i); }).join('') + '</div>' +
+          '<button id="btn-tambah-testi" type="button" class="text-xs font-bold text-brand-700">+ Tambah Testimoni</button>' +
+          '<button id="btn-simpan-testi" type="button" class="block mt-4 text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Testimoni</button>' +
+        '</div>';
+    }
+    function faqRow(f, i) {
+      return '<div class="faq-row grid sm:grid-cols-2 gap-2 border border-slate-100 rounded-lg p-3">' +
+        '<input class="faq-q border border-slate-200 rounded-lg px-3 py-2 text-xs" placeholder="Pertanyaan" value="' + (f ? f.q.replace(/"/g,'&quot;') : '') + '">' +
+        '<div class="flex gap-2"><input class="faq-a flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs" placeholder="Jawaban" value="' + (f ? f.a.replace(/"/g,'&quot;') : '') + '"><button type="button" class="btn-hapus-baris text-rose-500 text-xs font-bold px-2">✕</button></div>' +
+      '</div>';
+    }
+    function testiRow(t, i) {
+      return '<div class="testi-row grid sm:grid-cols-3 gap-2 border border-slate-100 rounded-lg p-3">' +
+        '<input class="testi-nama border border-slate-200 rounded-lg px-3 py-2 text-xs" placeholder="Nama" value="' + (t ? t.nama.replace(/"/g,'&quot;') : '') + '">' +
+        '<input class="testi-peran border border-slate-200 rounded-lg px-3 py-2 text-xs" placeholder="Peran" value="' + (t ? t.peran.replace(/"/g,'&quot;') : '') + '">' +
+        '<div class="flex gap-2"><input class="testi-isi flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs" placeholder="Kutipan" value="' + (t ? t.isi.replace(/"/g,'&quot;') : '') + '"><button type="button" class="btn-hapus-baris text-rose-500 text-xs font-bold px-2">✕</button></div>' +
+      '</div>';
+    }
+    function bindCms() {
+      document.getElementById('form-cms').addEventListener('submit', function(e){
+        e.preventDefault();
+        Store.simpanCmsKonten({ heroBadge: document.getElementById('c-badge').value, heroJudul: document.getElementById('c-judul').value, heroSubjudul: document.getElementById('c-sub').value });
+        UI.toast('Konten beranda diperbarui', 'sukses');
+      });
+      document.getElementById('btn-tambah-faq').addEventListener('click', function(){ document.getElementById('area-faq').insertAdjacentHTML('beforeend', faqRow(null)); });
+      document.getElementById('btn-tambah-testi').addEventListener('click', function(){ document.getElementById('area-testimoni').insertAdjacentHTML('beforeend', testiRow(null)); });
+      document.body.addEventListener('click', function(e){
+        var btn = e.target.closest('.btn-hapus-baris');
+        if (btn) btn.closest('.faq-row, .testi-row').remove();
+      });
+      document.getElementById('btn-simpan-faq').addEventListener('click', function(){
+        var faq = Array.prototype.map.call(document.querySelectorAll('.faq-row'), function(row){
+          return { q: row.querySelector('.faq-q').value, a: row.querySelector('.faq-a').value };
+        }).filter(function(f){ return f.q && f.a; });
+        Store.simpanCmsKonten({ faq: faq });
+        UI.toast('FAQ tersimpan', 'sukses');
+      });
+      document.getElementById('btn-simpan-testi').addEventListener('click', function(){
+        var testi = Array.prototype.map.call(document.querySelectorAll('.testi-row'), function(row){
+          return { nama: row.querySelector('.testi-nama').value, peran: row.querySelector('.testi-peran').value, isi: row.querySelector('.testi-isi').value };
+        }).filter(function(t){ return t.nama && t.isi; });
+        Store.simpanCmsKonten({ testimoni: testi });
+        UI.toast('Testimoni tersimpan', 'sukses');
+      });
+    }
+
+    // ---------------- Notifikasi ----------------
+    function tabNotifikasi() {
+      var events = [
+        'Registrasi Akun', 'Enrollment Dikonfirmasi', 'Jadwal Kelas/Live Class', 'Reminder Ujian/Tugas',
+        'Hasil Ujian Terbit', 'Pelatihan Selesai', 'Sertifikat Tersedia'
+      ];
+      return '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[560px]"><thead><tr><th>Jenis Notifikasi</th><th>Email</th><th>Web</th><th>WhatsApp</th></tr></thead><tbody>' +
+        events.map(function(ev, i){
+          return '<tr><td class="font-semibold">' + ev + '</td>' +
+            '<td><button class="toggle-switch on" data-k="email-' + i + '"><span class="toggle-knob"></span></button></td>' +
+            '<td><button class="toggle-switch on" data-k="web-' + i + '"><span class="toggle-knob"></span></button></td>' +
+            '<td><button class="toggle-switch" data-k="wa-' + i + '"><span class="toggle-knob"></span></button></td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<p class="text-xs text-slate-400 mt-3">Integrasi WhatsApp memerlukan provider WA Business API aktif (lihat tab Integrasi &amp; API).</p>';
+    }
+
+    // ---------------- Keamanan ----------------
+    function tabKeamanan() {
+      return '<div class="card p-6 space-y-5">' +
+        toggleRow('Wajibkan 2FA untuk Admin & Trainer', 'Menambah lapisan keamanan saat login untuk peran berisiko tinggi.', 'sec-2fa', true) +
+        toggleRow('Rate Limiting Percobaan Login', 'Blokir sementara setelah 5 kali percobaan gagal berturut-turut.', 'sec-rate', true) +
+        toggleRow('CAPTCHA pada Formulir Publik', 'Aktif pada halaman Daftar, Masuk, dan Cek Sertifikat.', 'sec-captcha', false) +
+        toggleRow('Enkripsi Data Sensitif (at-rest)', 'Enkripsi kolom data pribadi pada basis data.', 'sec-encrypt', true) +
+        '<div class="pt-2 border-t border-slate-100"><label class="text-xs font-bold text-slate-500 mb-1 block">Durasi Sesi Otomatis Logout</label><select class="border border-slate-200 rounded-lg px-3 py-2 text-sm"><option>30 menit</option><option selected>1 jam</option><option>4 jam</option><option>8 jam</option></select></div>' +
+      '</div>';
+    }
+    function toggleRow(judul, sub, key, defaultOn) {
+      return '<div class="flex items-center justify-between"><div><p class="text-sm font-semibold text-slate-700">' + judul + '</p><p class="text-xs text-slate-400 mt-0.5">' + sub + '</p></div><button class="toggle-switch' + (defaultOn ? ' on' : '') + '" data-k="' + key + '"><span class="toggle-knob"></span></button></div>';
+    }
+
+    // ---------------- Privasi Data ----------------
+    function tabPrivasi() {
+      var permintaan = Store.getPermintaanPrivasi();
+      return '<div class="card p-6 mb-5"><p class="text-sm text-slate-500">Kebijakan retensi data: data pembelajaran &amp; sertifikat disimpan selama akun aktif; permintaan penghapusan diproses maksimal 30 hari kerja sesuai <a href="../privasi.html" target="_blank" class="text-brand-700 font-bold">Kebijakan Privasi</a>.</p></div>' +
+        '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[640px]"><thead><tr><th>Peserta</th><th>Jenis Permintaan</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>' +
+        (permintaan.length ? permintaan.map(function(p){
+          var m = Store.mahasiswaById(p.mahasiswaId);
+          return '<tr><td class="font-semibold">' + (m ? m.nama : p.mahasiswaId) + '</td><td>' + (p.tipe === 'ekspor_data' ? 'Ekspor Data' : 'Hapus Akun') + '</td><td>' + UI.formatTanggalSingkat(p.tanggal) + '</td><td>' + UI.badgePrivasi(p.status) + '</td>' +
+            '<td>' + (p.status === 'menunggu' ? '<button data-id="' + p.id + '" class="btn-selesai text-xs font-bold text-brand-700 hover:underline">Tandai Selesai</button>' : '<span class="text-xs text-slate-300">—</span>') + '</td></tr>';
+        }).join('') : '<tr><td colspan="5" class="text-center text-slate-400 py-8">Belum ada permintaan privasi.</td></tr>') +
+        '</tbody></table></div>';
+    }
+    function bindPrivasi() {
+      document.querySelectorAll('.btn-selesai').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          Store.selesaikanPermintaanPrivasi(btn.dataset.id);
+          UI.toast('Permintaan ditandai selesai', 'sukses');
+          renderActive();
+        });
+      });
+    }
+
+    // ---------------- Integrasi & API ----------------
+    function tabIntegrasi() {
+      return '<div class="card overflow-x-auto mb-6"><table class="w-full table-clean min-w-[560px]"><thead><tr><th>Integrasi</th><th>Penyedia</th><th>Status</th></tr></thead><tbody>' +
+        Store.getIntegrasi().map(function(i){
+          return '<tr><td class="font-semibold">' + i.nama + '</td><td class="text-slate-500">' + i.penyedia + '</td><td><button data-id="' + i.id + '" class="btn-toggle-int toggle-switch' + (i.aktif ? ' on' : '') + '"><span class="toggle-knob"></span></button></td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">API Keys</p><button id="btn-tambah-key" class="text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Buat API Key</button></div>' +
+        '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[560px]"><thead><tr><th>Label</th><th>Key</th><th>Dibuat</th><th>Status</th></tr></thead><tbody>' +
+        Store.getApiKeys().map(function(k){
+          return '<tr><td class="font-semibold">' + k.label + '</td><td class="font-mono text-xs">' + k.keyMasked + '</td><td>' + UI.formatTanggalSingkat(k.dibuat) + '</td><td><button data-id="' + k.id + '" class="btn-toggle-key toggle-switch' + (k.statusAktif ? ' on' : '') + '"><span class="toggle-knob"></span></button></td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<p class="text-xs text-slate-400 mt-3">Contoh endpoint verifikasi publik: <a href="../api-verifikasi.html" target="_blank" class="text-brand-700 font-bold">/api-verifikasi.html</a></p>';
+    }
+    function bindIntegrasi() {
+      document.querySelectorAll('.btn-toggle-int').forEach(function(btn){
+        btn.addEventListener('click', function(){ Store.toggleIntegrasi(btn.dataset.id); renderActive(); });
+      });
+      document.querySelectorAll('.btn-toggle-key').forEach(function(btn){
+        btn.addEventListener('click', function(){ Store.toggleApiKey(btn.dataset.id); renderActive(); });
+      });
+      var btnKey = document.getElementById('btn-tambah-key');
+      if (btnKey) btnKey.addEventListener('click', function(){
+        var label = window.prompt('Nama/label API key (mis. nama sistem yang akan mengakses):');
+        if (!label) return;
+        Store.tambahApiKey(label);
+        UI.toast('API key dibuat', 'sukses');
+        renderActive();
+      });
+    }
+
+    // ---------------- Audit Trail ----------------
+    function tabAudit() {
+      return '<div class="card divide-y divide-slate-100">' + Store.getAuditLog().slice(0, 40).map(function(l){
+        return '<div class="p-4 flex flex-wrap items-start gap-3">' +
+          '<span class="text-xs font-mono text-slate-400 w-36 flex-shrink-0">' + l.waktu + '</span>' +
+          '<span class="badge badge-abu flex-shrink-0">' + l.peran + '</span>' +
+          '<div class="flex-1 min-w-0"><p class="text-sm text-slate-700"><span class="font-bold">' + l.aktor + '</span> — ' + l.detail + '</p><p class="text-xs text-slate-400 mt-0.5">Aksi: ' + l.aksi + ' · Objek: ' + l.objek + '</p></div>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
+    var TABS = { cms: tabCms, notifikasi: tabNotifikasi, keamanan: tabKeamanan, privasi: tabPrivasi, integrasi: tabIntegrasi, audit: tabAudit };
+    var BINDERS = { cms: bindCms, privasi: bindPrivasi, integrasi: bindIntegrasi };
+    var active = 'cms';
+
+    function renderActive() {
+      document.getElementById('area-tab').innerHTML = TABS[active]();
+      if (BINDERS[active]) BINDERS[active]();
+      bindGenericToggles();
+    }
+    function bindGenericToggles() {
+      document.querySelectorAll('.toggle-switch:not(.btn-toggle-int):not(.btn-toggle-key)').forEach(function(t){
+        t.addEventListener('click', function(){ t.classList.toggle('on'); });
+      });
+    }
+
+    document.getElementById('tabs').addEventListener('click', function(e){
+      var btn = e.target.closest('.set-tab');
+      if (!btn) return;
+      active = btn.dataset.t;
+      paintTabs();
+      renderActive();
+    });
+    function paintTabs() {
+      document.querySelectorAll('.set-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.t === active); });
+    }
+
+    paintTabs();
+    renderActive();
+  }
+</script>
+</body>
+</html>

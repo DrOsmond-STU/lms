@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelas Pembelajaran — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .kelas-tab{white-space:nowrap;font-size:.8rem;font-weight:700;padding:.55rem 1rem;border-radius:.5rem;color:#64748b;flex-shrink:0;}
+  .kelas-tab.active{background:#fff;color:var(--brand-800);box-shadow:0 1px 2px rgba(16,24,40,.08);}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="peserta" data-active="pembelajaran" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'peserta') {
+    var mhsId = session.userId;
+    var kelasId = UI.qs('id');
+    var kelas = Store.kelasById(kelasId);
+    var el = document.getElementById('konten');
+    var activeTab = 'materi';
+    var activeModulId = kelas ? kelas.modul[0].id : null;
+
+    if (!kelas) {
+      el.innerHTML = '<div class="card p-10 text-center text-slate-400">Kelas tidak ditemukan. <a href="pembelajaran.html" class="text-brand-700 font-bold">Kembali</a></div>';
+    } else {
+      var pelatihan = Store.skemaById(kelas.skemaId);
+      var trainer = Store.instrukturById(kelas.instrukturId);
+      var modulNonKuis = kelas.modul.filter(function(m){ return m.tipe !== 'quiz'; });
+
+      function currentPendaftaran() { return Store.pendaftaranSkema(mhsId, pelatihan.id); }
+
+      var TABS = [
+        { k: 'materi', l: 'Materi & Kuis' },
+        { k: 'ujian', l: 'Ujian Akhir' },
+        { k: 'tugas', l: 'Tugas' },
+        { k: 'presensi', l: 'Presensi' },
+        { k: 'live', l: 'Live Class' },
+        { k: 'diskusi', l: 'Diskusi' }
+      ];
+
+      function headerCard(p) {
+        return '<a href="pembelajaran.html" class="text-xs font-bold text-slate-400 hover:text-brand-700 flex items-center gap-1 mb-4">&larr; Kembali ke Pembelajaran Saya</a>' +
+          '<div class="card p-5 mb-5">' +
+            '<div class="flex flex-wrap items-center justify-between gap-3">' +
+              '<div>' +
+                '<div class="flex items-center gap-2 mb-2">' + UI.kategoriTag(pelatihan.kategori) + (p ? UI.badgePendaftaran(p.status) : '') + '</div>' +
+                '<h1 class="text-lg md:text-xl font-extrabold text-slate-800">' + pelatihan.nama + '</h1>' +
+                '<p class="text-xs text-slate-400 mt-1">Trainer: ' + (trainer ? trainer.nama : '-') + ' · Batch ' + kelas.batch + '</p>' +
+              '</div>' +
+              (p ? '<div class="w-full sm:w-48"><div class="flex justify-between text-xs text-slate-400 mb-1"><span>Progres</span><span>' + p.progres + '%</span></div><div class="progress-track"><div class="progress-fill" style="width:' + p.progres + '%"></div></div></div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="flex gap-1 bg-slate-100 rounded-lg p-1 mb-5 overflow-x-auto" id="kelas-tabs">' +
+            TABS.map(function(t){ return '<button data-tab="' + t.k + '" class="kelas-tab' + (t.k === activeTab ? ' active' : '') + '">' + t.l + '</button>'; }).join('') +
+          '</div>';
+      }
+
+      function gerbangDaftar() {
+        el.innerHTML = headerCard(null) +
+          '<div class="card p-10 text-center">' +
+            '<p class="text-slate-500 text-sm mb-4">Anda belum mendaftar pada pelatihan ini.</p>' +
+            '<button id="btn-daftar-gate" class="font-bold text-white px-6 py-3 rounded-xl" style="background:var(--brand-800)">Daftar Pelatihan Ini</button>' +
+          '</div>';
+        bindTabBar();
+        document.getElementById('btn-daftar-gate').addEventListener('click', function(){
+          Store.daftarSertifikasi(mhsId, pelatihan.id);
+          UI.toast('Berhasil mendaftar! Selamat belajar.', 'sukses');
+          renderAll();
+        });
+      }
+
+      // ---------------- Tab: Materi & Kuis ----------------
+      function modulListHtml(p) {
+        return kelas.modul.map(function(m, idx){
+          var selesai = p.modulSelesai.indexOf(m.id) !== -1 || (m.tipe === 'quiz' && p.skorKuis !== null);
+          var aktif = m.id === activeModulId;
+          var iconTipe = m.tipe === 'video' ? 'play' : m.tipe === 'quiz' ? 'check' : 'doc';
+          return '<button data-id="' + m.id + '" class="modul-btn w-full text-left modul-item ' + (selesai ? 'selesai' : '') + ' ' + (aktif ? 'ring-2 ring-brand-500' : '') + '">' +
+            '<span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ' + (selesai ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500') + '">' + (selesai ? UI.Icon.check : (idx+1)) + '</span>' +
+            '<span class="text-slate-400">' + UI.Icon[iconTipe] + '</span>' +
+            '<span class="flex-1"><span class="block text-sm font-semibold text-slate-700">' + m.judul + '</span><span class="block text-xs text-slate-400">' + m.durasi + '</span></span>' +
+          '</button>';
+        }).join('');
+      }
+
+      function viewerVideo(m, p) {
+        var selesai = p.modulSelesai.indexOf(m.id) !== -1;
+        return '<div class="card p-6">' +
+          '<div class="aspect-video rounded-xl flex items-center justify-center text-white mb-5" style="background:linear-gradient(135deg,var(--brand-900),var(--brand-700))">' +
+            '<div class="text-center"><div class="w-16 h-16 rounded-full bg-white/15 flex items-center justify-center mx-auto mb-3">' + UI.Icon.play + '</div><p class="text-sm text-white/70">Video Pembelajaran (' + m.durasi + ')</p></div>' +
+          '</div>' +
+          '<h2 class="font-bold text-slate-800 mb-2">' + m.judul + '</h2>' +
+          '<p class="text-sm text-slate-500 mb-5">Simak video pembelajaran di atas hingga selesai, lalu tandai modul ini sebagai selesai untuk melanjutkan progres Anda.</p>' +
+          (selesai
+            ? '<span class="inline-flex items-center gap-2 text-sm font-bold text-emerald-600">' + UI.Icon.check + ' Modul selesai dipelajari</span>'
+            : '<button id="btn-selesai" data-id="' + m.id + '" class="font-bold text-white px-5 py-2.5 rounded-lg" style="background:var(--brand-800)">Tandai Selesai</button>') +
+        '</div>';
+      }
+
+      function viewerPdf(m, p) {
+        var selesai = p.modulSelesai.indexOf(m.id) !== -1;
+        return '<div class="card p-6">' +
+          '<div class="rounded-xl border-2 border-dashed border-slate-200 p-10 text-center mb-5">' +
+            '<span class="w-14 h-14 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center mx-auto mb-3">' + UI.Icon.doc + '</span>' +
+            '<p class="text-sm font-semibold text-slate-600">Materi PDF (' + m.durasi + ')</p>' +
+            '<p class="text-xs text-slate-400 mt-1">Pratinjau dokumen tidak tersedia pada purwarupa ini.</p>' +
+          '</div>' +
+          '<h2 class="font-bold text-slate-800 mb-2">' + m.judul + '</h2>' +
+          '<p class="text-sm text-slate-500 mb-5">Pelajari materi PDF di atas, lalu tandai modul ini sebagai selesai untuk melanjutkan progres Anda.</p>' +
+          (selesai
+            ? '<span class="inline-flex items-center gap-2 text-sm font-bold text-emerald-600">' + UI.Icon.check + ' Modul selesai dipelajari</span>'
+            : '<button id="btn-selesai" data-id="' + m.id + '" class="font-bold text-white px-5 py-2.5 rounded-lg" style="background:var(--brand-800)">Tandai Selesai</button>') +
+        '</div>';
+      }
+
+      function formKuisHtml(daftarSoal, formId, tombolLabel) {
+        return '<form id="' + formId + '" class="space-y-6">' +
+          daftarSoal.map(function(q, qi){
+            return '<div><p class="text-sm font-bold text-slate-700 mb-3">' + (qi+1) + '. ' + q.soal + '</p>' +
+              '<div class="space-y-2">' + q.opsi.map(function(op, oi){
+                return '<label class="quiz-opsi"><input type="radio" name="q' + qi + '" value="' + oi + '" class="mt-0.5"><span class="text-sm text-slate-600">' + op + '</span></label>';
+              }).join('') + '</div></div>';
+          }).join('') +
+          '<button type="submit" class="font-bold text-white px-6 py-3 rounded-xl w-full sm:w-auto" style="background:var(--brand-800)">' + tombolLabel + '</button>' +
+        '</form>';
+      }
+
+      function viewerQuiz(m, p) {
+        if (p.status === 'lulus' || p.status === 'menunggu_approval') {
+          return '<div class="card p-6 text-center">' +
+            '<div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">' + UI.Icon.check + '</div>' +
+            '<h2 class="font-bold text-slate-800 mb-1">Kuis Selesai — Skor ' + p.skorKuis + '</h2>' +
+            '<p class="text-sm text-slate-500 max-w-sm mx-auto">' + (p.status === 'lulus' ? 'Anda telah lulus dan sertifikat sudah diterbitkan. Cek pada menu Sertifikat Saya.' : 'Anda telah lulus kuis ini. Buka tab Ujian Akhir untuk melihat status kelulusan lengkap.') + '</p>' +
+          '</div>';
+        }
+        if (p.status === 'tidak_lulus' && p.skorKuis !== null) {
+          return '<div class="card p-6 text-center">' +
+            '<div class="w-16 h-16 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 font-extrabold">' + p.skorKuis + '</div>' +
+            '<h2 class="font-bold text-slate-800 mb-1">Skor Belum Memenuhi Syarat</h2>' +
+            '<p class="text-sm text-slate-500 max-w-sm mx-auto mb-5">Skor minimal kelulusan adalah ' + pelatihan.skorMinimal + '. Silakan pelajari kembali materi lalu ulangi kuis.</p>' +
+            '<button id="btn-ulangi" class="font-bold text-white px-5 py-2.5 rounded-lg" style="background:var(--brand-800)">Ulangi Kuis</button>' +
+          '</div>';
+        }
+        return '<div class="card p-6">' +
+          '<div class="flex items-center justify-between mb-1"><h2 class="font-bold text-slate-800">' + m.judul + '</h2><span class="text-xs font-bold text-slate-400">Skor Lulus Min. ' + pelatihan.skorMinimal + '</span></div>' +
+          '<p class="text-sm text-slate-500 mb-5">Jawab seluruh soal berikut, lalu klik Kumpulkan Kuis.</p>' +
+          formKuisHtml(kelas.kuis, 'form-kuis', 'Kumpulkan Kuis') +
+        '</div>';
+      }
+
+      function viewer(modulId, p) {
+        var m = kelas.modul.filter(function(x){ return x.id === modulId; })[0];
+        if (!m) return '';
+        if (m.tipe === 'video') return viewerVideo(m, p);
+        if (m.tipe === 'pdf') return viewerPdf(m, p);
+        return viewerQuiz(m, p);
+      }
+
+      function tabMateri(p) {
+        return '<div class="grid lg:grid-cols-3 gap-6">' +
+            '<div class="lg:col-span-2" id="area-viewer">' + viewer(activeModulId, p) + '</div>' +
+            '<div>' +
+              '<div class="card p-4 mb-5">' +
+                '<p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Daftar Modul</p>' +
+                '<div class="space-y-2" id="area-modul-list">' + modulListHtml(p) + '</div>' +
+              '</div>' +
+              '<div class="card p-5 text-sm">' +
+                '<p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Syarat Kelulusan</p>' +
+                '<ul class="space-y-2 text-slate-600">' +
+                  '<li class="flex items-center gap-2">' + UI.Icon.check + ' Menyelesaikan seluruh modul materi</li>' +
+                  '<li class="flex items-center gap-2">' + UI.Icon.check + ' Skor kuis akhir minimal ' + pelatihan.skorMinimal + '</li>' +
+                  '<li class="flex items-center gap-2">' + UI.Icon.check + ' Disetujui admin untuk penerbitan sertifikat</li>' +
+                '</ul>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      }
+      function bindMateri() {
+        var list = document.getElementById('area-modul-list');
+        if (list) list.addEventListener('click', function(e){
+          var btn = e.target.closest('.modul-btn');
+          if (!btn) return;
+          activeModulId = btn.dataset.id;
+          document.getElementById('area-viewer').innerHTML = viewer(activeModulId, currentPendaftaran());
+          document.querySelectorAll('.modul-btn').forEach(function(b){ b.classList.toggle('ring-2', b.dataset.id === activeModulId); b.classList.toggle('ring-brand-500', b.dataset.id === activeModulId); });
+          bindMateriViewerEvents();
+        });
+        bindMateriViewerEvents();
+      }
+      function bindMateriViewerEvents() {
+        var btnSelesai = document.getElementById('btn-selesai');
+        if (btnSelesai) btnSelesai.addEventListener('click', function(){
+          Store.tandaiModulSelesai(currentPendaftaran().id, btnSelesai.dataset.id, modulNonKuis.length - 1);
+          UI.toast('Modul ditandai selesai', 'sukses');
+          renderAll();
+        });
+        var btnUlangi = document.getElementById('btn-ulangi');
+        if (btnUlangi) btnUlangi.addEventListener('click', function(){
+          Store.ulangiKuis(currentPendaftaran().id);
+          renderAll();
+        });
+        var formKuis = document.getElementById('form-kuis');
+        if (formKuis) formKuis.addEventListener('submit', function(e){
+          e.preventDefault();
+          submitFormKuis(formKuis, kelas.kuis, function(skor){
+            var hasil = Store.submitKuis(currentPendaftaran().id, skor, pelatihan.skorMinimal);
+            UI.toast(hasil.status === 'menunggu_approval' ? 'Selamat! Kuis berhasil diselesaikan.' : 'Kuis selesai, skor belum memenuhi syarat.', hasil.status === 'menunggu_approval' ? 'sukses' : 'peringatan');
+            renderAll();
+          });
+        });
+      }
+      function submitFormKuis(formEl, daftarSoal, onDone) {
+        var total = daftarSoal.length, benar = 0, belumDijawab = false;
+        daftarSoal.forEach(function(q, qi){
+          var dipilih = formEl.querySelector('input[name="q' + qi + '"]:checked');
+          if (!dipilih) { belumDijawab = true; return; }
+          if (parseInt(dipilih.value, 10) === q.jawaban) benar++;
+        });
+        if (belumDijawab) { UI.toast('Mohon jawab seluruh soal terlebih dahulu', 'peringatan'); return; }
+        onDone(Math.round((benar / total) * 100));
+      }
+
+      // ---------------- Tab: Ujian Akhir ----------------
+      function tabUjianAkhir(p) {
+        var semuaModulSelesai = modulNonKuis.every(function(m){ return p.modulSelesai.indexOf(m.id) !== -1; });
+        var info = kelas.ujianAkhir;
+        var infoCard = '<div class="card p-5 mb-5"><div class="grid sm:grid-cols-3 gap-4 text-sm">' +
+          '<div><p class="text-xs text-slate-400 mb-0.5">Durasi</p><p class="font-bold text-slate-700">' + info.durasiMenit + ' menit</p></div>' +
+          '<div><p class="text-xs text-slate-400 mb-0.5">Jumlah Soal</p><p class="font-bold text-slate-700">' + info.jumlahSoal + ' soal</p></div>' +
+          '<div><p class="text-xs text-slate-400 mb-0.5">Jadwal</p><p class="font-bold text-slate-700">' + info.jadwal + '</p></div>' +
+        '</div></div>';
+
+        if (p.status === 'lulus' || p.status === 'menunggu_approval') {
+          return infoCard + '<div class="card p-8 text-center">' +
+            '<div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">' + UI.Icon.check + '</div>' +
+            '<h2 class="font-bold text-slate-800 mb-1">Ujian Akhir Lulus — Skor ' + p.skorKuis + '</h2>' +
+            '<p class="text-sm text-slate-500 max-w-sm mx-auto">' + (p.status === 'lulus' ? 'Sertifikat Anda sudah diterbitkan.' : 'Menunggu persetujuan admin untuk penerbitan sertifikat.') + '</p>' +
+          '</div>';
+        }
+        if (p.status === 'tidak_lulus') {
+          return infoCard + '<div class="card p-8 text-center">' +
+            '<h2 class="font-bold text-slate-800 mb-1">Belum Lulus Ujian Akhir</h2>' +
+            '<p class="text-sm text-slate-500 max-w-sm mx-auto">Skor terakhir Anda ' + p.skorKuis + ', di bawah syarat minimal ' + pelatihan.skorMinimal + '. Buka tab Materi &amp; Kuis untuk mengulang.</p>' +
+          '</div>';
+        }
+        if (!semuaModulSelesai) {
+          return infoCard + '<div class="card p-8 text-center">' +
+            '<div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="w-7 h-7"><rect x="5" y="10.5" width="14" height="10" rx="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg></div>' +
+            '<h2 class="font-bold text-slate-800 mb-1">Ujian Akhir Terkunci</h2>' +
+            '<p class="text-sm text-slate-500 max-w-sm mx-auto">Selesaikan seluruh modul materi pada tab <strong>Materi &amp; Kuis</strong> terlebih dahulu untuk membuka Ujian Akhir.</p>' +
+          '</div>';
+        }
+        return infoCard + '<div class="card p-6">' +
+          '<p class="text-sm text-slate-500 mb-5">Modul selesai — Anda dapat langsung mengerjakan kuis akhir pada tab <strong>Materi &amp; Kuis</strong> sebagai Ujian Akhir Anda. Skor yang sama akan menjadi syarat kelulusan &amp; penerbitan sertifikat.</p>' +
+          '<button id="btn-ke-materi" class="font-bold text-white px-5 py-2.5 rounded-lg" style="background:var(--brand-800)">Kerjakan Sekarang</button>' +
+        '</div>';
+      }
+      function bindUjianAkhir() {
+        var btn = document.getElementById('btn-ke-materi');
+        if (btn) btn.addEventListener('click', function(){
+          activeTab = 'materi';
+          activeModulId = (kelas.modul.filter(function(m){ return m.tipe === 'quiz'; })[0] || kelas.modul[0]).id;
+          renderAll();
+        });
+      }
+
+      // ---------------- Tab: Tugas ----------------
+      function tabTugas() {
+        var daftarTugas = Store.tugasByKelas(kelas.id);
+        if (!daftarTugas.length) return '<div class="card p-10 text-center text-slate-400 text-sm">Tidak ada tugas untuk pelatihan ini.</div>';
+        return '<div class="space-y-4">' + daftarTugas.map(function(t){
+          var sub = Store.pengumpulanPeserta(t.id, mhsId);
+          return '<div class="card p-5">' +
+            '<div class="flex flex-wrap items-start justify-between gap-2 mb-2"><h3 class="font-bold text-slate-800">' + t.judul + '</h3>' + (sub ? UI.badgeTugas(sub.status) : '<span class="badge badge-abu"><span class="badge-dot"></span>Belum Dikumpulkan</span>') + '</div>' +
+            '<p class="text-sm text-slate-500 mb-3">' + t.deskripsi + '</p>' +
+            '<p class="text-xs text-slate-400 mb-4">Tenggat: <span class="font-semibold text-slate-600">' + UI.formatTanggal(t.deadline) + '</span></p>' +
+            (sub ? (
+              '<div class="bg-slate-50 rounded-lg p-3 text-xs text-slate-500 mb-3">Berkas: <span class="font-mono font-semibold text-slate-700">' + sub.fileNama + '</span> · Dikumpulkan ' + UI.formatTanggalSingkat(sub.tanggalKumpul) + '</div>' +
+              (sub.nilai !== null ? '<div class="text-sm"><span class="font-bold text-emerald-600">Nilai: ' + sub.nilai + '</span><p class="text-slate-500 mt-1">' + (sub.feedback || '') + '</p></div>' :
+                (sub.status === 'revision' ? '<p class="text-xs text-amber-600 mb-3">Catatan revisi: ' + (sub.feedback || '') + '</p><form data-tugas="' + t.id + '" class="form-tugas flex flex-col sm:flex-row gap-2"><input type="text" required placeholder="nama-file-revisi.zip" class="input-file flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm"><button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg" style="background:var(--brand-800)">Kumpulkan Revisi</button></form>' :
+                '<p class="text-xs text-slate-400">Menunggu penilaian trainer.</p>'))
+            ) : '<form data-tugas="' + t.id + '" class="form-tugas flex flex-col sm:flex-row gap-2"><input type="text" required placeholder="nama-file-tugas.zip" class="input-file flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm"><button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg" style="background:var(--brand-800)">Unggah &amp; Kumpulkan</button></form>') +
+          '</div>';
+        }).join('') + '</div>';
+      }
+      function bindTugas() {
+        document.querySelectorAll('.form-tugas').forEach(function(f){
+          f.addEventListener('submit', function(e){
+            e.preventDefault();
+            var fileNama = f.querySelector('.input-file').value.trim();
+            if (!fileNama) return;
+            Store.kumpulkanTugas(f.dataset.tugas, mhsId, fileNama);
+            UI.toast('Tugas berhasil dikumpulkan', 'sukses');
+            render();
+          });
+        });
+      }
+
+      // ---------------- Tab: Presensi ----------------
+      function tabPresensi() {
+        var sesi = Store.sesiByKelas(kelas.id);
+        if (!sesi.length) return '<div class="card p-10 text-center text-slate-400 text-sm">Pelatihan ini tidak memiliki sesi tatap muka/presensi (kelas online).</div>';
+        var rekap = Store.rekapKehadiran(kelas.id, mhsId);
+        return '<div class="card p-5 mb-5 flex items-center justify-between"><div><p class="text-xs text-slate-400 mb-0.5">Rekap Kehadiran</p><p class="text-2xl font-extrabold text-slate-800">' + rekap.persen + '%</p></div><p class="text-xs text-slate-400">' + rekap.hadir + ' dari ' + rekap.totalSesi + ' sesi</p></div>' +
+          '<div class="space-y-2">' + sesi.map(function(s){
+            var rec = Store.presensiPeserta(s.id, mhsId);
+            return '<div class="card p-4 flex items-center gap-4">' +
+              '<div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center flex-shrink-0">' + UI.Icon.fingerprint + '</div>' +
+              '<div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-800 truncate">' + s.judul + '</p><p class="text-xs text-slate-400">' + UI.formatTanggalSingkat(s.tanggal) + ' · ' + s.tipe + '</p></div>' +
+              (rec ? UI.badgePresensi(rec.status) : '<button data-sesi="' + s.id + '" class="btn-checkin text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:var(--brand-800)">Check-in</button>') +
+            '</div>';
+          }).join('') + '</div>';
+      }
+      function bindPresensi() {
+        document.querySelectorAll('.btn-checkin').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            Store.checkInPresensi(btn.dataset.sesi, mhsId, 'qr');
+            UI.toast('Check-in berhasil', 'sukses');
+            render();
+          });
+        });
+      }
+
+      // ---------------- Tab: Live Class ----------------
+      function tabLive() {
+        var daftar = Store.liveClassByKelas(kelas.id);
+        if (!daftar.length) return '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada jadwal live class untuk pelatihan ini.</div>';
+        return '<div class="space-y-3">' + daftar.map(function(l){
+          return '<div class="card p-4 flex items-center gap-4">' +
+            '<div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0">' + UI.Icon.video + '</div>' +
+            '<div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-800 truncate">' + l.judul + '</p><p class="text-xs text-slate-400">' + UI.formatTanggalSingkat(l.tanggal) + ' · ' + l.waktu + ' · ' + l.platform + '</p></div>' +
+            (l.status === 'selesai'
+              ? (l.rekaman ? '<a href="' + l.rekaman + '" target="_blank" class="text-xs font-bold text-brand-700 flex-shrink-0">Lihat Rekaman</a>' : '<span class="text-xs text-slate-400 flex-shrink-0">Selesai</span>')
+              : '<button data-link="' + l.link + '" class="btn-join-live text-xs font-bold text-white px-3 py-1.5 rounded-lg flex-shrink-0" style="background:var(--brand-800)">Gabung</button>') +
+          '</div>';
+        }).join('') + '</div>';
+      }
+      function bindLive() {
+        document.querySelectorAll('.btn-join-live').forEach(function(btn){
+          btn.addEventListener('click', function(){ UI.toast('Simulasi: membuka ' + btn.dataset.link, 'info'); });
+        });
+      }
+
+      // ---------------- Tab: Diskusi ----------------
+      function tabDiskusi() {
+        var threads = Store.diskusiByKelas(kelas.id);
+        return '<div class="card p-4 mb-5">' +
+            '<form id="form-thread" class="flex flex-col sm:flex-row gap-2">' +
+              '<input id="input-thread" type="text" required placeholder="Ajukan pertanyaan atau mulai diskusi baru..." class="flex-1 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm">' +
+              '<button type="submit" class="text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">Kirim</button>' +
+            '</form>' +
+          '</div>' +
+          (threads.length ? threads.map(function(t){
+            var komentar = Store.komentarByThread(t.id);
+            var penulis = t.penulisPeran === 'trainer' ? Store.instrukturById(t.penulisId) : Store.mahasiswaById(t.penulisId);
+            return '<div class="card p-5 mb-4">' +
+              '<div class="flex items-start gap-3 mb-3">' +
+                '<span class="avatar w-9 h-9 text-xs">' + UI.inisial(penulis ? penulis.nama : '?') + '</span>' +
+                '<div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-800">' + t.judul + '</p><p class="text-xs text-slate-400">' + (penulis ? penulis.nama : '-') + (t.penulisPeran === 'trainer' ? ' · Trainer' : '') + ' · ' + t.waktu + '</p></div>' +
+              '</div>' +
+              '<div class="space-y-3 pl-4 border-l-2 border-slate-100 mb-3">' + (komentar.length ? komentar.map(function(k){
+                var kp = k.penulisPeran === 'trainer' ? Store.instrukturById(k.penulisId) : Store.mahasiswaById(k.penulisId);
+                return '<div class="flex items-start gap-2.5">' +
+                  '<span class="avatar w-7 h-7 text-[10px]" style="background:' + (k.penulisPeran === 'trainer' ? 'var(--accent-500)' : 'var(--brand-700)') + '">' + UI.inisial(kp ? kp.nama : '?') + '</span>' +
+                  '<div class="flex-1"><p class="text-xs"><span class="font-bold text-slate-700">' + (kp ? kp.nama : '-') + '</span>' + (k.penulisPeran === 'trainer' ? ' <span class="text-accent-700 font-bold">· Trainer</span>' : '') + '</p>' +
+                  '<p class="text-sm text-slate-600 mt-0.5">' + k.isi + '</p>' +
+                  '<button data-komentar="' + k.id + '" class="btn-suka text-[11px] text-slate-400 font-bold mt-1 hover:text-brand-700">👍 ' + k.suka + '</button></div>' +
+                '</div>';
+              }).join('') : '<p class="text-xs text-slate-400">Belum ada balasan.</p>') + '</div>' +
+              '<form data-thread="' + t.id + '" class="form-komentar flex gap-2"><input type="text" required placeholder="Tulis balasan..." class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs"><button type="submit" class="text-xs font-bold text-brand-700 px-3">Balas</button></form>' +
+            '</div>';
+          }).join('') : '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada diskusi. Jadilah yang pertama bertanya!</div>');
+      }
+      function bindDiskusi() {
+        var formThread = document.getElementById('form-thread');
+        if (formThread) formThread.addEventListener('submit', function(e){
+          e.preventDefault();
+          var judul = document.getElementById('input-thread').value.trim();
+          if (!judul) return;
+          Store.tambahThread(kelas.id, mhsId, 'peserta', judul);
+          UI.toast('Diskusi baru dibuat', 'sukses');
+          render();
+        });
+        document.querySelectorAll('.form-komentar').forEach(function(f){
+          f.addEventListener('submit', function(e){
+            e.preventDefault();
+            var input = f.querySelector('input');
+            if (!input.value.trim()) return;
+            Store.tambahKomentar(f.dataset.thread, mhsId, 'peserta', input.value.trim());
+            render();
+          });
+        });
+        document.querySelectorAll('.btn-suka').forEach(function(btn){
+          btn.addEventListener('click', function(){ Store.sukaKomentar(btn.dataset.komentar); render(); });
+        });
+      }
+
+      function tabContent(p) {
+        if (activeTab === 'materi') return tabMateri(p);
+        if (activeTab === 'ujian') return tabUjianAkhir(p);
+        if (activeTab === 'tugas') return tabTugas();
+        if (activeTab === 'presensi') return tabPresensi();
+        if (activeTab === 'live') return tabLive();
+        return tabDiskusi();
+      }
+      function bindTabContent() {
+        if (activeTab === 'materi') bindMateri();
+        else if (activeTab === 'ujian') bindUjianAkhir();
+        else if (activeTab === 'tugas') bindTugas();
+        else if (activeTab === 'presensi') bindPresensi();
+        else if (activeTab === 'live') bindLive();
+        else bindDiskusi();
+      }
+
+      function bindTabBar() {
+        var bar = document.getElementById('kelas-tabs');
+        if (!bar) return;
+        bar.addEventListener('click', function(e){
+          var btn = e.target.closest('.kelas-tab');
+          if (!btn) return;
+          activeTab = btn.dataset.tab;
+          render();
+        });
+      }
+
+      function render() {
+        var p = currentPendaftaran();
+        if (!p) { gerbangDaftar(); return; }
+        el.innerHTML = headerCard(p) + '<div id="area-tab">' + tabContent(p) + '</div>';
+        bindTabBar();
+        bindTabContent();
+      }
+      function renderAll() { render(); }
+
+      renderAll();
+    }
+  }
+</script>
+</body>
+</html>

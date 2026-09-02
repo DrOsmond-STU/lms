@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="peserta" data-active="jadwal" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Jadwal</h1><p class="text-sm text-slate-400 mt-0.5">Sesi live class dan tatap muka dari pelatihan yang Anda ikuti.</p></div>
+    <div id="daftar-jadwal" class="space-y-3"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'peserta') {
+    var mhsId = session.userId;
+    var kelasSaya = Store.pendaftaranMahasiswa(mhsId).map(function(p){ return Store.kelasBySkemaId(p.skemaId); }).filter(Boolean);
+    var kelasIds = kelasSaya.map(function(k){ return k.id; });
+
+    var items = [];
+    Store.getLiveClass().filter(function(l){ return kelasIds.indexOf(l.kelasId) !== -1; }).forEach(function(l){
+      var k = Store.kelasById(l.kelasId), s = Store.skemaById(k.skemaId);
+      items.push({ tipe: 'live', tanggal: l.tanggal, judul: l.judul, sub: s.nama + ' · ' + l.waktu + ' · ' + l.platform, data: l });
+    });
+    Store.getSesiPresensi().filter(function(sp){ return kelasIds.indexOf(sp.kelasId) !== -1; }).forEach(function(sp){
+      var k = Store.kelasById(sp.kelasId), s = Store.skemaById(k.skemaId);
+      items.push({ tipe: 'presensi', tanggal: sp.tanggal, judul: sp.judul, sub: s.nama + ' · Sesi Tatap Muka (' + sp.tipe + ')', data: sp });
+    });
+    items.sort(function(a,b){ return a.tanggal.localeCompare(b.tanggal); });
+
+    document.getElementById('daftar-jadwal').innerHTML = items.length ? items.map(function(it){
+      var iconBg = it.tipe === 'live' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700';
+      var icon = it.tipe === 'live' ? UI.Icon.video : UI.Icon.fingerprint;
+      var aksi = '';
+      if (it.tipe === 'live') {
+        aksi = it.data.status === 'selesai'
+          ? (it.data.rekaman ? '<a href="' + it.data.rekaman + '" target="_blank" class="text-xs font-bold text-brand-700">Lihat Rekaman</a>' : '<span class="text-xs text-slate-400">Rekaman belum tersedia</span>')
+          : '<button data-link="' + it.data.link + '" class="btn-join text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:var(--brand-800)">Gabung Sekarang</button>';
+      } else {
+        aksi = '<button data-sesi="' + it.data.id + '" class="btn-checkin text-xs font-bold border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50">Check-in</button>';
+      }
+      return '<div class="card p-4 flex items-center gap-4">' +
+        '<div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ' + iconBg + '">' + icon + '</div>' +
+        '<div class="flex-1 min-w-0"><p class="text-sm font-bold text-slate-800 truncate">' + it.judul + '</p><p class="text-xs text-slate-400 truncate">' + it.sub + '</p></div>' +
+        '<div class="text-right flex-shrink-0"><p class="text-xs font-bold text-slate-500 mb-1.5">' + UI.formatTanggalSingkat(it.tanggal) + '</p>' + aksi + '</div>' +
+      '</div>';
+    }).join('') : '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada jadwal live class atau sesi tatap muka.</div>';
+
+    document.getElementById('daftar-jadwal').addEventListener('click', function(e){
+      var joinBtn = e.target.closest('.btn-join');
+      if (joinBtn) { UI.toast('Simulasi: membuka ' + joinBtn.dataset.link, 'info'); return; }
+      var checkinBtn = e.target.closest('.btn-checkin');
+      if (checkinBtn) {
+        Store.checkInPresensi(checkinBtn.dataset.sesi, mhsId, 'qr');
+        UI.toast('Check-in berhasil dicatat', 'sukses');
+        checkinBtn.outerHTML = '<span class="text-xs font-bold text-emerald-600">✓ Hadir</span>';
+      }
+    });
+  }
+</script>
+</body>
+</html>

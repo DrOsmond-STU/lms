@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Operasional — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="laporan-operasional" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Laporan Operasional</h1><p class="text-sm text-slate-400 mt-0.5">Completion rate, presensi, tugas, dan aktivitas sertifikat lintas pelatihan.</p></div>
+
+    <div class="flex bg-slate-100 rounded-lg p-1 mb-5 w-fit overflow-x-auto" id="tabs">
+      <button data-t="completion" class="lo-btn text-xs font-bold px-4 py-2 rounded-lg">Completion &amp; Nilai</button>
+      <button data-t="presensi" class="lo-btn text-xs font-bold px-4 py-2 rounded-lg">Presensi</button>
+      <button data-t="tugas" class="lo-btn text-xs font-bold px-4 py-2 rounded-lg">Tugas</button>
+      <button data-t="sertifikat" class="lo-btn text-xs font-bold px-4 py-2 rounded-lg">Sertifikat &amp; Verifikasi</button>
+    </div>
+
+    <div id="area-tab"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    function tabCompletion() {
+      var rows = Store.getSkema().map(function(s){
+        var kelas = Store.kelasBySkemaId(s.id);
+        var peserta = Store.pendaftaranByKelas(s.id);
+        var selesai = peserta.filter(function(p){ return p.progres === 100; });
+        var skorList = peserta.filter(function(p){ return p.skorKuis !== null; }).map(function(p){ return p.skorKuis; });
+        var rata = skorList.length ? Math.round(skorList.reduce(function(a,b){ return a+b; },0)/skorList.length) : null;
+        return { s: s, total: peserta.length, completion: peserta.length ? Math.round((selesai.length/peserta.length)*100) : 0, rata: rata };
+      });
+      return '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[760px]"><thead><tr><th>Pelatihan</th><th>Peserta</th><th>Completion Rate</th><th>Rata-rata Skor</th></tr></thead><tbody>' +
+        rows.map(function(r){
+          return '<tr><td class="font-semibold">' + r.s.nama + '</td><td>' + r.total + '</td>' +
+            '<td><div class="flex items-center gap-2"><div class="progress-track w-24"><div class="progress-fill" style="width:' + r.completion + '%"></div></div><span class="text-xs font-bold text-slate-500">' + r.completion + '%</span></div></td>' +
+            '<td>' + (r.rata !== null ? r.rata : '-') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    function tabPresensi() {
+      var sesi = Store.getSesiPresensi();
+      if (!sesi.length) return '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada data presensi.</div>';
+      return '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[760px]"><thead><tr><th>Sesi</th><th>Pelatihan</th><th>Tanggal</th><th>Hadir</th><th>Terlambat</th><th>Tidak Hadir</th></tr></thead><tbody>' +
+        sesi.map(function(sp){
+          var rec = Store.presensiBySesi(sp.id);
+          var k = Store.kelasById(sp.kelasId), s = Store.skemaById(k.skemaId);
+          var hadir = rec.filter(function(r){ return r.status === 'hadir'; }).length;
+          var telat = rec.filter(function(r){ return r.status === 'terlambat'; }).length;
+          var absen = rec.filter(function(r){ return r.status === 'tidak_hadir'; }).length;
+          return '<tr><td class="font-semibold">' + sp.judul + '</td><td>' + s.nama + '</td><td>' + UI.formatTanggalSingkat(sp.tanggal) + '</td><td>' + hadir + '</td><td>' + telat + '</td><td>' + absen + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    function tabTugas() {
+      var tugas = Store.getTugas();
+      if (!tugas.length) return '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada data tugas.</div>';
+      return '<div class="card overflow-x-auto"><table class="w-full table-clean min-w-[760px]"><thead><tr><th>Tugas</th><th>Pelatihan</th><th>Tenggat</th><th>Terkumpul</th><th>Dinilai</th><th>Rata-rata Nilai</th></tr></thead><tbody>' +
+        tugas.map(function(t){
+          var sub = Store.pengumpulanByTugas(t.id);
+          var dinilai = sub.filter(function(s){ return s.nilai !== null; });
+          var rata = dinilai.length ? Math.round(dinilai.reduce(function(a,s){ return a+s.nilai; },0)/dinilai.length) : null;
+          var kelas = Store.kelasById(t.kelasId), s2 = Store.skemaById(kelas.skemaId);
+          return '<tr><td class="font-semibold">' + t.judul + '</td><td>' + s2.nama + '</td><td>' + UI.formatTanggalSingkat(t.deadline) + '</td><td>' + sub.length + '</td><td>' + dinilai.length + '</td><td>' + (rata !== null ? rata : '-') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+
+    function tabSertifikat() {
+      var cert = Store.getSertifikat();
+      var aktif = cert.filter(function(c){ return c.status === 'aktif'; }).length;
+      var dicabut = cert.filter(function(c){ return c.status === 'dicabut'; }).length;
+      var kedaluwarsa = cert.filter(function(c){ return c.status === 'kedaluwarsa'; }).length;
+      return '<div class="grid sm:grid-cols-3 gap-4 mb-5">' +
+          '<div class="card p-5"><p class="text-2xl font-extrabold text-slate-800">' + aktif + '</p><p class="text-xs text-slate-400 mt-0.5">Sertifikat Aktif</p></div>' +
+          '<div class="card p-5"><p class="text-2xl font-extrabold text-slate-800">' + kedaluwarsa + '</p><p class="text-xs text-slate-400 mt-0.5">Kedaluwarsa</p></div>' +
+          '<div class="card p-5"><p class="text-2xl font-extrabold text-slate-800">' + dicabut + '</p><p class="text-xs text-slate-400 mt-0.5">Dicabut</p></div>' +
+        '</div>' +
+        '<p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Aktivitas Verifikasi Terbaru (Audit Trail)</p>' +
+        '<div class="card divide-y divide-slate-100">' + Store.getAuditLog().filter(function(l){ return l.aksi.indexOf('sertifikat') !== -1 || l.aksi.indexOf('pembayaran') !== -1; }).slice(0,8).map(function(l){
+          return '<div class="p-4 flex items-start gap-3"><span class="text-xs font-mono text-slate-400 w-32 flex-shrink-0">' + l.waktu + '</span><div><p class="text-sm text-slate-700"><span class="font-bold">' + l.aktor + '</span> — ' + l.detail + '</p></div></div>';
+        }).join('') + '</div>';
+    }
+
+    var TABS = { completion: tabCompletion, presensi: tabPresensi, tugas: tabTugas, sertifikat: tabSertifikat };
+    var active = 'completion';
+    function render() { document.getElementById('area-tab').innerHTML = TABS[active](); }
+
+    document.getElementById('tabs').addEventListener('click', function(e){
+      var btn = e.target.closest('.lo-btn');
+      if (!btn) return;
+      active = btn.dataset.t;
+      document.querySelectorAll('.lo-btn').forEach(function(b){ b.className = 'lo-btn text-xs font-bold px-4 py-2 rounded-lg ' + (b === btn ? 'bg-white shadow text-brand-800' : 'text-slate-500'); });
+      render();
+    });
+    document.querySelector('.lo-btn[data-t="completion"]').className = 'lo-btn text-xs font-bold px-4 py-2 rounded-lg bg-white shadow text-brand-800';
+    ['presensi','tugas','sertifikat'].forEach(function(k){ document.querySelector('.lo-btn[data-t="' + k + '"]').className = 'lo-btn text-xs font-bold px-4 py-2 rounded-lg text-slate-500'; });
+
+    render();
+  }
+</script>
+</body>
+</html>

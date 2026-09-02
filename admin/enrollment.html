@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enrollment — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="enrollment" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div><h1 class="text-xl font-extrabold text-slate-800">Enrollment</h1><p class="text-sm text-slate-400 mt-0.5">Seluruh pendaftaran peserta ke pelatihan, lintas organisasi.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Daftarkan Peserta</button>
+    </div>
+
+    <div class="flex flex-wrap gap-3 mb-5">
+      <select id="filter-pelatihan" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600"></select>
+      <select id="filter-status" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600">
+        <option value="semua">Semua Status</option>
+        <option value="terdaftar">Terdaftar</option>
+        <option value="berjalan">Berjalan</option>
+        <option value="menunggu_approval">Menunggu Approval</option>
+        <option value="lulus">Lulus</option>
+        <option value="tidak_lulus">Belum Lulus</option>
+      </select>
+    </div>
+
+    <div class="card overflow-x-auto">
+      <table class="w-full table-clean min-w-[900px]">
+        <thead><tr><th>Peserta</th><th>Organisasi</th><th>Pelatihan</th><th>Tgl Daftar</th><th>Pembayaran</th><th>Status Belajar</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Daftarkan Peserta</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Peserta</label><select id="f-peserta" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Pelatihan</label><select id="f-pelatihan" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></select></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Daftarkan</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    document.getElementById('filter-pelatihan').innerHTML = '<option value="semua">Semua Pelatihan</option>' + Store.getSkema().map(function(s){ return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
+
+    function statusPembayaran(mhsId, skemaId) {
+      var s = Store.skemaById(skemaId);
+      if (!s.harga) return '<span class="badge badge-hijau"><span class="badge-dot"></span>Gratis</span>';
+      var tx = Store.transaksiMahasiswa(mhsId).filter(function(t){ return t.skemaId === skemaId; }).slice(-1)[0];
+      return tx ? UI.badgeTransaksi(tx.status) : '<span class="badge badge-kuning"><span class="badge-dot"></span>Belum Dibayar</span>';
+    }
+
+    function render() {
+      var pelatihanFilter = document.getElementById('filter-pelatihan').value;
+      var statusFilter = document.getElementById('filter-status').value;
+      var list = Store.getPendaftaran().filter(function(p){
+        return (pelatihanFilter === 'semua' || p.skemaId === pelatihanFilter) && (statusFilter === 'semua' || p.status === statusFilter);
+      });
+      document.getElementById('tbody').innerHTML = list.length ? list.map(function(p){
+        var mhs = Store.mahasiswaById(p.mahasiswaId), univ = Store.universitasById(mhs.universitasId), skema = Store.skemaById(p.skemaId);
+        return '<tr>' +
+          '<td><div class="flex items-center gap-2.5"><span class="avatar w-8 h-8 text-[11px]">' + UI.inisial(mhs.nama) + '</span><p class="font-semibold text-slate-700">' + mhs.nama + '</p></div></td>' +
+          '<td>' + univ.singkatan + '</td>' +
+          '<td>' + skema.nama + '</td>' +
+          '<td>' + UI.formatTanggalSingkat(p.tanggalDaftar) + '</td>' +
+          '<td>' + statusPembayaran(mhs.id, skema.id) + '</td>' +
+          '<td>' + UI.badgePendaftaran(p.status) + '</td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="6" class="text-center text-slate-400 py-8">Tidak ada data pada filter ini.</td></tr>';
+    }
+
+    document.getElementById('filter-pelatihan').addEventListener('change', render);
+    document.getElementById('filter-status').addEventListener('change', render);
+
+    document.getElementById('f-peserta').innerHTML = Store.getMahasiswa().map(function(m){ return '<option value="' + m.id + '">' + m.nama + '</option>'; }).join('');
+    document.getElementById('f-pelatihan').innerHTML = Store.getSkema().map(function(s){ return '<option value="' + s.id + '">' + s.nama + '</option>'; }).join('');
+
+    function toggleModal(show) {
+      document.getElementById('modal').classList.toggle('hidden', !show);
+      document.getElementById('modal').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('btn-tambah').addEventListener('click', function(){ toggleModal(true); });
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+
+    document.getElementById('form').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.daftarSertifikasi(document.getElementById('f-peserta').value, document.getElementById('f-pelatihan').value);
+      toggleModal(false);
+      UI.toast('Peserta berhasil didaftarkan', 'sukses');
+      render();
+    });
+
+    render();
+  }
+</script>
+</body>
+</html>

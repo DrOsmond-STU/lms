@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master Skema Sertifikasi — STU LMS</title>
+<title>Master Pelatihan — STU LMS</title>
 <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,12 +26,12 @@
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div><h1 class="text-xl font-extrabold text-slate-800">Master Skema Sertifikasi</h1><p class="text-sm text-slate-400 mt-0.5">Kelola skema sertifikasi Internasional &amp; BNSP yang tersedia.</p></div>
-      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Skema</button>
+      <div><h1 class="text-xl font-extrabold text-slate-800">Master Pelatihan</h1><p class="text-sm text-slate-400 mt-0.5">Kelola pelatihan Internasional &amp; BNSP yang tersedia.</p></div>
+      <button id="btn-tambah" class="text-sm font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Pelatihan</button>
     </div>
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[820px]">
-        <thead><tr><th>Skema</th><th>Kategori</th><th>Penyelenggara</th><th>Level</th><th>Durasi</th><th>Skor Min.</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Pelatihan</th><th>Kategori</th><th>Mode</th><th>Harga</th><th>Status</th><th>Skor Min.</th><th>Aksi</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -40,12 +40,12 @@
 
 <div id="modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50 overflow-y-auto">
   <div class="bg-white rounded-2xl w-full max-w-lg p-6 my-8">
-    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Skema Sertifikasi</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Pelatihan</h3><button id="modal-close" class="text-slate-400"></button></div>
     <form id="form" class="space-y-4">
-      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Skema</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Nama Pelatihan</label><input id="f-nama" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kategori</label><select id="f-kategori" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="internasional">Internasional</option><option value="bnsp">BNSP</option></select></div>
-        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kode Skema</label><input id="f-kode" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kode Pelatihan</label><input id="f-kode" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
       </div>
       <div><label class="text-xs font-bold text-slate-500 mb-1 block">Penyelenggara / LSP</label><input id="f-penyelenggara" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
       <div class="grid grid-cols-3 gap-3">
@@ -54,7 +54,12 @@
         <div><label class="text-xs font-bold text-slate-500 mb-1 block">Skor Min.</label><input id="f-skor" type="number" min="0" max="100" value="70" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
       </div>
       <div><label class="text-xs font-bold text-slate-500 mb-1 block">Deskripsi</label><textarea id="f-deskripsi" rows="3" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></textarea></div>
-      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Skema</button>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Mode</label><select id="f-mode" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="online">Online</option><option value="offline">Offline</option><option value="hybrid">Hybrid</option></select></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Status</label><select id="f-status" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"><option value="draft">Draft</option><option value="review">Menunggu Review</option><option value="published" selected>Terpublikasi</option></select></div>
+        <div><label class="text-xs font-bold text-slate-500 mb-1 block">Harga (Rp)</label><input id="f-harga" type="number" min="0" value="0" class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      </div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Pelatihan</button>
     </form>
   </div>
 </div>
@@ -73,9 +78,9 @@
         return '<tr>' +
           '<td class="font-semibold">' + s.nama + '<br><span class="text-xs text-slate-400 font-normal font-mono">' + s.kodeSkema + '</span></td>' +
           '<td>' + UI.kategoriTag(s.kategori) + '</td>' +
-          '<td>' + s.penyelenggara + '</td>' +
-          '<td>' + s.level + '</td>' +
-          '<td>' + s.durasiJam + ' jam</td>' +
+          '<td class="capitalize">' + s.mode + '</td>' +
+          '<td>' + UI.formatRupiah(s.harga) + '</td>' +
+          '<td>' + UI.badgePelatihan(s.status) + '</td>' +
           '<td>' + s.skorMinimal + '</td>' +
           '<td><button data-id="' + s.id + '" class="btn-hapus text-xs font-bold text-rose-600 hover:underline">Hapus</button></td>' +
         '</tr>';
@@ -83,9 +88,9 @@
 
       document.querySelectorAll('.btn-hapus').forEach(function(btn){
         btn.addEventListener('click', function(){
-          if (!confirm('Hapus skema sertifikasi ini?')) return;
+          if (!confirm('Hapus pelatihan ini?')) return;
           Store.hapus(btn.dataset.id);
-          UI.toast('Skema dihapus', 'peringatan');
+          UI.toast('Pelatihan dihapus', 'peringatan');
           render();
         });
       });
@@ -110,11 +115,15 @@
         durasiJam: parseInt(document.getElementById('f-durasi').value, 10),
         skorMinimal: parseInt(document.getElementById('f-skor').value, 10),
         deskripsi: document.getElementById('f-deskripsi').value,
+        mode: document.getElementById('f-mode').value,
+        status: document.getElementById('f-status').value,
+        harga: parseInt(document.getElementById('f-harga').value, 10) || 0,
+        bahasa: 'Indonesia',
         tags: []
       });
       document.getElementById('form').reset();
       toggleModal(false);
-      UI.toast('Skema sertifikasi berhasil ditambahkan', 'sukses');
+      UI.toast('Pelatihan sertifikasi berhasil ditambahkan', 'sukses');
       render();
     });
 

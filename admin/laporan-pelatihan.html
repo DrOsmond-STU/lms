@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Laporan Skema Sertifikasi per Universitas — STU LMS</title>
+<title>Laporan Pelatihan per Organisasi — STU LMS</title>
 <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,26 +21,26 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="admin" data-active="laporan-skema" data-base="../"></div>
+<div id="shell" data-role="admin" data-active="laporan-pelatihan" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div><h1 class="text-xl font-extrabold text-slate-800">Laporan Skema Sertifikasi per Universitas</h1><p class="text-sm text-slate-400 mt-0.5">Distribusi peminatan skema Internasional &amp; BNSP di setiap universitas mitra.</p></div>
+      <div><h1 class="text-xl font-extrabold text-slate-800">Laporan Pelatihan per Organisasi</h1><p class="text-sm text-slate-400 mt-0.5">Distribusi peminatan pelatihan Internasional &amp; BNSP di setiap organisasi mitra.</p></div>
       <button id="btn-csv" class="text-sm font-bold border border-slate-200 px-4 py-2.5 rounded-lg hover:bg-slate-50">Unduh CSV</button>
     </div>
 
-    <div class="card p-5 mb-6"><p class="font-bold text-slate-800 mb-4">Internasional vs BNSP per Universitas</p><div class="h-72"><canvas id="chart-kategori"></canvas></div></div>
+    <div class="card p-5 mb-6"><p class="font-bold text-slate-800 mb-4">Internasional vs BNSP per Organisasi</p><div class="h-72"><canvas id="chart-kategori"></canvas></div></div>
 
-    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Matriks Peserta per Skema</p><p class="text-xs text-slate-400">Angka menunjukkan jumlah mahasiswa terdaftar</p></div>
+    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Matriks Peserta per Pelatihan</p><p class="text-xs text-slate-400">Angka menunjukkan jumlah peserta terdaftar</p></div>
     <div class="card overflow-x-auto mb-8">
       <table class="w-full table-clean" id="tabel-matrix"></table>
     </div>
 
-    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Rekap per Universitas</p></div>
+    <div class="flex items-center justify-between mb-3"><p class="font-bold text-slate-800">Rekap per Organisasi</p></div>
     <div class="card overflow-x-auto">
       <table class="w-full table-clean min-w-[760px]">
-        <thead><tr><th>Universitas</th><th>Internasional</th><th>BNSP</th><th>Total Pendaftaran</th><th>Lulus</th></tr></thead>
+        <thead><tr><th>Organisasi</th><th>Internasional</th><th>BNSP</th><th>Total Pendaftaran</th><th>Lulus</th></tr></thead>
         <tbody id="tbody-rekap"></tbody>
       </table>
     </div>
@@ -98,8 +98,8 @@
       options: { plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } } }
     });
 
-    // Matriks skema x universitas
-    var thead = '<thead><tr><th>Skema Sertifikasi</th>' + univs.map(function(u){ return '<th class="text-center">' + u.singkatan + '</th>'; }).join('') + '<th class="text-center">Total</th></tr></thead>';
+    // Matriks pelatihan x organisasi
+    var thead = '<thead><tr><th>Pelatihan</th>' + univs.map(function(u){ return '<th class="text-center">' + u.singkatan + '</th>'; }).join('') + '<th class="text-center">Total</th></tr></thead>';
     var tbody = '<tbody>' + skemaList.map(function(s){
       var totalBaris = 0;
       var cells = univs.map(function(u){
@@ -112,7 +112,7 @@
     document.getElementById('tabel-matrix').innerHTML = thead + tbody;
 
     document.getElementById('btn-csv').addEventListener('click', function(){
-      var rows = [['Skema'].concat(univs.map(function(u){ return u.singkatan; })).concat(['Total'])];
+      var rows = [['Pelatihan'].concat(univs.map(function(u){ return u.singkatan; })).concat(['Total'])];
       skemaList.forEach(function(s){
         var totalBaris = 0;
         var cells = univs.map(function(u){
@@ -126,7 +126,7 @@
       var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
-      a.href = url; a.download = 'laporan-skema-per-universitas.csv';
+      a.href = url; a.download = 'laporan-pelatihan-per-organisasi.csv';
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     });

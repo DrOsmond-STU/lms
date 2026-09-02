@@ -24,20 +24,20 @@
 
   function lengkapi(cert) {
     var mhs = Store.mahasiswaById(cert.mahasiswaId);
-    var skema = Store.skemaById(cert.skemaId);
+    var pelatihan = Store.skemaById(cert.skemaId);
     var univ = mhs ? Store.universitasById(mhs.universitasId) : null;
     return {
       cert: cert,
-      mahasiswa: mhs,
-      skema: skema,
-      universitas: univ,
+      peserta: mhs,
+      pelatihan: pelatihan,
+      organisasi: univ,
       statusEfektif: statusEfektif(cert)
     };
   }
 
   function urlValidasi(nomor) {
     var loc = window.location;
-    var path = loc.pathname.replace(/\/(mahasiswa|instruktur|admin)\/.*$/, "/");
+    var path = loc.pathname.replace(/\/(peserta|trainer|admin)\/.*$/, "/");
     return loc.origin + path.replace(/\/[^/]*$/, "/") + "cek-sertifikat.html?no=" + encodeURIComponent(nomor);
   }
 
@@ -59,7 +59,7 @@
   }
 
   function unduhSertifikatPDF(lengkap) {
-    var cert = lengkap.cert, mhs = lengkap.mahasiswa, skema = lengkap.skema, univ = lengkap.universitas;
+    var cert = lengkap.cert, mhs = lengkap.peserta, pelatihan = lengkap.pelatihan, univ = lengkap.organisasi;
     var linkQR = urlValidasi(cert.nomor);
 
     buatQRDataURL(linkQR, 260).then(function (qrDataUrl) {
@@ -85,7 +85,7 @@
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(100, 116, 139);
-      doc.text("Platform Pembelajaran & Sertifikasi Mahasiswa", W / 2, 29, { align: "center" });
+      doc.text("Platform Pembelajaran & Sertifikasi Peserta", W / 2, 29, { align: "center" });
 
       doc.setDrawColor(226, 232, 240);
       doc.line(60, 34, W - 60, 34);
@@ -93,7 +93,7 @@
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
       doc.setTextColor(11, 47, 82);
-      doc.text(skema && skema.kategori === "internasional" ? "SERTIFIKAT KOMPETENSI INTERNASIONAL" : "SERTIFIKAT KOMPETENSI BNSP", W / 2, 46, { align: "center" });
+      doc.text(pelatihan && pelatihan.kategori === "internasional" ? "SERTIFIKAT KOMPETENSI INTERNASIONAL" : "SERTIFIKAT KOMPETENSI BNSP", W / 2, 46, { align: "center" });
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
@@ -108,22 +108,22 @@
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10.5);
       doc.setTextColor(100, 116, 139);
-      var subLine = (mhs ? "NPM " + mhs.npm : "") + (univ ? "  ·  " + univ.nama : "");
+      var subLine = (mhs ? "No. Peserta " + mhs.npm : "") + (univ ? "  ·  " + univ.nama : "");
       doc.text(subLine, W / 2, 76, { align: "center" });
 
       doc.setFontSize(11);
       doc.setTextColor(71, 85, 105);
-      doc.text("telah dinyatakan LULUS dan berhak menyandang skema sertifikasi:", W / 2, 87, { align: "center" });
+      doc.text("telah dinyatakan LULUS dan berhak atas sertifikat pelatihan:", W / 2, 87, { align: "center" });
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(15);
       doc.setTextColor(11, 47, 82);
-      doc.text(skema ? skema.nama : "-", W / 2, 96, { align: "center" });
+      doc.text(pelatihan ? pelatihan.nama : "-", W / 2, 96, { align: "center" });
 
       doc.setFont("helvetica", "italic");
       doc.setFontSize(10);
       doc.setTextColor(100, 116, 139);
-      doc.text("Diselenggarakan oleh " + (skema ? skema.penyelenggara : "-"), W / 2, 102, { align: "center" });
+      doc.text("Diselenggarakan oleh " + (pelatihan ? pelatihan.penyelenggara : "-"), W / 2, 102, { align: "center" });
 
       // Footer info kiri
       doc.setFont("helvetica", "normal");

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diskusi — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="trainer" data-active="diskusi" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Diskusi</h1><p class="text-sm text-slate-400 mt-0.5">Jawab pertanyaan peserta di kelas yang Anda ampu.</p></div>
+    <select id="filter-kelas" class="border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 mb-5"></select>
+    <div id="daftar-thread"></div>
+  </div>
+</main>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'trainer') {
+    var ins = Store.instrukturById(session.userId);
+    var kelasSaya = Store.getKelas().filter(function(k){ return k.instrukturId === ins.id; });
+    var kelasIds = kelasSaya.map(function(k){ return k.id; });
+
+    document.getElementById('filter-kelas').innerHTML = '<option value="semua">Semua Kelas</option>' + kelasSaya.map(function(k){
+      return '<option value="' + k.id + '">' + Store.skemaById(k.skemaId).nama + '</option>';
+    }).join('');
+
+    function render() {
+      var kelasAktif = document.getElementById('filter-kelas').value;
+      var threads = Store.getDiskusiThread().filter(function(t){ return kelasIds.indexOf(t.kelasId) !== -1 && (kelasAktif === 'semua' || t.kelasId === kelasAktif); });
+
+      document.getElementById('daftar-thread').innerHTML = threads.length ? threads.map(function(t){
+        var kelas = Store.kelasById(t.kelasId), skema = Store.skemaById(kelas.skemaId);
+        var penulis = t.penulisPeran === 'trainer' ? Store.instrukturById(t.penulisId) : Store.mahasiswaById(t.penulisId);
+        var komentar = Store.komentarByThread(t.id);
+        return '<div class="card p-5 mb-4">' +
+          '<div class="flex items-start justify-between gap-2 mb-1"><p class="text-xs font-bold text-brand-700">' + skema.nama + '</p></div>' +
+          '<div class="flex items-start gap-3 mb-3">' +
+            '<span class="avatar w-9 h-9 text-xs">' + UI.inisial(penulis ? penulis.nama : '?') + '</span>' +
+            '<div><p class="text-sm font-bold text-slate-800">' + t.judul + '</p><p class="text-xs text-slate-400">' + (penulis ? penulis.nama : '-') + ' · ' + t.waktu + '</p></div>' +
+          '</div>' +
+          '<div class="space-y-3 pl-4 border-l-2 border-slate-100 mb-3">' + (komentar.length ? komentar.map(function(k){
+            var kp = k.penulisPeran === 'trainer' ? Store.instrukturById(k.penulisId) : Store.mahasiswaById(k.penulisId);
+            return '<div class="flex items-start gap-2.5">' +
+              '<span class="avatar w-7 h-7 text-[10px]" style="background:' + (k.penulisPeran === 'trainer' ? 'var(--accent-500)' : 'var(--brand-700)') + '">' + UI.inisial(kp ? kp.nama : '?') + '</span>' +
+              '<div class="flex-1"><p class="text-xs"><span class="font-bold text-slate-700">' + (kp ? kp.nama : '-') + '</span>' + (k.penulisPeran === 'trainer' ? ' <span class="text-accent-700 font-bold">· Anda</span>' : '') + '</p>' +
+              '<p class="text-sm text-slate-600 mt-0.5">' + k.isi + '</p>' +
+              '<div class="flex items-center gap-3 mt-1"><span class="text-[11px] text-slate-400">👍 ' + k.suka + '</span>' + (k.penulisPeran !== 'trainer' ? '<button data-komentar="' + k.id + '" class="btn-hapus-komentar text-[11px] text-rose-500 font-bold">Hapus (moderasi)</button>' : '') + '</div></div>' +
+            '</div>';
+          }).join('') : '<p class="text-xs text-slate-400">Belum ada balasan.</p>') + '</div>' +
+          '<form data-thread="' + t.id + '" class="form-balas flex gap-2"><input type="text" required placeholder="Balas sebagai trainer..." class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs"><button type="submit" class="text-xs font-bold text-white px-4 py-2 rounded-lg" style="background:var(--brand-800)">Balas</button></form>' +
+        '</div>';
+      }).join('') : '<div class="card p-10 text-center text-slate-400 text-sm">Belum ada diskusi pada kelas ini.</div>';
+
+      document.querySelectorAll('.form-balas').forEach(function(f){
+        f.addEventListener('submit', function(e){
+          e.preventDefault();
+          var input = f.querySelector('input');
+          if (!input.value.trim()) return;
+          Store.tambahKomentar(f.dataset.thread, ins.id, 'trainer', input.value.trim());
+          UI.toast('Balasan terkirim', 'sukses');
+          render();
+        });
+      });
+      document.querySelectorAll('.btn-hapus-komentar').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (!confirm('Hapus komentar ini?')) return;
+          Store.hapusKomentar(btn.dataset.komentar);
+          UI.toast('Komentar dihapus', 'peringatan');
+          render();
+        });
+      });
+    }
+
+    document.getElementById('filter-kelas').addEventListener('change', render);
+    render();
+  }
+</script>
+</body>
+</html>

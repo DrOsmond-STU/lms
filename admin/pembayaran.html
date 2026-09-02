@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembayaran — STU LMS</title>
+<link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: {
+      brand: {50:'#eef5fb',100:'#d7e8f4',200:'#b0d1e9',300:'#83b6db',400:'#4f93c6',500:'#2f78ad',600:'#1a5c97',700:'#124a7d',800:'#0e3a63',900:'#0b2f52'},
+      accent: {50:'#effcfa',100:'#c9f6ee',200:'#94ecdc',300:'#5fdfca',400:'#2ecdb3',500:'#14b8a6',600:'#0e9488',700:'#0c766e',800:'#0b5f59',900:'#0a4d49'}
+    },
+    fontFamily: { sans: ['"Plus Jakarta Sans"','ui-sans-serif','system-ui'] }
+  } } }
+</script>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<div id="shell" data-role="admin" data-active="pembayaran" data-base="../"></div>
+
+<main class="lg:pl-64 pt-16 min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div class="mb-6"><h1 class="text-xl font-extrabold text-slate-800">Pembayaran &amp; E-Commerce</h1><p class="text-sm text-slate-400 mt-0.5">Transaksi, kupon, dan pengembalian dana pelatihan berbayar.</p></div>
+
+    <div class="grid sm:grid-cols-3 gap-4 mb-6" id="stat-row"></div>
+
+    <div class="flex bg-slate-100 rounded-lg p-1 mb-5 w-fit" id="tabs">
+      <button data-t="transaksi" class="pb-btn text-xs font-bold px-4 py-2 rounded-lg">Transaksi</button>
+      <button data-t="kupon" class="pb-btn text-xs font-bold px-4 py-2 rounded-lg">Kupon</button>
+    </div>
+
+    <div id="panel-transaksi">
+      <div class="card overflow-x-auto">
+        <table class="w-full table-clean min-w-[820px]">
+          <thead><tr><th>No. Invoice</th><th>Peserta</th><th>Pelatihan</th><th>Jumlah</th><th>Metode</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="tbody-transaksi"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="panel-kupon" class="hidden">
+      <div class="flex justify-end mb-3"><button id="btn-tambah-kupon" class="text-xs font-bold text-white px-4 py-2.5 rounded-lg" style="background:var(--brand-800)">+ Tambah Kupon</button></div>
+      <div class="card overflow-x-auto">
+        <table class="w-full table-clean min-w-[640px]">
+          <thead><tr><th>Kode</th><th>Diskon</th><th>Berlaku Hingga</th><th>Kuota Sisa</th></tr></thead>
+          <tbody id="tbody-kupon"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="modal-kupon" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-slate-900/50">
+  <div class="bg-white rounded-2xl w-full max-w-sm p-6">
+    <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-slate-800">Tambah Kupon</h3><button id="modal-close" class="text-slate-400"></button></div>
+    <form id="form-kupon" class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kode Kupon</label><input id="k-kode" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm uppercase"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Diskon Persen (%)</label><input id="k-persen" type="number" min="1" max="100" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Berlaku Hingga</label><input id="k-tanggal" type="date" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-bold text-slate-500 mb-1 block">Kuota</label><input id="k-kuota" type="number" min="1" value="50" required class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm"></div>
+      <button type="submit" class="w-full font-bold text-white py-2.5 rounded-lg" style="background:var(--brand-800)">Simpan Kupon</button>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/layout.js"></script>
+<script>
+  var session = Store.getSession();
+  if (session && session.role === 'admin') {
+
+    function renderStat() {
+      var tx = Store.getTransaksi();
+      var lunas = tx.filter(function(t){ return t.status === 'lunas'; });
+      var pendapatan = lunas.reduce(function(sum, t){ return sum + t.jumlah; }, 0);
+      var menunggu = tx.filter(function(t){ return t.status === 'menunggu'; }).length;
+      document.getElementById('stat-row').innerHTML = [
+        { l: 'Total Pendapatan', n: UI.formatRupiah(pendapatan), bg: 'bg-emerald-50 text-emerald-700', icon: 'creditCard' },
+        { l: 'Transaksi Lunas', n: lunas.length, bg: 'bg-blue-50 text-blue-700', icon: 'check' },
+        { l: 'Menunggu Pembayaran', n: menunggu, bg: 'bg-amber-50 text-amber-700', icon: 'clock' }
+      ].map(function(s){ return '<div class="card p-5"><div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3 ' + s.bg + '">' + UI.Icon[s.icon] + '</div><p class="text-xl font-extrabold text-slate-800">' + s.n + '</p><p class="text-xs text-slate-400 mt-0.5">' + s.l + '</p></div>'; }).join('');
+    }
+
+    function renderTransaksi() {
+      var tx = Store.getTransaksi().slice().sort(function(a,b){ return b.tanggal.localeCompare(a.tanggal); });
+      document.getElementById('tbody-transaksi').innerHTML = tx.length ? tx.map(function(t){
+        var mhs = Store.mahasiswaById(t.mahasiswaId), skema = Store.skemaById(t.skemaId);
+        return '<tr>' +
+          '<td class="font-mono text-xs">' + t.nomorInvoice + '</td>' +
+          '<td>' + (mhs ? mhs.nama : '-') + '</td>' +
+          '<td>' + (skema ? skema.nama : '-') + '</td>' +
+          '<td class="font-semibold">' + UI.formatRupiah(t.jumlah) + '</td>' +
+          '<td>' + t.metode + '</td>' +
+          '<td>' + UI.formatTanggalSingkat(t.tanggal) + '</td>' +
+          '<td>' + UI.badgeTransaksi(t.status) + '</td>' +
+          '<td>' + (t.status === 'lunas' ? '<button data-id="' + t.id + '" class="btn-refund text-xs font-bold text-rose-600 hover:underline">Refund</button>' : '<span class="text-xs text-slate-300">—</span>') + '</td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="8" class="text-center text-slate-400 py-8">Belum ada transaksi.</td></tr>';
+
+      document.querySelectorAll('.btn-refund').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var catatan = window.prompt('Alasan refund:');
+          if (catatan === null) return;
+          Store.updateStatusTransaksi(btn.dataset.id, 'refund', catatan);
+          UI.toast('Transaksi direfund', 'peringatan');
+          renderTransaksi(); renderStat();
+        });
+      });
+    }
+
+    function renderKupon() {
+      document.getElementById('tbody-kupon').innerHTML = Store.getKupon().map(function(k){
+        var kedaluwarsa = k.berlakuHingga < new Date().toISOString().slice(0,10);
+        return '<tr>' +
+          '<td class="font-mono font-bold">' + k.kode + '</td>' +
+          '<td>' + (k.diskonPersen ? k.diskonPersen + '%' : UI.formatRupiah(k.diskonNominal)) + '</td>' +
+          '<td>' + UI.formatTanggalSingkat(k.berlakuHingga) + (kedaluwarsa ? ' <span class="badge badge-merah"><span class="badge-dot"></span>Kedaluwarsa</span>' : '') + '</td>' +
+          '<td>' + k.kuotaSisa + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    document.getElementById('tabs').addEventListener('click', function(e){
+      var btn = e.target.closest('.pb-btn');
+      if (!btn) return;
+      document.querySelectorAll('.pb-btn').forEach(function(b){ b.className = 'pb-btn text-xs font-bold px-4 py-2 rounded-lg ' + (b === btn ? 'bg-white shadow text-brand-800' : 'text-slate-500'); });
+      document.getElementById('panel-transaksi').classList.toggle('hidden', btn.dataset.t !== 'transaksi');
+      document.getElementById('panel-kupon').classList.toggle('hidden', btn.dataset.t !== 'kupon');
+    });
+    document.querySelector('.pb-btn[data-t="transaksi"]').className = 'pb-btn text-xs font-bold px-4 py-2 rounded-lg bg-white shadow text-brand-800';
+    document.querySelector('.pb-btn[data-t="kupon"]').className = 'pb-btn text-xs font-bold px-4 py-2 rounded-lg text-slate-500';
+
+    function toggleModal(show) {
+      document.getElementById('modal-kupon').classList.toggle('hidden', !show);
+      document.getElementById('modal-kupon').classList.toggle('flex', show);
+    }
+    document.getElementById('modal-close').innerHTML = UI.Icon.x;
+    document.getElementById('btn-tambah-kupon').addEventListener('click', function(){ toggleModal(true); });
+    document.getElementById('modal-close').addEventListener('click', function(){ toggleModal(false); });
+    document.getElementById('form-kupon').addEventListener('submit', function(e){
+      e.preventDefault();
+      Store.tambahKupon({
+        kode: document.getElementById('k-kode').value.toUpperCase(),
+        diskonPersen: parseInt(document.getElementById('k-persen').value, 10),
+        diskonNominal: null,
+        berlakuHingga: document.getElementById('k-tanggal').value,
+        kuotaSisa: parseInt(document.getElementById('k-kuota').value, 10)
+      });
+      document.getElementById('form-kupon').reset();
+      toggleModal(false);
+      UI.toast('Kupon berhasil ditambahkan', 'sukses');
+      renderKupon();
+    });
+
+    renderStat(); renderTransaksi(); renderKupon();
+  }
+</script>
+</body>
+</html>

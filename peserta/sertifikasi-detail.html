@@ -21,7 +21,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-<div id="shell" data-role="mahasiswa" data-active="sertifikasi" data-base="../"></div>
+<div id="shell" data-role="peserta" data-active="sertifikasi" data-base="../"></div>
 
 <main class="lg:pl-64 pt-16 min-h-screen">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8" id="konten"></div>
@@ -33,17 +33,17 @@
 <script src="../assets/js/layout.js"></script>
 <script>
   var session = Store.getSession();
-  if (session && session.role === 'mahasiswa') {
+  if (session && session.role === 'peserta') {
     var mhsId = session.userId;
     var skemaId = UI.qs('id');
     var s = Store.skemaById(skemaId);
     var el = document.getElementById('konten');
 
     if (!s) {
-      el.innerHTML = '<div class="card p-10 text-center text-slate-400">Skema sertifikasi tidak ditemukan. <a href="sertifikasi.html" class="text-brand-700 font-bold">Kembali ke katalog</a></div>';
+      el.innerHTML = '<div class="card p-10 text-center text-slate-400">Pelatihan sertifikasi tidak ditemukan. <a href="sertifikasi.html" class="text-brand-700 font-bold">Kembali ke katalog</a></div>';
     } else {
       var kelas = Store.kelasBySkemaId(s.id);
-      var instruktur = kelas ? Store.instrukturById(kelas.instrukturId) : null;
+      var trainer = kelas ? Store.instrukturById(kelas.instrukturId) : null;
       var pendaftaran = Store.pendaftaranSkema(mhsId, s.id);
 
       function aksiBox() {
@@ -65,7 +65,7 @@
             '<div class="card p-6 mb-5">' +
               '<div class="flex items-center justify-between mb-3">' + UI.kategoriTag(s.kategori) + '<span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">GRATIS</span></div>' +
               '<h1 class="text-xl md:text-2xl font-extrabold text-slate-800 mb-2">' + s.nama + '</h1>' +
-              '<p class="text-sm text-slate-500 mb-4">Diselenggarakan oleh <span class="font-semibold text-slate-700">' + s.penyelenggara + '</span> · Kode Skema <span class="font-mono">' + s.kodeSkema + '</span></p>' +
+              '<p class="text-sm text-slate-500 mb-4">Diselenggarakan oleh <span class="font-semibold text-slate-700">' + s.penyelenggara + '</span> · Kode Pelatihan <span class="font-mono">' + s.kodeSkema + '</span></p>' +
               '<p class="text-sm text-slate-600 leading-relaxed mb-5">' + s.deskripsi + '</p>' +
               '<div class="flex flex-wrap gap-2">' + s.tags.map(function(t){ return '<span class="text-[11px] font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">' + t + '</span>'; }).join('') + '</div>' +
             '</div>' +
@@ -89,7 +89,7 @@
               '<div class="flex items-center justify-between"><span class="text-slate-400">Durasi</span><span class="font-semibold text-slate-700">' + s.durasiJam + ' jam</span></div>' +
               '<div class="flex items-center justify-between"><span class="text-slate-400">Jumlah Modul</span><span class="font-semibold text-slate-700">' + (kelas ? kelas.modul.length : '-') + '</span></div>' +
               '<div class="flex items-center justify-between"><span class="text-slate-400">Skor Kelulusan</span><span class="font-semibold text-slate-700">Min. ' + s.skorMinimal + '</span></div>' +
-              (kelas && instruktur ? '<div class="pt-3 border-t border-slate-100"><p class="text-xs text-slate-400 mb-2">Instruktur Pengampu</p><div class="flex items-center gap-2.5"><span class="avatar w-9 h-9 text-xs">' + UI.inisial(instruktur.nama) + '</span><div><p class="font-semibold text-slate-700 text-sm leading-tight">' + instruktur.nama + '</p><p class="text-xs text-slate-400">' + instruktur.keahlian + '</p></div></div></div>' : '') +
+              (kelas && trainer ? '<div class="pt-3 border-t border-slate-100"><p class="text-xs text-slate-400 mb-2">Trainer Pengampu</p><div class="flex items-center gap-2.5"><span class="avatar w-9 h-9 text-xs">' + UI.inisial(trainer.nama) + '</span><div><p class="font-semibold text-slate-700 text-sm leading-tight">' + trainer.nama + '</p><p class="text-xs text-slate-400">' + trainer.keahlian + '</p></div></div></div>' : '') +
             '</div>' +
           '</div>' +
         '</div>';
