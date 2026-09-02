@@ -125,7 +125,7 @@
 
   var kelas = [
     {
-      id: "kls-aws-cp", skemaId: "aws-cp", instrukturId: "ins-01", batch: "Batch Genap 2026", kuota: 40,
+      id: "kls-aws-cp", skemaId: "aws-cp", instrukturId: "ins-01", batch: "Genap 2026", kuota: 40,
       modul: modulStandar("aws", [
         { judul: "Pengantar Cloud Computing & AWS", tipe: "video", durasi: "45 menit" },
         { judul: "Model Keamanan & Tanggung Jawab Bersama", tipe: "video", durasi: "40 menit" },
@@ -142,7 +142,7 @@
       ]
     },
     {
-      id: "kls-az-900", skemaId: "az-900", instrukturId: "ins-01", batch: "Batch Genap 2026", kuota: 35,
+      id: "kls-az-900", skemaId: "az-900", instrukturId: "ins-01", batch: "Genap 2026", kuota: 35,
       modul: modulStandar("az", [
         { judul: "Konsep Dasar Cloud & Model Azure", tipe: "video", durasi: "42 menit" },
         { judul: "Layanan Inti Microsoft Azure", tipe: "video", durasi: "38 menit" },
@@ -159,7 +159,7 @@
       ]
     },
     {
-      id: "kls-ccna", skemaId: "ccna", instrukturId: "ins-03", batch: "Batch Genap 2026", kuota: 30,
+      id: "kls-ccna", skemaId: "ccna", instrukturId: "ins-03", batch: "Genap 2026", kuota: 30,
       modul: modulStandar("ccna", [
         { judul: "Dasar Jaringan & Model OSI", tipe: "video", durasi: "50 menit" },
         { judul: "Routing & Switching Dasar", tipe: "video", durasi: "55 menit" },
@@ -176,7 +176,7 @@
       ]
     },
     {
-      id: "kls-capm", skemaId: "capm", instrukturId: "ins-02", batch: "Batch Genap 2026", kuota: 30,
+      id: "kls-capm", skemaId: "capm", instrukturId: "ins-02", batch: "Genap 2026", kuota: 30,
       modul: modulStandar("capm", [
         { judul: "Pengantar Manajemen Proyek & PMBOK", tipe: "video", durasi: "40 menit" },
         { judul: "Ruang Lingkup & Jadwal Proyek", tipe: "video", durasi: "35 menit" },
@@ -193,7 +193,7 @@
       ]
     },
     {
-      id: "kls-jwd-bnsp", skemaId: "jwd-bnsp", instrukturId: "ins-05", batch: "Batch Genap 2026", kuota: 32,
+      id: "kls-jwd-bnsp", skemaId: "jwd-bnsp", instrukturId: "ins-05", batch: "Genap 2026", kuota: 32,
       modul: modulStandar("jwd", [
         { judul: "Dasar HTML & Struktur Halaman Web", tipe: "video", durasi: "48 menit" },
         { judul: "CSS & Responsive Layout", tipe: "video", durasi: "50 menit" },
@@ -210,7 +210,7 @@
       ]
     },
     {
-      id: "kls-dm-bnsp", skemaId: "dm-bnsp", instrukturId: "ins-02", batch: "Batch Genap 2026", kuota: 32,
+      id: "kls-dm-bnsp", skemaId: "dm-bnsp", instrukturId: "ins-02", batch: "Genap 2026", kuota: 32,
       modul: modulStandar("dm", [
         { judul: "Strategi Konten & Branding Digital", tipe: "video", durasi: "36 menit" },
         { judul: "Dasar SEO & SEM", tipe: "video", durasi: "42 menit" },
@@ -227,7 +227,7 @@
       ]
     },
     {
-      id: "kls-k3-bnsp", skemaId: "k3-bnsp", instrukturId: "ins-04", batch: "Batch Genap 2026", kuota: 28,
+      id: "kls-k3-bnsp", skemaId: "k3-bnsp", instrukturId: "ins-04", batch: "Genap 2026", kuota: 28,
       modul: modulStandar("k3", [
         { judul: "Dasar Hukum & Regulasi K3", tipe: "video", durasi: "40 menit" },
         { judul: "Identifikasi Bahaya & Penilaian Risiko", tipe: "video", durasi: "45 menit" },
@@ -244,7 +244,7 @@
       ]
     },
     {
-      id: "kls-jna-bnsp", skemaId: "jna-bnsp", instrukturId: "ins-03", batch: "Batch Genap 2026", kuota: 30,
+      id: "kls-jna-bnsp", skemaId: "jna-bnsp", instrukturId: "ins-03", batch: "Genap 2026", kuota: 30,
       modul: modulStandar("jna", [
         { judul: "Instalasi Perangkat Jaringan Dasar", tipe: "video", durasi: "38 menit" },
         { judul: "Konfigurasi LAN & WLAN", tipe: "video", durasi: "44 menit" },
