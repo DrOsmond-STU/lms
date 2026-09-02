@@ -21,6 +21,13 @@
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
   .hero-glow{background:radial-gradient(60% 60% at 80% 20%, rgba(20,184,166,.25), transparent 60%),radial-gradient(50% 50% at 10% 10%, rgba(255,255,255,.08), transparent 60%);}
+  .hero-slide{position:absolute;inset:0;z-index:0;display:flex;align-items:center;opacity:0;transform:translateX(16px);transition:opacity .55s ease, transform .55s ease;pointer-events:none;}
+  .hero-slide.active{opacity:1;transform:translateX(0);pointer-events:auto;}
+  .hero-dot{width:.5rem;height:.5rem;border-radius:999px;background:rgba(255,255,255,.3);transition:background-color .2s ease, width .2s ease;}
+  .hero-dot.active{background:var(--accent-500);width:1.5rem;}
+  .hero-arrow{width:2.5rem;height:2.5rem;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;transition:background-color .15s ease;flex-shrink:0;}
+  .hero-arrow:hover{background:rgba(255,255,255,.18);}
+  @media (prefers-reduced-motion: reduce){ .hero-slide{transition:opacity .3s ease;transform:none;} }
 </style>
 </head>
 <body class="bg-white text-slate-800">
@@ -44,40 +51,152 @@
   </div>
 </header>
 
-<section class="hero-glow" style="background-color:var(--brand-900)">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
-    <div class="text-white">
-      <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
-        <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Purwarupa UI/UX · Data Dummy
-      </span>
-      <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Satu Platform untuk Sertifikasi <span class="text-accent-400">Internasional</span> &amp; <span class="text-accent-400">BNSP</span> Mahasiswa</h1>
-      <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">STU LMS membantu mahasiswa memilih skema sertifikasi, belajar terarah lewat modul &amp; kuis, hingga mengunduh sertifikat resmi yang dapat divalidasi publik.</p>
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a href="login.html" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Masuk ke LMS</a>
-        <a href="cek-sertifikat.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Cek Sertifikat</a>
-      </div>
-      <div class="mt-10 grid grid-cols-3 gap-4 max-w-md" id="stat-row"></div>
-    </div>
-    <div class="relative hidden md:block">
-      <div class="card p-5 shadow-2xl rotate-2">
-        <div class="flex items-center justify-between mb-3">
-          <p class="font-bold text-slate-700 text-sm">Sertifikat Saya</p>
-          <span class="badge badge-hijau"><span class="badge-dot"></span>Berlaku</span>
+<section class="hero-glow relative overflow-hidden" style="background-color:var(--brand-900)" id="hero" aria-roledescription="carousel" aria-label="Sorotan STU LMS">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-16 md:pt-24 pb-8 md:pb-10">
+
+    <div class="relative min-h-[600px] sm:min-h-[540px] md:min-h-[440px]" id="hero-slides">
+
+      <!-- Slide 1: Umum -->
+      <div class="hero-slide active" data-slide="0">
+        <div class="grid md:grid-cols-2 gap-10 items-center w-full">
+          <div class="text-white">
+            <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Purwarupa UI/UX · Data Dummy
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Satu Platform untuk Sertifikasi <span class="text-accent-400">Internasional</span> &amp; <span class="text-accent-400">BNSP</span> Mahasiswa</h1>
+            <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">STU LMS membantu mahasiswa memilih skema sertifikasi, belajar terarah lewat modul &amp; kuis, hingga mengunduh sertifikat resmi yang dapat divalidasi publik.</p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="login.html" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Masuk ke LMS</a>
+              <a href="cek-sertifikat.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Cek Sertifikat</a>
+            </div>
+          </div>
+          <div class="relative hidden md:block">
+            <div class="card p-5 shadow-2xl rotate-2">
+              <div class="flex items-center justify-between mb-3">
+                <p class="font-bold text-slate-700 text-sm">Sertifikat Saya</p>
+                <span class="badge badge-hijau"><span class="badge-dot"></span>Berlaku</span>
+              </div>
+              <div class="certificate-frame rounded-xl p-5 text-white">
+                <p class="text-[11px] text-white/70">SERTIFIKAT KOMPETENSI INTERNASIONAL</p>
+                <p class="font-extrabold text-lg mt-1">AWS Certified Cloud Practitioner</p>
+                <p class="text-xs text-white/70 mt-2">Raka Prasetya · Universitas Semesta Teknologi Utama</p>
+                <p class="text-[11px] text-white/50 mt-3">No. INTL/AWS-CCP/USTU/2026/00001</p>
+              </div>
+            </div>
+            <div class="card p-4 shadow-xl absolute -bottom-8 -left-8 w-56 -rotate-3">
+              <p class="text-xs font-bold text-slate-500 mb-2">Progres Belajar</p>
+              <p class="text-sm font-bold text-slate-700">Junior Web Developer</p>
+              <div class="progress-track mt-2"><div class="progress-fill" style="width:60%"></div></div>
+              <p class="text-[11px] text-slate-400 mt-1">3 dari 5 modul selesai</p>
+            </div>
+          </div>
         </div>
-        <div class="certificate-frame rounded-xl p-5 text-white">
-          <p class="text-[11px] text-white/70">SERTIFIKAT KOMPETENSI INTERNASIONAL</p>
-          <p class="font-extrabold text-lg mt-1">AWS Certified Cloud Practitioner</p>
-          <p class="text-xs text-white/70 mt-2">Raka Prasetya · Universitas Semesta Teknologi Utama</p>
-          <p class="text-[11px] text-white/50 mt-3">No. INTL/AWS-CCP/USTU/2026/00001</p>
+      </div>
+
+      <!-- Slide 2: Sertifikasi Internasional -->
+      <div class="hero-slide" data-slide="1">
+        <div class="grid md:grid-cols-2 gap-10 items-center w-full">
+          <div class="text-white">
+            <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Kelas Internasional
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Raih Sertifikasi Global: <span class="text-accent-400">AWS</span>, <span class="text-accent-400">Azure</span>, Cisco &amp; PMI</h1>
+            <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">Ikuti pembelajaran terstruktur untuk sertifikasi kelas dunia yang diakui industri, langsung dari kampus Anda — tanpa biaya tambahan.</p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="#sertifikasi" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Lihat Katalog Sertifikasi</a>
+              <a href="login.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Masuk ke LMS</a>
+            </div>
+          </div>
+          <div class="hidden md:block">
+            <div class="card p-6 shadow-2xl -rotate-1">
+              <p class="font-bold text-slate-700 text-sm mb-4">4 Skema Sertifikasi Internasional</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:var(--brand-700)">AWS</span><span class="text-xs font-semibold text-slate-600 leading-snug">Cloud Practitioner</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:var(--brand-700)">AZ</span><span class="text-xs font-semibold text-slate-600 leading-snug">Azure Fundamentals</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:var(--brand-700)">CCN</span><span class="text-xs font-semibold text-slate-600 leading-snug">Cisco CCNA</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:var(--brand-700)">PMI</span><span class="text-xs font-semibold text-slate-600 leading-snug">CAPM</span></div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-4">Diakui penyelenggara resmi global · Gratis untuk mahasiswa</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="card p-4 shadow-xl absolute -bottom-8 -left-8 w-56 -rotate-3">
-        <p class="text-xs font-bold text-slate-500 mb-2">Progres Belajar</p>
-        <p class="text-sm font-bold text-slate-700">Junior Web Developer</p>
-        <div class="progress-track mt-2"><div class="progress-fill" style="width:60%"></div></div>
-        <p class="text-[11px] text-slate-400 mt-1">3 dari 5 modul selesai</p>
+
+      <!-- Slide 3: Sertifikasi BNSP -->
+      <div class="hero-slide" data-slide="2">
+        <div class="grid md:grid-cols-2 gap-10 items-center w-full">
+          <div class="text-white">
+            <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Skema BNSP
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Sertifikasi Kompetensi <span class="text-accent-400">BNSP</span> untuk Karier yang Diakui Negara</h1>
+            <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">Dari Junior Web Developer hingga Ahli K3 Umum — bangun kompetensi sesuai SKKNI dengan bimbingan instruktur berpengalaman.</p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="#sertifikasi" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Lihat Katalog Sertifikasi</a>
+              <a href="login.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Masuk ke LMS</a>
+            </div>
+          </div>
+          <div class="hidden md:block">
+            <div class="card p-6 shadow-2xl rotate-1">
+              <p class="font-bold text-slate-700 text-sm mb-4">4 Skema Sertifikasi BNSP</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:#c2410c">JWD</span><span class="text-xs font-semibold text-slate-600 leading-snug">Junior Web Dev</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:#c2410c">DM</span><span class="text-xs font-semibold text-slate-600 leading-snug">Digital Marketing</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:#c2410c">K3</span><span class="text-xs font-semibold text-slate-600 leading-snug">Ahli K3 Umum</span></div>
+                <div class="flex items-center gap-2.5 bg-slate-50 rounded-xl p-3"><span class="avatar w-9 h-9 text-[11px]" style="background:#c2410c">JNA</span><span class="text-xs font-semibold text-slate-600 leading-snug">Network Admin</span></div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-4">Berbasis SKKNI · Diterbitkan LSP resmi</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Slide 4: Validasi Sertifikat -->
+      <div class="hero-slide" data-slide="3">
+        <div class="grid md:grid-cols-2 gap-10 items-center w-full">
+          <div class="text-white">
+            <span class="inline-flex items-center gap-2 text-[12px] font-bold bg-white/10 text-accent-300 px-3 py-1.5 rounded-full mb-5">
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-500)"></span> Validasi Publik
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Setiap Sertifikat Bisa Divalidasi <span class="text-accent-400">Siapa Saja</span>, Kapan Saja</h1>
+            <p class="mt-5 text-white/70 text-base md:text-lg max-w-xl">Sertifikat STU LMS dilengkapi QR code &amp; nomor unik yang dapat diverifikasi publik oleh perusahaan atau lembaga mana pun, tanpa perlu masuk akun.</p>
+            <div class="mt-8 flex flex-wrap gap-3">
+              <a href="cek-sertifikat.html" class="inline-flex items-center gap-2 bg-accent-500 hover:bg-accent-600 text-brand-900 font-extrabold px-6 py-3 rounded-xl transition">Cek Sertifikat Sekarang</a>
+              <a href="login.html" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold px-6 py-3 rounded-xl transition border border-white/15">Masuk ke LMS</a>
+            </div>
+          </div>
+          <div class="hidden md:block">
+            <div class="card p-0 shadow-2xl overflow-hidden -rotate-1">
+              <div class="certificate-frame p-5 text-white">
+                <p class="text-[11px] text-white/70">SERTIFIKAT KOMPETENSI BNSP</p>
+                <p class="font-extrabold text-base mt-1">Ahli K3 Umum</p>
+              </div>
+              <div class="p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <p class="text-xs text-slate-400 font-mono">BNSP/K3U/ITC/2025/00071</p>
+                  <span class="badge badge-hijau"><span class="badge-dot"></span>Berlaku</span>
+                </div>
+                <p class="text-sm font-bold text-slate-700">Terverifikasi asli oleh STU LMS</p>
+                <p class="text-[11px] text-slate-400 mt-1">Diterbitkan resmi · Dapat dipindai via QR</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <div class="flex items-center justify-center md:justify-start gap-3 mt-4 md:mt-2" style="position:relative;z-index:10">
+      <button id="hero-prev" type="button" aria-label="Slide sebelumnya" class="hero-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="m15 6-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="flex items-center gap-2" id="hero-dots" role="tablist" aria-label="Pilih slide"></div>
+      <button id="hero-next" type="button" aria-label="Slide berikutnya" class="hero-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="mt-8 grid grid-cols-3 gap-4 max-w-md mx-auto md:mx-0" id="stat-row" style="position:relative;z-index:10"></div>
   </div>
 </section>
 
@@ -179,6 +298,68 @@
       '<div><p class="font-bold text-slate-800 text-sm leading-snug">'+u.nama+'</p><p class="text-xs text-slate-400">'+u.kota+' · Akreditasi '+u.akreditasi+'</p></div>' +
     '</div>';
   }).join('');
+
+  // Hero slider
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.hero-slide'));
+    var dotsWrap = document.getElementById('hero-dots');
+    var current = 0;
+    var timer = null;
+    var AUTOPLAY_MS = 6000;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    dotsWrap.innerHTML = slides.map(function (_, i) {
+      return '<button type="button" class="hero-dot' + (i === 0 ? ' active' : '') + '" data-i="' + i + '" role="tab" aria-label="Slide ' + (i + 1) + '"></button>';
+    }).join('');
+    var dots = Array.prototype.slice.call(dotsWrap.querySelectorAll('.hero-dot'));
+
+    function goTo(i) {
+      current = (i + slides.length) % slides.length;
+      slides.forEach(function (s, idx) { s.classList.toggle('active', idx === current); });
+      dots.forEach(function (d, idx) { d.classList.toggle('active', idx === current); });
+    }
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    function startAutoplay() {
+      if (reduceMotion) return;
+      stopAutoplay();
+      timer = setInterval(next, AUTOPLAY_MS);
+    }
+    function stopAutoplay() { if (timer) { clearInterval(timer); timer = null; } }
+
+    document.getElementById('hero-next').addEventListener('click', function () { next(); startAutoplay(); });
+    document.getElementById('hero-prev').addEventListener('click', function () { prev(); startAutoplay(); });
+    dotsWrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('.hero-dot');
+      if (!btn) return;
+      goTo(parseInt(btn.dataset.i, 10));
+      startAutoplay();
+    });
+
+    var hero = document.getElementById('hero');
+    hero.addEventListener('mouseenter', stopAutoplay);
+    hero.addEventListener('mouseleave', startAutoplay);
+    hero.addEventListener('focusin', stopAutoplay);
+    hero.addEventListener('focusout', startAutoplay);
+    hero.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { next(); startAutoplay(); }
+      if (e.key === 'ArrowLeft') { prev(); startAutoplay(); }
+    });
+
+    // swipe support
+    var touchStartX = null;
+    var slidesTrack = document.getElementById('hero-slides');
+    slidesTrack.addEventListener('touchstart', function (e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+    slidesTrack.addEventListener('touchend', function (e) {
+      if (touchStartX === null) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); startAutoplay(); }
+      touchStartX = null;
+    }, { passive: true });
+
+    startAutoplay();
+  })();
 </script>
 </body>
 </html>
