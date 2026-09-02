@@ -7,7 +7,7 @@
 (function (global) {
   "use strict";
 
-  var KEY = "stu_lms_v1";
+  var KEY = "stu_lms_v2";
 
   var KODE_SINGKAT = {
     "aws-cp": "AWS-CCP", "az-900": "AZ-900", "ccna": "CCNA", "capm": "CAPM",

@@ -108,6 +108,21 @@
       return;
     }
 
+    // Jaga-jaga: sesi tersimpan (localStorage lama) bisa merujuk ke akun yang
+    // sudah tidak ada lagi (mis. dihapus lewat menu admin, atau data purwarupa
+    // yang direset). Daripada halaman gagal terbuka/kosong, keluarkan sesi ini
+    // dan arahkan kembali ke halaman masuk.
+    if (session && role === "peserta" && !Store.mahasiswaById(session.userId)) {
+      Store.logout();
+      window.location.href = base + "login.html";
+      return;
+    }
+    if (session && role === "trainer" && !Store.instrukturById(session.userId)) {
+      Store.logout();
+      window.location.href = base + "login.html";
+      return;
+    }
+
     var user = session ? currentUserDisplay(role, session.userId) : null;
 
     var sidebarHtml =
