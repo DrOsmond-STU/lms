@@ -38,6 +38,11 @@ final class SecurityHeaders
         $headers->set('Cross-Origin-Resource-Policy', 'same-origin');
         $headers->remove('X-Powered-By');
 
+        // Lingkungan non-produksi tidak boleh diindeks mesin pencari (SEC-INFRA-34).
+        if (! app()->isProduction()) {
+            $headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
         if ($request->isSecure() && ! app()->isLocal()) {
             $headers->set('Strict-Transport-Security', (string) config('security.headers.hsts'));
         }

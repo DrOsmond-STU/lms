@@ -44,8 +44,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Hanya host resmi (cegah host header injection — SEC-AUTH-22).
         $middleware->trustHosts(at: fn () => array_filter([parse_url((string) config('app.url'), PHP_URL_HOST)]), subdomains: false);
 
-        // Proxy tepercaya hanya dari konfigurasi (rentang CDN/LB), bukan '*'.
-        $middleware->trustProxies(at: array_filter(explode(',', (string) env('TRUSTED_PROXIES', ''))));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

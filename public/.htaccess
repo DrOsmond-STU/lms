@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Paksa HTTPS (cookie __Host- & HSTS mensyaratkan HTTPS — keamanan/13).
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Berkas tersembunyi & sensitif tidak pernah disajikan (SEC-INFRA-14).
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -22,4 +30,10 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Tanpa daftar isi direktori & tanpa header teknologi.
+Options -Indexes
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
 </IfModule>

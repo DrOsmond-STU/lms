@@ -9,6 +9,7 @@ use App\Modules\Identity\Models\User;
 use App\Support\Security\ProductionGuard;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -24,10 +25,14 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if ($this->app->isProduction()) {
+        // Staging diperlakukan seketat produksi (keamanan/13 SEC-INFRA-34).
+        if ($this->app->environment('production', 'staging')) {
             ProductionGuard::enforce();
             URL::forceScheme('https');
         }
+
+        // Proxy tepercaya dari konfigurasi (aman dengan config:cache).
+        TrustProxies::at(config('security.trusted_proxies', []));
 
         // Semua URL absolut (termasuk di email) dibangun dari APP_URL, bukan header Host.
         URL::forceRootUrl((string) config('app.url'));

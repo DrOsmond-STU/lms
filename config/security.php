@@ -47,6 +47,9 @@ return [
         'max' => 128,
     ],
 
+    // Proxy tepercaya (rentang IP CDN/LB), dipisah koma. Kosong = tidak ada proxy; jangan '*'.
+    'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
+
     // Header keamanan (keamanan/13 SEC-INFRA-12).
     'headers' => [
         'hsts' => 'max-age=63072000; includeSubDomains; preload',

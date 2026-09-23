@@ -9,6 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 font-sans text-slate-800">
+<x-environment-banner />
 <div class="grid min-h-screen lg:grid-cols-2">
     <div class="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-brand-900 to-brand-700 p-12 text-white lg:flex">
         <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-accent-500/20"></div>

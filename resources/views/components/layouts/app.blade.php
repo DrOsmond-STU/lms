@@ -65,6 +65,7 @@
 </header>
 
 <main class="px-4 pt-24 pb-10 lg:ml-64 lg:px-8">
+    <x-environment-banner />
     @if (session('status'))
         <div class="mb-5 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800" role="status">{{ session('status') }}</div>
     @endif
