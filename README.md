@@ -1,5 +1,13 @@
 # STU LMS — Purwarupa UI/UX
 
+> 📚 **Dokumentasi pra-development lengkap** (kebutuhan, arsitektur, basis data, API, RBAC,
+> standar pengembangan, pengujian, DevOps, roadmap, dan spesifikasi **keamanan** terperinci) ada di
+> folder [`docs/`](docs/README.md). Kebijakan pelaporan kerentanan: [`SECURITY.md`](SECURITY.md).
+>
+> ⚠️ Purwarupa ini **bukan** dasar kode produksi: logika di `assets/js/*` tidak aman untuk
+> produksi dan tidak boleh diporting — lihat
+> [`docs/keamanan/16-temuan-keamanan-purwarupa.md`](docs/keamanan/16-temuan-keamanan-purwarupa.md).
+
 Purwarupa (prototype) antarmuka Learning Management System untuk mahasiswa universitas yang
 mengambil sertifikasi **Internasional** (AWS, Microsoft Azure, Cisco CCNA, PMI CAPM) dan
 **BNSP** (Junior Web Developer, Digital Marketing, Ahli K3 Umum, Junior Network Administrator).
@@ -50,9 +58,10 @@ index.html                  Landing page publik
 login.html                  Login (demo, 3 peran)
 cek-sertifikat.html         Validasi sertifikat publik
 
-mahasiswa/                  Dashboard, katalog sertifikasi, pembelajaran, kuis, sertifikat, profil
-instruktur/                 Dashboard, kelas, kelola materi, peserta & nilai
-admin/                      Dashboard analitik, approval sertifikat, master data, laporan
+peserta/                    Dashboard, katalog pelatihan, pembelajaran, kuis, jadwal, sertifikat, pencapaian, notifikasi, profil
+trainer/                    Dashboard, kelas, kelola materi, peserta & nilai, diskusi, laporan
+admin/                      Dashboard analitik, approval sertifikat, master data, operasional, laporan, pengaturan
+docs/                       Dokumentasi pra-development (lihat docs/README.md)
 
 assets/js/data.js           Data dummy (universitas, skema, kelas, mahasiswa, sertifikat, dst.)
 assets/js/store.js          Lapisan "database" di atas localStorage (aksi daftar, kuis, approval, CRUD)
@@ -64,7 +73,7 @@ assets/css/style.css        Gaya tambahan di luar utility Tailwind
 
 ## Catatan
 
-Purwarupa ini fokus pada UI/UX dan alur pengguna dengan data dummy. Untuk versi produksi,
-langkah selanjutnya yang disarankan: backend + database sungguhan, autentikasi & otorisasi
-nyata (SSO/SIA kampus), penyimpanan file materi (video/PDF) di storage, serta integrasi
-resmi dengan skema BNSP/lembaga sertifikasi internasional untuk penerbitan sertifikat.
+Purwarupa ini fokus pada UI/UX dan alur pengguna dengan data dummy. Rencana versi produksi
+(Laravel + PostgreSQL, autentikasi dengan MFA, isolasi data per organisasi, sertifikat bertanda
+tangan digital, pembayaran via payment gateway, kepatuhan UU PDP) sudah dirinci di
+[`docs/README.md`](docs/README.md).
