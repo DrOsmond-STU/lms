@@ -15,7 +15,7 @@ produksi — lihat [`keamanan/16-temuan-keamanan-purwarupa.md`](keamanan/16-temu
 
 | Aspek | Keputusan |
 |---|---|
-| Arsitektur | Modular monolith **Laravel** (PHP 8.3+), Blade + **Livewire 3** + Alpine + Tailwind (build Vite) |
+| Arsitektur | Modular monolith **Laravel 13** (PHP 8.4), Blade + **Livewire 4** + Alpine + Tailwind 4 (build Vite) |
 | Data | **PostgreSQL 16** + Row-Level Security untuk isolasi organisasi; Redis; object storage S3-compatible |
 | Hosting | Cloud VM/kontainer di **region Jakarta**, CDN + WAF di depan; bukan shared hosting |
 | Peran | Super Admin, Admin Akademik, Admin Keuangan, Admin Layanan (opsional), Admin Organisasi, Trainer, Peserta |
@@ -23,6 +23,7 @@ produksi — lihat [`keamanan/16-temuan-keamanan-purwarupa.md`](keamanan/16-temu
 | Sertifikat | PDF dibuat & **ditandatangani digital (PAdES) di server**, kunci di KMS/HSM, QR berisi kode verifikasi acak |
 | Pembayaran | Midtrans Snap (hosted) — lingkup PCI DSS SAQ-A; webhook terverifikasi + konfirmasi status |
 | Privasi | Kepatuhan **UU No. 27/2022 (PDP)**: DPO, RoPA, DPIA, hak subjek data, notifikasi ≤ 3×24 jam |
+| Skala | ± 5.000 pengguna tahun 1 (uji beban 2× puncak); arsitektur siap tumbuh hingga 50.000 |
 | Jadwal | ± 12 bulan ke go-live (baseline), skenario percepatan tersedia — lihat dokumen 12 |
 
 ## Daftar Dokumen
@@ -125,6 +126,28 @@ FR-* / NFR-* (dok. 02, 03)
 | DPO | | | |
 | DevOps Lead | | | |
 | QA Lead | | | |
+
+## Status Implementasi — Fase 0 (Fondasi)
+
+| Komponen | Status | Lokasi kode / uji |
+|---|---|---|
+| Kerangka Laravel 13 modular (`app/Modules/*`, `app/Support/*`) | ✅ | `app/` |
+| Purwarupa dipindah sebagai referensi (tidak di-deploy) | ✅ | `prototype/` |
+| Peran DB terpisah `stu_migrator` / `stu_app` (tanpa BYPASSRLS) + RLS contoh (`organization_members`) | ✅ | `docker/postgres/init-roles.sql`, migrasi, `tests/Security/TenantIsolationTest.php` |
+| Katalog izin & peran dari dok. 07 (seed otomatis, tanpa bypass Super Admin) | ✅ | `app/Modules/Access`, `tests/Unit/PermissionsTest.php` |
+| Login server-side: Argon2id, rate limit berlapis, pesan generik, anti-fixation | ✅ | `app/Modules/Identity`, `tests/Security/AuthenticationTest.php` |
+| MFA TOTP wajib non-peserta + kode pemulihan + anti-replay | ✅ | `tests/Security/MfaTest.php`, `tests/Unit/TotpTest.php` (vektor RFC 6238) |
+| Sesi Redis, cookie `__Host-`, timeout idle/absolut, cabut semua sesi (session version) | ✅ | `tests/Security/SessionTest.php` |
+| Lupa/atur ulang kata sandi (URL dari APP_URL, token sekali pakai, tanpa auto-login) | ✅ | `tests/Security/PasswordResetTest.php` |
+| Re-autentikasi aksi sensitif (`password.confirm` + TOTP) | ✅ | `ConfirmAccessController` |
+| Header keamanan & CSP ber-nonce, Livewire `csp_safe`, aset self-hosted | ✅ | `tests/Security/HttpHeadersTest.php` |
+| Jejak audit berantai hash + append-only + `stu:audit-verify`; security events | ✅ | `app/Modules/Audit`, `tests/Security/AuditTrailTest.php` |
+| Shell UI dari purwarupa, dashboard per area, halaman error | ✅ | `resources/views` |
+| Docker (image non-root, read-only), Compose lokal, Nginx | ✅ (config tervalidasi; build image diuji di CI) | `Dockerfile`, `docker/`, `docker-compose.yml` |
+| CI: Pint, Larastan L8, Pest (PostgreSQL+Redis nyata), composer/npm audit, gitleaks, Semgrep | ✅ | `.github/workflows/ci.yml`, `.semgrep.yml` |
+| IaC (OpenTofu), staging, deploy CD, image signing | ⏳ Fase 0 lanjutan | dok. 11 |
+| CAPTCHA adaptif, notifikasi login perangkat baru, daftar sesi/perangkat, registrasi mandiri + OTP | ⏳ Fase 1 | FR-AUTH-001..003, 009, 010 |
+| WebAuthn/Passkey | ⏳ Fase 3 | FR-AUTH-006 |
 
 ## Hal yang Masih Perlu Ditetapkan (di Fase 0)
 

@@ -41,9 +41,9 @@ bukan kode produksi. Markup & kelas Tailwind boleh dipakai ulang di template Bla
 
 | Lapisan | Pilihan | Versi minimum | Alasan |
 |---|---|---|---|
-| Bahasa & framework | PHP + **Laravel** | PHP 8.3 (disarankan 8.4), Laravel 12.x atau rilis stabil terbaru saat kick-off | Ekosistem matang di Indonesia, fitur keamanan bawaan (CSRF, hashing Argon2id, enkripsi, rate limiter, policy/gate, signed URL), produktif untuk tim kecil–menengah. |
-| UI server-side | Blade + **Livewire 3** + **Alpine.js** | — | Mempertahankan markup purwarupa; tidak ada token di `localStorage`; permukaan serangan lebih kecil daripada SPA. |
-| CSS | **Tailwind CSS** di-*build* via Vite | Tailwind 3.4+/4.x | Purwarupa memakai Tailwind CDN — di produksi **wajib build** (CSP ketat, tanpa script pihak ketiga). |
+| Bahasa & framework | PHP + **Laravel** | PHP 8.4, **Laravel 13.x** (terpasang di Fase 0) | Ekosistem matang di Indonesia, fitur keamanan bawaan (CSRF, hashing Argon2id, enkripsi, rate limiter, policy/gate, signed URL), produktif untuk tim kecil–menengah. |
+| UI server-side | Blade + **Livewire 4** (mode `csp_safe`) + **Alpine.js** | Livewire 4.x | Mempertahankan markup purwarupa; tidak ada token di `localStorage`; permukaan serangan lebih kecil daripada SPA. |
+| CSS | **Tailwind CSS** di-*build* via Vite | Tailwind 4.x, Vite 8 | Purwarupa memakai Tailwind CDN — di produksi **wajib build** (CSP ketat, tanpa script pihak ketiga). |
 | Basis data | **PostgreSQL** | 16 | RLS untuk isolasi tenant, `jsonb`, full-text search, `pgcrypto`, partisi tabel audit. |
 | Cache, sesi, antrian, rate limit | **Redis** (atau Valkey) | 7.x | Performa, dukungan Laravel Horizon. |
 | Queue monitoring | **Laravel Horizon** | — | Visibilitas antrian & retry. Dashboard hanya untuk Super Admin + IP allowlist. |
@@ -373,6 +373,12 @@ bagian baru di bawah ini (atau berkas `docs/adr/NNNN-judul.md` bila jumlahnya su
 - **Keputusan:** Midtrans Snap (hosted/redirect). Server tidak pernah menerima/menyimpan data kartu.
 - **Konsekuensi:** Lingkup PCI DSS minimal (SAQ-A); webhook wajib diverifikasi tanda tangan + konfirmasi status server-to-server.
 
+
+### ADR-008 — Konteks tenant RLS via `set_config` per request (bukan `SET LOCAL`)
+- **Konteks:** RLS membaca variabel `app.*` (lihat `05-desain-database.md` §5). `SET LOCAL` mengharuskan setiap query berada di dalam transaksi eksplisit.
+- **Keputusan:** Aplikasi memakai koneksi PostgreSQL **non-persisten** (satu koneksi per request PHP-FPM). Middleware `ApplyTenantContext` memanggil `set_config(..., false)` di awal setiap request dan mengosongkannya di akhir (`terminate`). Tamu/tanpa konteks → variabel kosong → kebijakan menolak semua baris. Worker antrian wajib memanggil `TenantContext::applyFor()/applySystem()` di awal job dan `clear()` di akhir.
+- **Konsekuensi:** Tidak boleh memakai PgBouncer mode *transaction* (gunakan mode *session* atau tanpa pooler); bila kelak diperlukan pooler transaksi atau Octane, mekanisme diganti ke `SET LOCAL` di dalam transaksi per request (ADR baru). Diuji otomatis (`tests/Security/TenantIsolationTest.php`).
+
 ## 11. Lingkungan (Environments)
 
 | Lingkungan | Tujuan | Data | Akses |
@@ -384,16 +390,26 @@ bagian baru di bawah ini (atau berkas `docs/adr/NNNN-judul.md` bila jumlahnya su
 
 ## 12. Kapasitas & Skalabilitas Awal
 
-Asumsi tahun pertama (validasi ulang bersama bisnis):
+Asumsi tahun pertama, dikonfirmasi pemilik produk: **± 5.000 pengguna**. Uji beban memakai
+target **2× puncak** sebagai cadangan, dan arsitektur tetap dapat tumbuh hingga 50.000 pengguna
+tanpa desain ulang.
 
-| Parameter | Target |
-|---|---|
-| Pengguna terdaftar | 50.000 |
-| Pengguna aktif harian | 5.000 |
-| Konkurensi puncak (ujian serentak) | 1.000 peserta |
-| Penyimpanan media | 2 TB (video HLS) |
-| Sertifikat terbit / tahun | 20.000 |
-| Permintaan verifikasi publik | 50.000 / bulan |
+| Parameter | Perkiraan tahun 1 | Target uji beban |
+|---|---|---|
+| Pengguna terdaftar | 5.000 | — |
+| Pengguna aktif harian | ± 1.000 | — |
+| Konkurensi puncak (ujian serentak) | ± 500 peserta | 1.000 peserta |
+| Penyimpanan media | ± 500 GB (video HLS) | — |
+| Sertifikat terbit / tahun | ± 3.000 | — |
+| Permintaan verifikasi publik | ± 10.000 / bulan | 50 rps |
+
+**Mengapa stack ini ringan untuk skala tersebut:** Laravel + PHP-FPM dengan OPcache/JIT, rendering
+sisi server (Livewire mengirim HTML parsial, bukan bundel SPA besar — JS awal < 50 KB), PostgreSQL
+dengan indeks yang tepat, Redis untuk sesi/cache/antrian, dan CDN untuk aset & video. Untuk
+5.000 pengguna, **opsi anggaran minimal** di [`11-devops-dan-deployment.md`](11-devops-dan-deployment.md) §1.8
+(1–2 VM aplikasi + PostgreSQL terkelola + Redis + object storage + CDN/WAF) sudah memadai; topologi
+penuh dipakai bila beban tumbuh. Laravel Octane (FrankenPHP) dapat diaktifkan kemudian bila perlu
+throughput lebih tinggi, tanpa mengubah kode domain.
 
 Skala horizontal: tambah node aplikasi (stateless), pisahkan worker per antrian, replika baca
 PostgreSQL untuk laporan, CDN untuk media. Detail NFR di

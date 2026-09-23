@@ -967,7 +967,7 @@ DB::transaction(function () use ($code, $actor, $transaction): void {
 
 | # | Aturan |
 |---|---|
-| FE-01 | Interaktivitas memakai **Livewire 3 + Alpine.js**; CSS **Tailwind di-build via Vite**. Tailwind CDN dari purwarupa **DILARANG** di aplikasi. |
+| FE-01 | Interaktivitas memakai **Livewire 4 + Alpine.js**; CSS **Tailwind di-build via Vite**. Tailwind CDN dari purwarupa **DILARANG** di aplikasi. |
 | FE-02 | **Tanpa skrip inline**: tidak ada `<script>...</script>` di Blade, atribut `on*=` (`onclick`), atau `javascript:` URL. Semua JS di `resources/js/` dan dimuat lewat `@vite`. |
 | FE-03 | **CSP ber-nonce**: middleware membuat nonce per request, `Vite::useCspNonce($nonce)`, dan skrip Livewire dimuat dengan nonce yang sama. Kebijakan CSP (tanpa `unsafe-inline`/`unsafe-eval` untuk `script-src`) mengikuti [`keamanan/04`](keamanan/04-validasi-input-dan-output.md). |
 | FE-04 | Logika Alpine didaftarkan sebagai komponen `Alpine.data('nama', () => ({...}))` di `resources/js/components/*.js`; atribut `x-data` di Blade hanya menyebut nama komponen. Ini syarat build Alpine yang aman-CSP. Bila versi Livewire/Alpine yang dipakai belum mendukung mode aman-CSP, `unsafe-eval` hanya boleh diaktifkan melalui ADR dan dicatat sebagai risiko terbuka. |

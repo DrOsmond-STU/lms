@@ -1,0 +1,39 @@
+# Aturan SAST khusus STU LMS (docs/09 §5, keamanan/04, keamanan/14 SEC-SDLC-02).
+rules:
+  - id: stu-no-unescaped-blade
+    languages: [generic]
+    paths: { include: ['resources/views/**/*.blade.php'] }
+    pattern: '{!! ... !!}'
+    message: 'Output Blade tanpa escape dilarang (SEC-INPUT-01). Gunakan {{ }} atau komponen sanitizer.'
+    severity: ERROR
+  - id: stu-no-request-all-mass-assignment
+    languages: [php]
+    patterns:
+      - pattern-either:
+          - pattern: $MODEL::create($REQUEST->all())
+          - pattern: $X->fill($REQUEST->all())
+          - pattern: $X->update($REQUEST->all())
+    message: 'Mass assignment dari $request->all() dilarang (SEC-INPUT-10). Gunakan $request->validated().'
+    severity: ERROR
+  - id: stu-no-raw-sql-interpolation
+    languages: [php]
+    patterns:
+      - pattern-either:
+          - pattern: DB::raw("...$X...")
+          - pattern: $Q->whereRaw("...$X...", ...)
+          - pattern: $Q->orderByRaw("...$X...", ...)
+          - pattern: $Q->selectRaw("...$X...", ...)
+          - pattern: DB::statement("...$X...")
+          - pattern: DB::select("...$X...", ...)
+    message: 'Interpolasi variabel ke SQL mentah dilarang (SEC-INPUT-08). Gunakan binding.'
+    severity: ERROR
+  - id: stu-no-global-scope-bypass-without-annotation
+    languages: [php]
+    pattern: $Q->withoutGlobalScope(...)
+    message: 'Melewati scope tenant memerlukan anotasi @tenant-bypass dan review Security Champion (SEC-AUTHZ-10).'
+    severity: WARNING
+  - id: stu-no-tls-verify-disabled
+    languages: [php]
+    pattern: Http::withOptions(['verify' => false])
+    message: 'Verifikasi TLS tidak boleh dimatikan (SEC-API-12).'
+    severity: ERROR

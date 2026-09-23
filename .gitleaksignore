@@ -1,0 +1,3 @@
+# Positif palsu yang sudah ditinjau (satu temuan spesifik per baris, bukan menonaktifkan aturan).
+# Contoh UUID Idempotency-Key pada dokumentasi API, bukan rahasia:
+82ad829a60efa98403b0940f118137541a253861:docs/06-spesifikasi-api.md:generic-api-key:160

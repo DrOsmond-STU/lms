@@ -1,0 +1,74 @@
+# Lingkungan PENGEMBANGAN LOKAL saja. Kredensial di bawah hanya untuk lokal.
+# Produksi: lihat docs/11-devops-dan-deployment.md.
+name: stu-lms
+
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      MAIL_HOST: mailpit
+    depends_on: [postgres, redis]
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - app-storage:/var/www/html/storage
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  web:
+    image: nginx:1.27-alpine
+    ports: ["127.0.0.1:8080:8080"]
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
+    depends_on: [app]
+    security_opt: [no-new-privileges:true]
+
+  worker:
+    build: .
+    command: ["php", "artisan", "queue:work", "--tries=3", "--max-time=3600"]
+    env_file: .env
+    environment: { DB_HOST: postgres, REDIS_HOST: redis, MAIL_HOST: mailpit }
+    depends_on: [postgres, redis]
+    read_only: true
+    tmpfs: [/tmp]
+    volumes: [app-storage:/var/www/html/storage]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  scheduler:
+    build: .
+    command: ["php", "artisan", "schedule:work"]
+    env_file: .env
+    environment: { DB_HOST: postgres, REDIS_HOST: redis }
+    depends_on: [postgres, redis]
+    read_only: true
+    tmpfs: [/tmp]
+    volumes: [app-storage:/var/www/html/storage]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres_local_only
+    ports: ["127.0.0.1:5432:5432"]
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-roles.sql:/docker-entrypoint-initdb.d/01-init-roles.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--rename-command", "FLUSHALL", "", "--rename-command", "CONFIG", ""]
+    ports: ["127.0.0.1:6379:6379"]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:8025:8025", "127.0.0.1:1025:1025"]
+
+volumes:
+  pg-data:
+  app-storage:

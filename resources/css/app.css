@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../../app/**/*.php';
+
+/* Token desain dari purwarupa (prototype/assets/css/style.css) */
+@theme {
+    --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+    --color-brand-50: #eef5fb;
+    --color-brand-100: #d7e8f4;
+    --color-brand-200: #b0d1e9;
+    --color-brand-300: #83b6db;
+    --color-brand-400: #4f93c6;
+    --color-brand-500: #2f78ad;
+    --color-brand-600: #1a5c97;
+    --color-brand-700: #124a7d;
+    --color-brand-800: #0e3a63;
+    --color-brand-900: #0b2f52;
+
+    --color-accent-50: #effcfa;
+    --color-accent-100: #c9f6ee;
+    --color-accent-200: #94ecdc;
+    --color-accent-300: #5fdfca;
+    --color-accent-400: #2ecdb3;
+    --color-accent-500: #14b8a6;
+    --color-accent-600: #0e9488;
+    --color-accent-700: #0c766e;
+    --color-accent-800: #0b5f59;
+    --color-accent-900: #0a4d49;
+}
+
+@layer base {
+    body {
+        -webkit-font-smoothing: antialiased;
+    }
+}
+
+@layer components {
+    .card {
+        @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    }
+
+    .nav-link {
+        @apply flex items-center gap-2.5 rounded-lg px-3.5 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white;
+    }
+
+    .nav-link-active {
+        @apply bg-accent-500 font-bold text-accent-900 hover:bg-accent-500 hover:text-accent-900;
+    }
+
+    .nav-group-label {
+        @apply px-3.5 pt-4 pb-1 text-[0.68rem] font-bold tracking-wider text-slate-400 uppercase;
+    }
+
+    .btn-primary {
+        @apply inline-flex w-full items-center justify-center rounded-lg bg-brand-800 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700 focus:ring-2 focus:ring-brand-500/40 focus:outline-none disabled:opacity-60;
+    }
+
+    .form-label {
+        @apply mb-1 block text-xs font-bold text-slate-600;
+    }
+
+    .form-input {
+        @apply w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/40 focus:outline-none;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap;
+    }
+}

@@ -1,0 +1,18 @@
+# Jalur sensitif keamanan memerlukan review Security Lead / Tech Lead (keamanan/14 SEC-SDLC-10).
+# Ganti @DrOsmond-STU dengan tim/akun reviewer yang sebenarnya.
+*                                   @DrOsmond-STU
+/app/Modules/Identity/              @DrOsmond-STU
+/app/Modules/Access/                @DrOsmond-STU
+/app/Modules/Audit/                 @DrOsmond-STU
+/app/Support/Security/              @DrOsmond-STU
+/app/Support/Tenancy/               @DrOsmond-STU
+/config/                            @DrOsmond-STU
+/database/migrations/               @DrOsmond-STU
+/routes/                            @DrOsmond-STU
+/docker/                            @DrOsmond-STU
+/.github/                           @DrOsmond-STU
+/docs/keamanan/                     @DrOsmond-STU
+composer.json                       @DrOsmond-STU
+composer.lock                       @DrOsmond-STU
+package.json                        @DrOsmond-STU
+package-lock.json                   @DrOsmond-STU

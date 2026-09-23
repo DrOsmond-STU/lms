@@ -23,10 +23,10 @@
 
 | ID | Kebutuhan | Target |
 |---|---|---|
-| NFR-SCAL-01 | Pengguna terdaftar | 50.000 (tahun 1), arsitektur siap 500.000 tanpa desain ulang |
-| NFR-SCAL-02 | Konkurensi | 1.000 peserta mengerjakan ujian serentak; 3.000 sesi aktif |
+| NFR-SCAL-01 | Pengguna terdaftar | ± 5.000 (tahun 1, dikonfirmasi pemilik produk); arsitektur siap 50.000 tanpa desain ulang |
+| NFR-SCAL-02 | Konkurensi | Perkiraan puncak ± 500 peserta ujian serentak; diuji pada 1.000 (2× cadangan); 2.000 sesi aktif |
 | NFR-SCAL-03 | Skala horizontal | Node aplikasi stateless; menambah node tanpa downtime |
-| NFR-SCAL-04 | Media | 2 TB tahun 1, disajikan via CDN (origin offload ≥ 90%) |
+| NFR-SCAL-04 | Media | ± 500 GB tahun 1, disajikan via CDN (origin offload ≥ 90%) |
 | NFR-SCAL-05 | Antrian | Worker diskalakan per antrian; backlog `notifications` < 5 menit pada puncak |
 
 ## 3. Ketersediaan & Keandalan (AVL)
