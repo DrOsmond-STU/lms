@@ -12,6 +12,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,6 +71,21 @@ final class User extends Authenticatable implements CanResetPasswordContract
             'phone_encrypted' => 'encrypted',
             'session_version' => 'integer',
         ];
+    }
+
+    /**
+     * Email selalu disimpan huruf kecil & tanpa spasi tepi (constraint DB users_email_lowercase).
+     *
+     * @return Attribute<string, string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(set: fn (string $value): string => self::normalizeEmail($value));
+    }
+
+    public static function normalizeEmail(string $email): string
+    {
+        return mb_strtolower(trim($email));
     }
 
     /** @return BelongsToMany<Role, $this> */

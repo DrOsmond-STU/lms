@@ -43,7 +43,7 @@ return new class extends Migration
             $table->timestampsTz();
         });
 
-        DB::statement('ALTER TABLE organization_domains ALTER COLUMN domain TYPE citext');
+        DB::statement('ALTER TABLE organization_domains ADD CONSTRAINT organization_domains_domain_lowercase CHECK (domain = lower(domain))');
 
         Schema::create('organization_members', function (Blueprint $table) {
             $table->uuid('id')->primary();

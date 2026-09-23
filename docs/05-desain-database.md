@@ -98,7 +98,7 @@ Notasi kolom: `nama tipe [constraint] — keterangan (Kelas data)`.
 **`users`**
 - `id uuid PK`
 - `name text NOT NULL` — (K3)
-- `email citext NOT NULL UNIQUE` — dinormalisasi lowercase (K3)
+- `email varchar(254) NOT NULL UNIQUE CHECK (email = lower(email))` — dinormalisasi huruf kecil oleh aplikasi (K3). Tidak memakai `citext` agar portabel ke hosting tanpa ekstensi contrib
 - `email_verified_at timestamptz`
 - `phone text` — format E.164, terenkripsi (K3)
 - `phone_bidx text` — HMAC-SHA256 untuk pencarian/unik (K3)
@@ -146,7 +146,7 @@ Notasi kolom: `nama tipe [constraint] — keterangan (Kelas data)`.
 ### 4.2 Organization
 
 **`organizations`**: `id`, `name`, `code text UNIQUE CHECK (code ~ '^[A-Z]{2,8}$')`, `type CHECK (type IN ('institution','corporate'))`, `city`, `accreditation`, `industry`, `logo_path`, `status CHECK (status IN ('active','inactive'))`, `settings jsonb` (mis. gamifikasi aktif, SSO), timestamps.
-**`organization_domains`**: `id`, `organization_id`, `domain citext UNIQUE`, `verified_at`, `verification_token_hash`, `method`.
+**`organization_domains`**: `id`, `organization_id`, `domain varchar(253) UNIQUE CHECK (domain = lower(domain))`, `verified_at`, `verification_token_hash`, `method`.
 **`organization_units`**: `id`, `organization_id`, `parent_id NULL`, `name`, `type` (faculty/program/department).
 **`organization_members`**: `id`, `organization_id`, `user_id`, `status CHECK (status IN ('pending','active','rejected','removed'))`, `approved_by`, `approved_at`, `UNIQUE(organization_id, user_id)`.
 **`organization_contracts`**: `id`, `organization_id`, `starts_on date`, `ends_on date`, `participant_quota int`, `covered_program_ids uuid[]`, `billing_mode CHECK (...)`, `notes`.
@@ -205,7 +205,7 @@ Notasi kolom: `nama tipe [constraint] — keterangan (Kelas data)`.
 
 **`payment_transactions`** (ber-tenant): `id`, `organization_id`, `user_id`, `program_id`, `course_class_id`, `order_id text UNIQUE` (`STU-{ULID}`), `invoice_number text UNIQUE NULL`, `gross_amount bigint CHECK (gross_amount >= 0)`, `list_price bigint`, `discount_amount bigint`, `coupon_id NULL`, `currency char(3) DEFAULT 'IDR'`, `status CHECK (status IN ('pending','settled','failed','expired','refund_pending','refunded'))`, `payment_method text`, `gateway text DEFAULT 'midtrans'`, `gateway_transaction_id text`, `expires_at`, `settled_at`, `idempotency_key text UNIQUE`, `needs_review boolean NOT NULL DEFAULT false` (mis. selisih jumlah/`fraud_status=challenge`), timestamps.
 **`payment_events`** (append-only): `id`, `payment_transaction_id NULL`, `source CHECK (source IN ('webhook','status_api','reconciliation','admin'))`, `gateway_status`, `raw_payload jsonb` (tanpa data sensitif; disaring), `signature_valid boolean`, `processed_at`, `dedup_key text UNIQUE` (mis. `order_id + transaction_status + status_code + settlement_time`), `created_at`.
-**`coupons`**: `id`, `code citext UNIQUE`, `type CHECK (type IN ('percent','amount'))`, `value bigint CHECK (value > 0)`, `max_discount bigint NULL`, `min_amount bigint`, `valid_from`, `valid_until`, `total_quota int`, `used_count int DEFAULT 0 CHECK (used_count <= total_quota)`, `reserved_count int DEFAULT 0`, `per_user_limit smallint DEFAULT 1`, `program_ids uuid[] NULL`, `organization_ids uuid[] NULL`, `is_active`, `created_by`. `CHECK (type <> 'percent' OR value <= 100)`.
+**`coupons`**: `id`, `code varchar UNIQUE CHECK (code = upper(code))`, `type CHECK (type IN ('percent','amount'))`, `value bigint CHECK (value > 0)`, `max_discount bigint NULL`, `min_amount bigint`, `valid_from`, `valid_until`, `total_quota int`, `used_count int DEFAULT 0 CHECK (used_count <= total_quota)`, `reserved_count int DEFAULT 0`, `per_user_limit smallint DEFAULT 1`, `program_ids uuid[] NULL`, `organization_ids uuid[] NULL`, `is_active`, `created_by`. `CHECK (type <> 'percent' OR value <= 100)`.
 **`coupon_redemptions`**: `id`, `coupon_id`, `user_id`, `payment_transaction_id UNIQUE`, `status CHECK (status IN ('reserved','consumed','released'))`, timestamps.
 **`refunds`**: `id`, `payment_transaction_id`, `amount bigint CHECK (amount > 0)`, `reason`, `requested_by`, `approved_by`, `approval_request_id NULL`, `status CHECK (...)`, `gateway_refund_id`, timestamps.
 **`invoices`**: `id`, `payment_transaction_id UNIQUE`, `number`, `billing_name`, `billing_tax_id_encrypted` (NPWP, K4), `billing_address_encrypted`, `pdf_storage_key`, `issued_at`.

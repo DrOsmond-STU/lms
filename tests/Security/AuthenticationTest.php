@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Modules\Access\RoleCode;
 use App\Modules\Identity\Services\LoginService;
 use Database\Factories\UserFactory;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 beforeEach(fn () => cache()->flush());
 
@@ -83,3 +85,20 @@ it('rehashes passwords with Argon2id', function () {
     $user = makeUser();
     expect($user->password)->toStartWith('$argon2id$');
 })->group('SEC-AUTH-01');
+
+it('stores emails in lowercase and accepts any letter case at login', function () {
+    $user = makeUser(attributes: ['email' => '  Raka.Prasetya@Example.TEST ']);
+
+    expect($user->email)->toBe('raka.prasetya@example.test');
+
+    $this->post('/masuk', ['email' => 'RAKA.PRASETYA@example.test', 'password' => UserFactory::PASSWORD])
+        ->assertRedirect(route('dashboard'));
+    $this->assertAuthenticatedAs($user);
+})->group('FR-AUTH-004');
+
+it('rejects mixed-case emails written directly to the database', function () {
+    expect(fn () => DB::transaction(fn () => DB::table('users')->insert([
+        'id' => (string) Str::uuid7(), 'name' => 'X', 'email' => 'Huruf@Besar.test',
+        'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+    ])))->toThrow(QueryException::class, 'users_email_lowercase');
+});

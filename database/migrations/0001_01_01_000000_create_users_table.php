@@ -14,8 +14,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('CREATE EXTENSION IF NOT EXISTS citext');
-
         Schema::create('users', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 120);
@@ -38,7 +36,9 @@ return new class extends Migration
             $table->timestampTz('deactivated_at')->nullable();
         });
 
-        DB::statement('ALTER TABLE users ALTER COLUMN email TYPE citext');
+        // Email disimpan huruf kecil (dinormalisasi aplikasi) & dijaga constraint —
+        // tanpa ekstensi citext yang tidak tersedia di semua hosting.
+        DB::statement('ALTER TABLE users ADD CONSTRAINT users_email_lowercase CHECK (email = lower(email))');
         DB::statement("ALTER TABLE users ADD CONSTRAINT users_status_check CHECK (status IN ('pending_verification','active','suspended','deactivated','anonymized'))");
 
         // Token reset kata sandi disimpan ter-hash oleh broker Laravel (keamanan/02 SEC-AUTH-21).
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->string('token');
             $table->timestampTz('created_at')->nullable();
         });
-        DB::statement('ALTER TABLE password_reset_tokens ALTER COLUMN email TYPE citext');
+        DB::statement('ALTER TABLE password_reset_tokens ADD CONSTRAINT password_reset_tokens_email_lowercase CHECK (email = lower(email))');
     }
 
     public function down(): void

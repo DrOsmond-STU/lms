@@ -67,7 +67,7 @@ final class PasswordResetController
         ]);
 
         $status = Password::reset(
-            ['email' => $data['email'], 'password' => $data['password'], 'password_confirmation' => $request->input('password_confirmation'), 'token' => $data['token']],
+            ['email' => User::normalizeEmail($data['email']), 'password' => $data['password'], 'password_confirmation' => $request->input('password_confirmation'), 'token' => $data['token']],
             function (User $user, string $password) use ($audit, $securityEvents): void {
                 $minimum = (int) config($user->requiresMfa() ? 'security.password.min_privileged' : 'security.password.min_participant');
                 if (mb_strlen($password) < $minimum) {

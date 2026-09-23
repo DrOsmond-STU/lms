@@ -50,7 +50,7 @@ final class LoginService
         }
 
         /** @var User|null $user */
-        $user = User::query()->where('email', trim($email))->first();
+        $user = User::query()->where('email', User::normalizeEmail($email))->first();
         $valid = $this->hasher->check($password, $user->password ?? self::DUMMY_HASH);
 
         if ($user === null || ! $valid || ! $user->isActive()) {
