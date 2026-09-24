@@ -181,6 +181,7 @@ Semgrep kustom, gitleaks; uji browser end-to-end Playwright tanpa pelanggaran CS
 | Pemindaian malware (FR-CNT-003) | `MEDIA_SCANNER=none` — berkas ditandai "belum dipindai antivirus" di UI | ClamAV (`clamd`) wajib; ProductionGuard menolak `none` |
 | Tanda tangan PDF PAdES B-LT + timestamp RFC 3161 (FR-CERT-005) | PKCS#7 tertanam dengan **sertifikat uji** self-signed (`stu:signing-key`) | Sertifikat PSrE/AATL di KMS/HSM + TSA |
 | Unggahan video ≤ 2 GB | Dibatasi `upload_max_filesize` hosting (512 MB) | Unggahan langsung ke object storage |
+| Worker antrian & penjadwal | Cron berjeda ≥ 6 menit: email mendesak (OTP, atur ulang sandi) dikirim `deferred` setelah respons; email lain tertunda ≤ ±9 menit; auto-submit ujian ≤ 8 menit (attempt kedaluwarsa tetap ditolak/dikumpulkan saat dibuka) | Worker permanen (Supervisor/Horizon) + scheduler tiap menit |
 | Pembayaran program berbayar | Pendaftaran mandiri hanya program gratis; admin dapat mendaftarkan peserta | Fase 2 (EP-15, Midtrans) |
 
 ### Belum termasuk (sesuai roadmap)

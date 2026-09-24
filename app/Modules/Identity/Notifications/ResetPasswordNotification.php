@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Notifications;
 
+use App\Support\Queue\UrgentDelivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -18,7 +19,7 @@ use Illuminate\Notifications\Notification;
  */
 final class ResetPasswordNotification extends Notification implements ShouldBeEncrypted, ShouldQueue
 {
-    use Queueable;
+    use Queueable, UrgentDelivery;
 
     public function __construct(private readonly string $token) {}
 

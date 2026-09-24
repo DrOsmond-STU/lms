@@ -17,6 +17,10 @@ return [
 
     'default' => env('QUEUE_CONNECTION', 'database'),
 
+    // Koneksi untuk email yang dibatasi waktu (OTP, atur ulang kata sandi) — lihat
+    // App\Support\Queue\UrgentDelivery. Staging shared hosting memakai `deferred`.
+    'urgent_connection' => env('QUEUE_URGENT_CONNECTION', env('QUEUE_CONNECTION', 'database')),
+
     /*
     |--------------------------------------------------------------------------
     | Queue Connections

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Notifications;
 
+use App\Support\Queue\UrgentDelivery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -15,7 +16,7 @@ use Illuminate\Notifications\Notification;
  */
 final class AccountAlreadyExistsNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, UrgentDelivery;
 
     /** @return list<string> */
     public function via(object $notifiable): array

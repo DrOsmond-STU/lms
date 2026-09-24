@@ -21,11 +21,22 @@ Domainesia). Shared hosting **bukan** target produksi penuh — lihat
 ## Cron
 
 ```
-*/6 * * * *  flock -n $HOME/.lms-setup.lock /bin/bash $HOME/lms-setup.sh
-*   * * * *  cd $HOME/lms-app && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
-*/2 * * * *  cd $HOME/lms-app && flock -n $HOME/.lms-queue.lock /opt/alt/php83/usr/bin/php artisan queue:work database --stop-when-empty --tries=3 --max-time=100 >> /dev/null 2>&1
-*   * * * *  /bin/bash $HOME/lms-verify.sh >> /dev/null 2>&1
+*/6 * * * *  /usr/bin/flock -n $HOME/.lms-setup.lock /bin/bash $HOME/lms-setup.sh
+*/8 * * * *  cd $HOME/lms-app && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+*/9 * * * *  cd $HOME/lms-app && /usr/bin/flock -n $HOME/.lms-queue.lock /opt/alt/php83/usr/bin/php artisan queue:work database --stop-when-empty --tries=3 --max-time=100 >> /dev/null 2>&1
+*/7 * * * *  /bin/bash $HOME/lms-verify.sh >> /dev/null 2>&1
 ```
+
+Akun shared hosting ini menjalankan banyak aplikasi; interval cron dijaga ≥ 6 menit. Akibatnya:
+
+- **Email mendesak** (OTP registrasi, atur ulang kata sandi, pemberitahuan akun sudah ada)
+  tidak menunggu worker cron: `.env` staging memakai `QUEUE_URGENT_CONNECTION=deferred`
+  sehingga email dikirim tepat setelah respons HTTP selesai (lihat
+  `App\Support\Queue\UrgentDelivery`). Email lain (undangan, notifikasi, PDF sertifikat)
+  tetap lewat antrian `database` dan bisa tertunda hingga ±9 menit.
+- **Auto-submit ujian** (`stu:exams-auto-submit`, dijadwalkan tiap menit) di staging berjalan
+  paling lambat tiap 8 menit. Integritas tetap terjaga: jawaban setelah deadline + grace
+  ditolak (409) dan attempt kedaluwarsa langsung dikumpulkan saat dibuka kembali.
 
 Tugas terjadwal (`routes/console.php`): verifikasi rantai audit 02:30 WIB, pembersihan
 registrasi tak terverifikasi & token kedaluwarsa 03:00 WIB.

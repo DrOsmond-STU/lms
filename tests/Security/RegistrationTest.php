@@ -212,3 +212,15 @@ it('prunes unverified self-registrations after the retention window', function (
 
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse();
 })->group('SEC-PRIV');
+
+it('sends time-limited registration mail over the urgent queue connection, same path for existing accounts', function () {
+    config(['queue.urgent_connection' => 'deferred']);
+
+    $payload = registrationPayload();
+    $this->post('/daftar', $payload);
+    $existing = User::factory()->create();
+    $this->post('/daftar', registrationPayload(['email' => $existing->email]));
+
+    Notification::assertSentTo(registeredUser($payload['email']), RegistrationCodeNotification::class, fn ($notification): bool => $notification->viaConnections() === ['mail' => 'deferred']);
+    Notification::assertSentTo($existing, AccountAlreadyExistsNotification::class, fn ($notification): bool => $notification->viaConnections() === ['mail' => 'deferred']);
+})->group('SEC-AUTH-06');
