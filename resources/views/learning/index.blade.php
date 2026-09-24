@@ -2,6 +2,7 @@
     <x-slot:heading>Pembelajaran Saya</x-slot:heading>
     <x-slot:subtitle>Riwayat dan progres pelatihan Anda.</x-slot:subtitle>
 
+    <x-form-error field="enrollment" />
     <div class="grid gap-5 md:grid-cols-2">
         @forelse ($enrollments as $enrollment)
             <article class="card p-5">
@@ -17,11 +18,16 @@
                     <span class="text-xs font-bold">{{ $enrollment->progress_percent }}%</span>
                 </div>
                 <div class="mt-3 flex items-center justify-between text-xs text-slate-600">
-                    <span>Skor akhir: {{ $enrollment->final_score !== null ? rtrim(rtrim($enrollment->final_score, '0'), '.') : '—' }}</span>
+                    <span>Skor akhir: {{ $enrollment->final_score !== null ? fmt_score($enrollment->final_score) : '—' }}</span>
                     @if ($enrollment->rejection_reason && $enrollment->isActive())<span class="text-rose-700">Approval ditolak: {{ $enrollment->rejection_reason }}</span>@endif
                 </div>
                 @if ($enrollment->status !== 'cancelled')
                     <a href="{{ route('learning.classroom', $enrollment) }}" class="btn-primary mt-4">{{ $enrollment->isActive() ? 'Lanjutkan Belajar' : 'Lihat Kelas' }}</a>
+                @endif
+                @if (in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true))
+                    <form method="POST" action="{{ route('learning.cancel', $enrollment) }}" class="mt-2 text-right" data-confirm="Batalkan pendaftaran pada {{ $enrollment->program->name }}? Progres tidak dilanjutkan dan kuota kelas dilepas.">@csrf
+                        <button type="submit" class="btn-mini-danger">Batalkan pendaftaran</button>
+                    </form>
                 @endif
             </article>
         @empty

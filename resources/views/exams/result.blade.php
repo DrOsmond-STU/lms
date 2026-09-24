@@ -5,14 +5,14 @@
     <section class="card p-6">
         @if ($attempt->status === 'graded')
             <p class="text-sm text-slate-500">Skor</p>
-            <p @class(['text-4xl font-extrabold', 'text-emerald-700' => $attempt->passed, 'text-rose-700' => ! $attempt->passed])>{{ rtrim(rtrim($attempt->score, '0'), '.') }}</p>
-            <p class="mt-1 text-sm">{{ $attempt->passed ? 'Lulus — skor mencapai minimal '.rtrim(rtrim($attempt->assessment->passing_score, '0'), '.').'.' : 'Belum mencapai skor minimal '.rtrim(rtrim($attempt->assessment->passing_score, '0'), '.').'.' }}</p>
+            <p @class(['text-4xl font-extrabold', 'text-emerald-700' => $attempt->passed, 'text-rose-700' => ! $attempt->passed])>{{ fmt_score($attempt->score) }}</p>
+            <p class="mt-1 text-sm">{{ $attempt->passed ? 'Lulus — skor mencapai minimal '.fmt_score($attempt->assessment->passing_score).'.' : 'Belum mencapai skor minimal '.fmt_score($attempt->assessment->passing_score).'.' }}</p>
         @elseif ($attempt->status === 'voided')
             <p class="text-sm text-rose-700">Attempt ini dibatalkan. Alasan: {{ $attempt->voided_reason }}</p>
         @else
             <p class="text-sm text-slate-600">Jawaban Anda sedang menunggu penilaian trainer (ada soal esai). Anda akan menerima notifikasi setelah dinilai.</p>
         @endif
-        <p class="mt-3 text-xs text-slate-500">Dikumpulkan {{ $attempt->submitted_at?->timezone('Asia/Jakarta')->format('d M Y H:i') }} WIB{{ $attempt->status === 'auto_submitted' ? ' (otomatis saat waktu habis)' : '' }}.</p>
+        <p class="mt-3 text-xs text-slate-500">Dikumpulkan {{ $attempt->submitted_at?->timezone(display_tz())->format('d M Y H:i') }} {{ tz_label() }}{{ $attempt->status === 'auto_submitted' ? ' (otomatis saat waktu habis)' : '' }}.</p>
     </section>
 
     @if ($review)

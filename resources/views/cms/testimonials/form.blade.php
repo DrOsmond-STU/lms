@@ -1,6 +1,6 @@
 @php($editing = $testimonial->exists)
 <x-layouts.app :title="$editing ? 'Ubah Testimoni' : 'Tambah Testimoni'" workspace="admin">
-    <x-slot:back><a href="{{ route('admin.landing.testimonials.index') }}" class="hero-back">&larr; Testimoni</a></x-slot:back>
+    <x-slot:back><a href="{{ route('admin.landing.testimonials.index') }}" class="hero-back">&larr; Pengaturan · Testimoni</a></x-slot:back>
     <x-slot:heading>{{ $editing ? 'Ubah Testimoni' : 'Tambah Testimoni' }}</x-slot:heading>
     <x-slot:subtitle>Nama dan kutipan adalah data pribadi: pastikan ada persetujuan tertulis (mis. email/formulir) sebelum diterbitkan.</x-slot:subtitle>
 

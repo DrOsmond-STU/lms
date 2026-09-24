@@ -25,8 +25,7 @@
 <div class="fixed inset-0 z-40 hidden bg-[var(--overlay-scrim)] lg:hidden" data-sidebar-backdrop></div>
 <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 flex w-[268px] -translate-x-full flex-col gap-0.5 overflow-y-auto px-3 pt-5 pb-4 transition-transform duration-200 lg:translate-x-0" aria-label="Navigasi utama" data-sidebar>
     <div class="flex items-center gap-3 px-3 pb-5">
-        <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
-        <span class="min-w-0"><span class="brand-name block">STU LMS</span><span class="brand-tag block">{{ $workspaceLabels[$workspace] ?? '' }}</span></span>
+        <x-brand :sub="$workspaceLabels[$workspace] ?? ''" />
         <button type="button" class="sidebar-icon-btn ml-auto lg:hidden" data-sidebar-close aria-label="Tutup menu"><x-icon name="close" class="h-4 w-4" /></button>
     </div>
     <nav class="space-y-0.5">
@@ -35,9 +34,9 @@
                 <div class="nav-group-label">{{ $group['group'] }}</div>
             @endif
             @foreach ($group['items'] as $item)
-                @continue($item['permission'] !== null && ! $user->can($item['permission']))
+                @continue($item['permission'] !== null && ! collect((array) $item['permission'])->contains(fn ($permission) => $user->can($permission)))
                 @if ($item['route'])
-                    @php($active = request()->routeIs($item['active'] ?? (str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route'])))
+                    @php($active = request()->routeIs(...(array) ($item['active'] ?? (str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']))))
                     <a href="{{ route($item['route']) }}" @class(['nav-link', 'nav-link-active' => $active]) @if ($active) aria-current="page" @endif>
                         <x-icon :name="$item['icon']" class="h-[18px] w-[18px] shrink-0" /><span>{{ $item['label'] }}</span>
                         @if ($item['route'] === 'notifications.index' && $unread > 0)<span class="nav-count">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
@@ -84,7 +83,7 @@
             <div class="hero-row">
                 <div class="min-w-0">
                     @isset($back)<div>{{ $back }}</div>@endisset
-                    <p class="hero-eyebrow">{{ $eyebrow ?? ($workspaceLabels[$workspace] ?? '').' · STU LMS' }}</p>
+                    <p class="hero-eyebrow">{{ $eyebrow ?? ($workspaceLabels[$workspace] ?? '').' · '.setting('branding.short_name') }}</p>
                     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <h1 class="hero-title">{{ $heading ?? $title }}</h1>
                         @isset($meta)<div class="flex flex-wrap items-center gap-2">{{ $meta }}</div>@endisset

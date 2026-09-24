@@ -69,7 +69,7 @@ final class ProgramFilter
         if ($start === null) {
             return null;
         }
-        $now = now()->timezone('Asia/Jakarta')->startOfMonth();
+        $now = now()->timezone(display_tz())->startOfMonth();
 
         return max(0, ($start->year - $now->year) * 12 + $start->month - $now->month);
     }

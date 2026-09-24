@@ -4,7 +4,7 @@
     $learning = (int) (($enrollments['enrolled'] ?? 0) + ($enrollments['in_progress'] ?? 0));
     $pending = (int) ($members->pending ?? 0);
 @endphp
-<x-layouts.app title="Dashboard Organisasi" workspace="organization" :eyebrow="'Admin Organisasi · '.now()->timezone('Asia/Jakarta')->translatedFormat('F Y')">
+<x-layouts.app title="Dashboard Organisasi" workspace="organization" :eyebrow="'Admin Organisasi · '.now()->timezone(display_tz())->translatedFormat('F Y')">
     <x-slot:heading>{{ $organizations->pluck('name')->implode(', ') ?: 'Organisasi Anda' }}</x-slot:heading>
     <x-slot:subtitle>Pantau keanggotaan dan progres pelatihan anggota organisasi Anda.</x-slot:subtitle>
     <x-slot:aside>

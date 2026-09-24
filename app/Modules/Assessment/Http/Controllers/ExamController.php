@@ -55,7 +55,7 @@ final class ExamController
         if (! $attempt->isInProgress()) {
             return redirect()->route('exams.result', $attempt);
         }
-        if ($attempt->deadline_at->copy()->addSeconds(AttemptService::GRACE_SECONDS)->isPast()) {
+        if ($attempt->deadline_at->copy()->addSeconds(AttemptService::graceSeconds())->isPast()) {
             $this->attempts->submit($attempt, auto: true);
 
             return redirect()->route('exams.result', $attempt)->with('status', 'Waktu habis — jawaban dikumpulkan otomatis.');
@@ -96,7 +96,7 @@ final class ExamController
         $this->ownAttempt($request, $attempt);
         $data = $request->validate(['answers' => ['nullable', 'array', 'max:200'], 'answers.*' => ['nullable'], 'texts' => ['nullable', 'array', 'max:200'], 'texts.*' => ['nullable', 'string', 'max:10000']]);
 
-        if ($attempt->isInProgress() && $attempt->deadline_at->copy()->addSeconds(AttemptService::GRACE_SECONDS)->isFuture()) {
+        if ($attempt->isInProgress() && $attempt->deadline_at->copy()->addSeconds(AttemptService::graceSeconds())->isFuture()) {
             foreach ($data['answers'] ?? [] as $alias => $options) {
                 $this->attempts->saveAnswer($attempt, (string) $alias, array_values(array_map('strval', (array) $options)), null);
             }
@@ -104,7 +104,7 @@ final class ExamController
                 $this->attempts->saveAnswer($attempt, (string) $alias, [], (string) $text);
             }
         }
-        $this->attempts->submit($attempt, auto: ! $attempt->deadline_at->copy()->addSeconds(AttemptService::GRACE_SECONDS)->isFuture());
+        $this->attempts->submit($attempt, auto: ! $attempt->deadline_at->copy()->addSeconds(AttemptService::graceSeconds())->isFuture());
 
         return redirect()->route('exams.result', $attempt)->with('status', 'Jawaban dikumpulkan.');
     }

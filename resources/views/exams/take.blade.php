@@ -8,7 +8,7 @@
             <div class="text-right">
                 <span class="block text-xs text-slate-500">Sisa waktu</span>
                 <span class="font-mono text-2xl font-extrabold text-slate-800" data-exam-timer>{{ sprintf('%02d:%02d', intdiv($attempt->secondsLeft(), 60), $attempt->secondsLeft() % 60) }}</span>
-                <span class="block text-xs text-slate-500">batas {{ $attempt->deadline_at->timezone('Asia/Jakarta')->format('H:i') }} WIB</span>
+                <span class="block text-xs text-slate-500">batas {{ $attempt->deadline_at->timezone(display_tz())->format('H:i') }} {{ tz_label() }}</span>
             </div>
         </div>
 
@@ -24,7 +24,7 @@
             @foreach ($items as $item)
                 <fieldset id="q-{{ $item['alias'] }}" class="card scroll-mt-40 p-5">
                     <legend class="sr-only">Soal {{ $item['number'] }}</legend>
-                    <p class="text-xs font-bold text-slate-500">Soal {{ $item['number'] }} · {{ rtrim(rtrim($item['points'], '0'), '.') }} poin{{ $item['type'] === 'multiple_choice' ? ' · pilih semua yang benar' : '' }}</p>
+                    <p class="text-xs font-bold text-slate-500">Soal {{ $item['number'] }} · {{ fmt_score($item['points']) }} poin{{ $item['type'] === 'multiple_choice' ? ' · pilih semua yang benar' : '' }}</p>
                     <div class="prose-content mt-1 text-sm">@include('components.safe-html', ['html' => $item['stem_html']])</div>
                     <div class="mt-3 space-y-2">
                         @if (in_array($item['type'], ['single_choice', 'true_false', 'multiple_choice'], true))

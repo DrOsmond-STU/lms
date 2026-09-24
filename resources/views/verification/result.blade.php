@@ -1,5 +1,5 @@
 @php($label = \App\Modules\Certification\Models\Certificate::statusLabel($status === 'generating' ? 'not_found' : $status))
-<x-layouts.public title="Hasil Verifikasi" subtitle="Status keaslian sertifikat menurut basis data STU LMS.">
+<x-layouts.public title="Hasil Verifikasi" :subtitle="'Status keaslian sertifikat menurut basis data '.setting('branding.short_name').'.'">
     <div class="mx-auto max-w-xl">
         <div class="card p-6">
             @if ($certificate && $status !== 'generating')
@@ -12,7 +12,7 @@
                     <div><dt class="text-slate-500">Terbit</dt><dd>{{ $certificate->issued_at->locale('id')->translatedFormat('d F Y') }}</dd></div>
                     <div><dt class="text-slate-500">Berlaku hingga</dt><dd>{{ $certificate->valid_until?->locale('id')->translatedFormat('d F Y') ?? 'Tanpa kedaluwarsa' }}</dd></div>
                 </dl>
-                <p class="mt-4 text-xs text-slate-500">Sertifikat pelatihan yang diterbitkan Semesta Teknologi Utama. Status di halaman ini adalah sumber kebenaran.</p>
+                <p class="mt-4 text-xs text-slate-500">{{ \App\Modules\Settings\Services\SystemSettings::text('certificate.verification_note', \App\Modules\Cms\Models\SiteProfile::current()->company_name) }}</p>
             @else
                 <p class="text-2xl font-extrabold text-slate-700">Tidak ditemukan</p>
                 <p class="mt-2 text-sm text-slate-600">Tidak ada sertifikat yang cocok dengan data tersebut. Periksa kembali penulisan kode/nomor.</p>

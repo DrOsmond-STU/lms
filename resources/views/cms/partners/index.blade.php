@@ -1,10 +1,10 @@
-<x-layouts.app title="Konten Beranda — Mitra" workspace="admin">
-    <x-slot:heading>Konten Beranda</x-slot:heading>
-    <x-slot:subtitle>Perusahaan & universitas pengguna STU LMS, tampil sebagai logo berjalan. Pastikan ada izin penggunaan nama & logo mereka.</x-slot:subtitle>
+<x-layouts.app title="Pengaturan — Mitra" workspace="admin">
+    <x-slot:heading>Pengaturan Sistem</x-slot:heading>
+    <x-slot:subtitle>Perusahaan & universitas pengguna {{ setting('branding.short_name') }}, tampil sebagai logo berjalan. Pastikan ada izin penggunaan nama & logo mereka.</x-slot:subtitle>
     @can('cms.update')
         <x-slot:actions><a href="{{ route('admin.landing.partners.create') }}" class="btn-primary w-auto"><x-icon name="plus" class="h-4 w-4" />Tambah Mitra</a></x-slot:actions>
     @endcan
-    @include('cms._tabs')
+    @include('settings._tabs', ['tab' => 'beranda', 'sub' => 'mitra'])
     <div class="card overflow-x-auto">
         <table class="data-table">
             <thead><tr><th scope="col">Logo</th><th scope="col">Nama</th><th scope="col">Jenis</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr></thead>

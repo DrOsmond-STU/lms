@@ -1,10 +1,10 @@
-<x-layouts.app title="Konten Beranda — Slide" workspace="admin">
-    <x-slot:heading>Konten Beranda</x-slot:heading>
+<x-layouts.app title="Pengaturan — Slide" workspace="admin">
+    <x-slot:heading>Pengaturan Sistem</x-slot:heading>
     <x-slot:subtitle>Slide pembuka beranda. Gambar tampil samar di bawah lapisan biru gradasi. Tanpa slide aktif, beranda memakai slide bawaan.</x-slot:subtitle>
     @can('cms.update')
         <x-slot:actions><a href="{{ route('admin.landing.slides.create') }}" class="btn-primary w-auto"><x-icon name="plus" class="h-4 w-4" />Tambah Slide</a></x-slot:actions>
     @endcan
-    @include('cms._tabs')
+    @include('settings._tabs', ['tab' => 'beranda', 'sub' => 'slide'])
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         @forelse ($slides as $slide)
             <article class="card overflow-hidden">

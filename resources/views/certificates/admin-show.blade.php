@@ -13,7 +13,7 @@
                 <div><dt class="text-slate-500">Program</dt><dd class="font-bold">{{ $certificate->program_name }}</dd></div>
                 <div><dt class="text-slate-500">Kode verifikasi</dt><dd class="font-mono font-bold">{{ $certificate->formattedCode() }}</dd></div>
                 <div><dt class="text-slate-500">Kelas</dt><dd>{{ $certificate->enrollment->courseClass->batch_name }}</dd></div>
-                <div><dt class="text-slate-500">Terbit</dt><dd>{{ $certificate->issued_at->timezone('Asia/Jakarta')->format('d M Y H:i') }}</dd></div>
+                <div><dt class="text-slate-500">Terbit</dt><dd>{{ $certificate->issued_at->timezone(display_tz())->format('d M Y H:i') }}</dd></div>
                 <div><dt class="text-slate-500">Berlaku hingga</dt><dd>{{ $certificate->valid_until?->format('d M Y') ?? 'tanpa kedaluwarsa' }}</dd></div>
                 <div><dt class="text-slate-500">Disetujui oleh</dt><dd>{{ $people[$certificate->approved_by] ?? '—' }}</dd></div>
                 <div><dt class="text-slate-500">SHA-256 PDF</dt><dd class="font-mono text-xs break-all">{{ $certificate->pdf_sha256 ?? '—' }}</dd></div>

@@ -40,7 +40,7 @@ final class AccountSecurityController
             ->get(['type', 'occurred_at', 'ip', 'user_agent'])
             ->map(fn (object $row): array => [
                 'success' => $row->type === 'authn_login_success',
-                'at' => Carbon::parse($row->occurred_at)->timezone('Asia/Jakarta'),
+                'at' => Carbon::parse($row->occurred_at)->timezone(display_tz()),
                 'ip' => Mask::ip($row->ip),
                 'agent' => Str::limit((string) $row->user_agent, 80),
             ]);

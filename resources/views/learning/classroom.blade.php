@@ -45,7 +45,7 @@
                     <li>{{ $check['lessons_done'] === $check['lessons_total'] ? '✓' : '○' }} Materi wajib: {{ $check['lessons_done'] }}/{{ $check['lessons_total'] }}</li>
                     <li>{{ $check['quizzes_ok'] ? '✓' : '○' }} Kuis wajib lulus</li>
                     @if ($check['final_required'])
-                        <li>{{ $check['final_score'] !== null && $check['final_score'] >= $check['min_score'] ? '✓' : '○' }} Ujian akhir ≥ {{ rtrim(rtrim(number_format($check['min_score'], 2, '.', ''), '0'), '.') }} (terbaik: {{ $check['final_score'] ?? '—' }})</li>
+                        <li>{{ $check['final_score'] !== null && $check['final_score'] >= $check['min_score'] ? '✓' : '○' }} Ujian akhir ≥ {{ fmt_score($check['min_score']) }} (terbaik: {{ $check['final_score'] ?? '—' }})</li>
                     @endif
                 </ul>
                 @if ($enrollment->status === 'pending_approval')
@@ -63,7 +63,7 @@
                         <li>
                             <a href="{{ route('exams.show', [$enrollment, $assessment]) }}" class="font-bold text-link hover:underline">{{ $assessment->title }}</a>
                             <span class="block text-xs text-slate-500">{{ \App\Modules\Assessment\Models\Assessment::KINDS[$assessment->kind] }} · sisa {{ max(0, $remaining[$assessment->id]) }} kesempatan
-                                @if ($stat) · terbaik {{ $stat->best !== null ? rtrim(rtrim((string) $stat->best, '0'), '.') : '—' }} {{ $stat->passed ? '✓' : '' }}@endif
+                                @if ($stat) · terbaik {{ $stat->best !== null ? fmt_score($stat->best) : '—' }} {{ $stat->passed ? '✓' : '' }}@endif
                                 @if ($stat?->active) · <span class="font-bold text-amber-700">sedang dikerjakan</span>@endif
                             </span>
                         </li>

@@ -10,21 +10,21 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 
 /**
- * Pengingat 60 hari sebelum sertifikat kedaluwarsa (FR-CERT-012). Status kedaluwarsa sendiri
+ * Pengingat N hari sebelum sertifikat kedaluwarsa (FR-CERT-012; N di Pengaturan Sistem → Sertifikat). Status kedaluwarsa sendiri
  * diturunkan dari `valid_until` saat verifikasi, sehingga tidak perlu job pengubah status.
  */
 final class CertificateExpiryRemindersCommand extends Command
 {
     protected $signature = 'stu:certificates-expiry-reminders';
 
-    protected $description = 'Kirim pengingat sertifikat yang akan kedaluwarsa dalam 60 hari';
+    protected $description = 'Kirim pengingat sertifikat yang akan segera kedaluwarsa (lihat Pengaturan Sistem)';
 
     public function handle(Notifier $notifier, TenantContext $tenant): int
     {
         $count = $tenant->runAsSystem(function () use ($notifier): int {
             $sent = 0;
             Certificate::query()->with('user')->where('status', 'active')->whereNull('expiry_reminded_at')
-                ->whereNotNull('valid_until')->whereBetween('valid_until', [now()->toDateString(), now()->addDays(60)->toDateString()])
+                ->whereNotNull('valid_until')->whereBetween('valid_until', [now()->toDateString(), now()->addDays((int) config('lms.certificate_expiry_reminder_days'))->toDateString()])
                 ->limit(1000)->get()
                 ->each(function (Certificate $certificate) use ($notifier, &$sent): void {
                     $notifier->send($certificate->user, 'certificate', 'Sertifikat segera kedaluwarsa',

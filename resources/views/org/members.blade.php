@@ -16,7 +16,7 @@
                         <td class="font-bold">{{ $member->user->name }}<span class="block font-mono text-xs font-normal text-slate-500">{{ $member->user->email }}</span></td>
                         <td>{{ $member->organization->code }}</td>
                         <td><span class="badge bg-slate-100 text-slate-700">{{ ['pending' => 'Menunggu', 'active' => 'Aktif', 'rejected' => 'Ditolak', 'removed' => 'Dikeluarkan'][$member->status] }}</span></td>
-                        <td class="text-xs">{{ $member->created_at?->timezone('Asia/Jakarta')->format('d M Y') }}</td>
+                        <td class="text-xs">{{ $member->created_at?->timezone(display_tz())->format('d M Y') }}</td>
                         <td class="text-right whitespace-nowrap">
                             @if ($member->status === 'pending')
                                 <form method="POST" action="{{ route('org.members.decide', $member) }}" class="inline">@csrf<input type="hidden" name="decision" value="approve"><button class="btn-primary w-auto px-3 py-1.5 text-xs">Setujui</button></form>

@@ -23,7 +23,7 @@
                         <span class="block font-bold text-slate-800">{{ $item->title }}@if ($item->read_at === null)<span class="sr-only"> (belum dibaca)</span>@endif</span>
                         <span class="block text-sm text-slate-600">{{ $item->body }}</span>
                     </span>
-                    <span class="text-xs whitespace-nowrap text-slate-500">{{ $item->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span>
+                    <span class="text-xs whitespace-nowrap text-slate-500">{{ $item->created_at->timezone(display_tz())->translatedFormat('d M H:i') }}</span>
                 </button>
             </form>
         @empty

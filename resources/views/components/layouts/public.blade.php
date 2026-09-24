@@ -1,4 +1,4 @@
-@props(['title' => 'STU LMS', 'heading' => null, 'subtitle' => null])
+@props(['title' => null, 'heading' => null, 'subtitle' => null])
 @php($theme = \App\Support\Ui\Theme::current())
 <!DOCTYPE html>
 <html lang="id" @if ($theme) data-theme="{{ $theme }}" @endif>
@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#062b63">
-    <title>{{ $title }} — {{ config('app.name') }}</title>
+    <title>{{ $title ?? setting('branding.short_name') }} — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen flex-col font-sans text-slate-700">
@@ -15,8 +15,7 @@
 <div class="hero rounded-b-[20px]">
     <header class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <a href="{{ route('home') }}" class="flex items-center gap-3">
-            <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
-            <span><span class="brand-name block">STU LMS</span><span class="brand-tag block">Pelatihan &amp; Sertifikasi</span></span>
+                        <x-brand />
         </a>
         <nav class="flex flex-wrap items-center gap-2 text-sm font-semibold" aria-label="Navigasi publik">
             <a href="{{ route('catalog.public') }}" @class(['rounded-lg px-3 py-2 hover:bg-white/10', 'bg-white/15' => request()->routeIs('catalog.public*')])>Program</a>
@@ -30,8 +29,8 @@
         </nav>
     </header>
     <div class="mx-auto max-w-6xl px-4 pt-4 pb-14 sm:px-6">
-        <p class="hero-eyebrow">STU LMS · Publik</p>
-        <h1 class="hero-title">{{ $heading ?? $title }}</h1>
+        <p class="hero-eyebrow">{{ setting('branding.short_name') }} · Publik</p>
+        <h1 class="hero-title">{{ $heading ?? $title ?? setting('branding.short_name') }}</h1>
         @if ($subtitle)<p class="hero-sub">{{ $subtitle }}</p>@endif
     </div>
 </div>
@@ -42,7 +41,7 @@
     {{ $slot }}
 </main>
 <footer class="py-6 text-center text-xs text-slate-500">
-    &copy; {{ now()->year }} Semesta Teknologi Utama · <a href="{{ route('legal.privacy') }}" class="hover:underline">Kebijakan Privasi</a> · <a href="{{ route('legal.terms') }}" class="hover:underline">Syarat &amp; Ketentuan</a>
+    &copy; {{ now()->year }} {{ \App\Modules\Cms\Models\SiteProfile::current()->company_name }} · <a href="{{ route('legal.privacy') }}" class="hover:underline">Kebijakan Privasi</a> · <a href="{{ route('legal.terms') }}" class="hover:underline">Syarat &amp; Ketentuan</a>
 </footer>
 </body>
 </html>

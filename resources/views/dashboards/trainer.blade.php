@@ -1,4 +1,4 @@
-<x-layouts.app title="Dashboard Trainer" workspace="trainer" :eyebrow="'Trainer · '.now()->timezone('Asia/Jakarta')->translatedFormat('l, d F Y')">
+<x-layouts.app title="Dashboard Trainer" workspace="trainer" :eyebrow="'Trainer · '.now()->timezone(display_tz())->translatedFormat('l, d F Y')">
     <x-slot:heading>Kelas yang Anda ampu</x-slot:heading>
     <x-slot:subtitle>Selamat datang, {{ $user->name }}. Kelola materi, asesmen, dan penilaian peserta.</x-slot:subtitle>
     <x-slot:aside>

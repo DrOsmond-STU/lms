@@ -125,7 +125,7 @@ final class ContentController
         $type = array_key_exists((string) $request->query('tipe'), Lesson::TYPES) ? (string) $request->query('tipe') : 'text';
 
         return view('classes.lesson-form', [
-            'class' => $class, 'chapter' => $chapter, 'lesson' => new Lesson(['type' => $type, 'is_required' => true]),
+            'class' => $class, 'chapter' => $chapter, 'lesson' => (new Lesson)->forceFill(['type' => $type, 'is_required' => true]),
             'workspace' => $this->access->workspaceFor($user), 'quizzes' => $this->quizzes($class),
         ]);
     }

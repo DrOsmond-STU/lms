@@ -45,6 +45,21 @@ final class LandingImages
             throw ValidationException::withMessages([$field => 'Ukuran gambar maksimal 5 MB.']);
         }
 
+        return $this->encode($path, $kind, $field);
+    }
+
+    /**
+     * Simpan gambar dari berkas lokal tepercaya (mis. slide bawaan aplikasi) lewat pipeline
+     * yang sama: dibaca, digambar ulang, dan disimpan di disk privat.
+     */
+    public function storeFromPath(string $path, string $kind): string
+    {
+        return $this->encode($path, $kind, 'image');
+    }
+
+    /** @throws ValidationException */
+    private function encode(string $path, string $kind, string $field): string
+    {
         $size = @getimagesize($path);
         if ($size === false || $size[0] < 1 || $size[1] < 1 || $size[0] * $size[1] > 40_000_000) {
             throw ValidationException::withMessages([$field => 'Gambar tidak dapat dibaca atau resolusinya terlalu besar.']);

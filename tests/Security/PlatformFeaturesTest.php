@@ -76,12 +76,13 @@ it('redirects to the consent screen after a legal version change', function () {
 it('keeps security settings within safe bounds and audits changes', function () {
     signIn(RoleCode::SuperAdmin);
     confirmAccess();
-    $base = ['branding__app_display_name' => 'STU LMS', 'security__session_idle_privileged' => 30, 'security__session_idle_participant' => 120,
-        'security__password_min_privileged' => 12, 'security__password_min_participant' => 8, 'security__registration_enabled' => '1'];
+    $base = ['security__session_idle_privileged' => 30, 'security__session_idle_participant' => 120,
+        'security__password_min_privileged' => 12, 'security__password_min_participant' => 8];
+    $url = route('admin.settings.update', 'keamanan');
 
-    $this->put(route('admin.settings.update'), array_merge($base, ['security__password_min_participant' => 4]))->assertSessionHasErrors('security__password_min_participant');
-    $this->put(route('admin.settings.update'), array_merge($base, ['security__session_idle_privileged' => 90]))->assertSessionHasErrors('security__session_idle_privileged');
-    $this->put(route('admin.settings.update'), array_merge($base, ['security__password_min_participant' => 10]))->assertSessionHasNoErrors();
+    $this->put($url, array_merge($base, ['security__password_min_participant' => 4]))->assertSessionHasErrors('security__password_min_participant');
+    $this->put($url, array_merge($base, ['security__session_idle_privileged' => 90]))->assertSessionHasErrors('security__session_idle_privileged');
+    $this->put($url, array_merge($base, ['security__password_min_participant' => 10]))->assertSessionHasNoErrors();
 
     SystemSettings::applyToConfig();
     expect(config('security.password.min_participant'))->toBe(10)

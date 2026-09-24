@@ -69,7 +69,7 @@ final class DashboardStats
         $participantRole = DB::table('roles')->where('code', RoleCode::Participant->value)->value('id');
         $months = collect(range(5, 0))->map(fn (int $ago) => now()->startOfMonth()->subMonths($ago));
         $perMonth = DB::table('enrollments')->where('created_at', '>=', $months->first())
-            ->selectRaw("to_char(created_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM') as month, count(*) as total")
+            ->selectRaw("to_char(created_at AT TIME ZONE ?, 'YYYY-MM') as month, count(*) as total", [display_tz()])
             ->groupBy('month')->pluck('total', 'month');
         $passed = DB::table('enrollments')->where('status', 'passed')->count();
         $failed = DB::table('enrollments')->where('status', 'failed')->count();

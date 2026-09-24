@@ -29,7 +29,7 @@
         <section class="card p-6">
             <p class="text-2xl font-extrabold text-slate-800">{{ $program->priceLabel() }}</p>
             <dl class="mt-3 space-y-1 text-sm text-slate-600">
-                <div>Skor minimal lulus: <span class="font-bold">{{ rtrim(rtrim($program->passing_score, '0'), '.') }}</span></div>
+                <div>Skor minimal lulus: <span class="font-bold">{{ fmt_score($program->passing_score) }}</span></div>
                 <div>Sertifikat berlaku: <span class="font-bold">{{ $program->certificate_validity_months > 0 ? $program->certificate_validity_months.' bulan' : 'tanpa kedaluwarsa' }}</span></div>
                 <div>Mode: <span class="font-bold">{{ \App\Modules\Catalog\Models\Program::MODES[$program->default_mode] }}</span></div>
             </dl>

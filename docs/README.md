@@ -201,12 +201,51 @@ Beranda publik (`/`): slide bergambar di bawah lapisan biru gradasi (3 slide baw
 ada slide aktif), daftar pelatihan yang dapat difilter (jenis kompetensi Internasional/BNSP,
 topik, harga, waktu mulai, durasi — di server & instan di klien) dengan tombol **Ikut
 Pelatihan** (tamu → masuk/daftar → kembali ke halaman program), alur bergabung, testimoni,
-logo mitra berjalan, dan informasi pemilik situs. Dikelola di **Admin → Konten Beranda**
-(izin `cms.view`/`cms.update`): slide, testimoni, mitra, profil situs; semua perubahan diaudit.
+logo mitra berjalan, dan informasi pemilik situs. Dikelola di **Pengaturan Sistem → Beranda**
+(izin `cms.view`/`cms.update`): teks & judul, slide, testimoni, mitra; profil pemilik di tab
+**Profil Pemilik**; semua perubahan diaudit.
 Gambar diperiksa magic bytes lalu **digambar ulang** (GD → WebP, metadata dibuang, SVG ditolak),
 disimpan di disk privat dan disajikan lewat rute publik. Testimoni hanya bisa terbit bila
 persetujuan publikasi dikonfirmasi (dijaga juga CHECK basis data). `stu:demo-landing` mengisi
 program, testimoni berlabel **Contoh**, dan mitra fiktif untuk UAT (ditolak di produksi).
+
+### Pengaturan Sistem (tanpa nilai tertanam di kode)
+
+Semua teks, identitas, dan parameter operasional diatur di **Admin → Pengaturan Sistem**
+(`/admin/pengaturan`), per tab; setiap simpan diaudit dan berlaku seketika:
+
+| Tab | Isi | Izin |
+|---|---|---|
+| Umum | nama aplikasi & nama singkat, tagline, zona waktu tampilan (WIB/WITA/WIT), teks panel halaman masuk | `system_setting.*` + re-autentikasi |
+| Profil Pemilik | nama perusahaan, tentang, alamat, email, telepon, WhatsApp, situs, media sosial | `cms.*` |
+| Beranda | judul/sub-judul pembuka, keunggulan, alur bergabung, judul bagian, ajakan penutup; sub-menu Slide/Testimoni/Mitra | `cms.*` |
+| Pendaftaran & Akun | registrasi mandiri, masa berlaku OTP & undangan, pembersihan akun tak terverifikasi | `system_setting.*` + re-autentikasi |
+| Pembelajaran & Ujian | ambang tonton video, masa tenggang ujian, nilai lulus & masa berlaku sertifikat bawaan program baru | `system_setting.*` + re-autentikasi |
+| Sertifikat | kode penerbit pada nomor sertifikat, hari pengingat kedaluwarsa, catatan kaki PDF, catatan halaman verifikasi | `system_setting.*` + re-autentikasi |
+| Dokumen Hukum | versi & isi (Markdown, disanitasi) Syarat & Ketentuan dan Kebijakan Privasi | `system_setting.*` + re-autentikasi |
+| Keamanan | sesi, kebijakan kata sandi | `system_setting.*` + re-autentikasi |
+
+Nilai divalidasi (wajib/pola/rentang/pilihan); tanpa nilai tersimpan dipakai bawaan dari
+`config/lms.php` dan `config/*.php`. Pesan validasi bawaan berbahasa Indonesia (`lang/id`).
+
+### CRUD & aturan perlindungan data yang dipakai
+
+Setiap entitas admin dapat dibuat, diubah, dan dihapus/diarsipkan dari UI. Penghapusan ditolak
+bila data sudah dipakai, agar riwayat nilai & sertifikat tetap utuh: bank soal yang dipakai
+asesmen atau sudah dijawab, soal yang sudah muncul di attempt, asesmen yang sudah dikerjakan atau
+ditautkan ke materi kuis, template sertifikat yang aktif/terpakai. Peserta dapat membatalkan
+pendaftarannya sendiri (sebelum lulus); admin dapat membatalkan dengan alasan (diaudit, kursi kembali).
+Uji `PageCrawlTest` membuka setiap halaman yang terjangkau Super Admin, peserta, dan tamu dan
+memastikan tidak ada yang error.
+
+### Simulasi perjalanan peserta
+
+`php artisan stu:simulate` (ditolak di produksi) menjalankan layanan aplikasi yang sama dengan UI
+untuk 9 peserta fiktif (`@simulasi.test`) di kelas demo: daftar kelas → buka & selesaikan materi →
+kuis → ujian akhir → approval sertifikat → PDF bertanda tangan → verifikasi publik (halaman & API).
+Skenario mencakup lulus bersertifikat (5), menunggu approval, gagal ujian, masih belajar, dan
+dibatalkan. Idempoten; mencetak tabel status beserta URL verifikasi dan keluar dengan kode gagal
+bila ada pemeriksaan yang tidak sesuai. Di staging dijalankan otomatis oleh `lms-setup.sh`.
 
 ### Belum termasuk (sesuai roadmap)
 

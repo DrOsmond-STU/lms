@@ -9,10 +9,10 @@
                 <tbody>
                     @forelse ($attempts as $attempt)
                         <tr>
-                            <td class="font-bold">{{ $attempt->enrollment->user->name }}<span class="block text-xs font-normal text-slate-500">{{ $attempt->started_at->timezone('Asia/Jakarta')->format('d M H:i') }}</span></td>
+                            <td class="font-bold">{{ $attempt->enrollment->user->name }}<span class="block text-xs font-normal text-slate-500">{{ $attempt->started_at->timezone(display_tz())->format('d M H:i') }}</span></td>
                             <td>{{ $attempt->attempt_no }}</td>
                             <td><span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Assessment\Models\ExamAttempt::STATUSES[$attempt->status] }}</span></td>
-                            <td>{{ $attempt->score !== null ? rtrim(rtrim($attempt->score, '0'), '.') : '—' }}{{ $attempt->passed === true ? ' ✓' : '' }}</td>
+                            <td>{{ $attempt->score !== null ? fmt_score($attempt->score) : '—' }}{{ $attempt->passed === true ? ' ✓' : '' }}</td>
                             <td class="text-xs text-slate-600">
                                 @foreach ($attempt->integrity_flags ?? [] as $flag => $count){{ ['blur' => 'pindah tab', 'copy' => 'salin', 'paste' => 'tempel'][$flag] ?? $flag }}: {{ $count }}<br>@endforeach
                             </td>

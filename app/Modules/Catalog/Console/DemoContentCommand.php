@@ -9,6 +9,7 @@ use App\Modules\Assessment\Models\Question;
 use App\Modules\Assessment\Models\QuestionBank;
 use App\Modules\Assessment\Models\QuestionOption;
 use App\Modules\Catalog\Models\Program;
+use App\Modules\Cms\Models\SiteProfile;
 use App\Modules\Learning\Models\Chapter;
 use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Learning\Models\Lesson;
@@ -45,7 +46,7 @@ final class DemoContentCommand extends Command
             $program = new Program;
             $program->forceFill([
                 'category' => 'international', 'name' => 'Contoh: Dasar Keamanan Informasi', 'slug' => 'contoh-dasar-keamanan-informasi',
-                'provider_name' => 'Semesta Teknologi Utama', 'short_code' => 'DEMO-KI', 'level' => 'dasar', 'duration_hours' => 4,
+                'provider_name' => SiteProfile::current()->company_name, 'short_code' => 'DEMO-KI', 'level' => 'dasar', 'duration_hours' => 4,
                 'language' => 'id', 'default_mode' => 'online', 'passing_score' => 70, 'certificate_validity_months' => 36, 'price' => 0,
                 'description_md' => "Program **contoh** untuk uji penerimaan (UAT).\n\n- Prinsip kerahasiaan, integritas, ketersediaan\n- Kata sandi & autentikasi dua faktor\n- Mengenali phishing",
                 'status' => 'published', 'published_at' => now(),

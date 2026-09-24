@@ -23,17 +23,32 @@ function pngUpload(int $width = 400, int $height = 200): UploadedFile
     return UploadedFile::fake()->createWithContent('gambar.png', (string) ob_get_clean());
 }
 
-it('shows default slides, programs, and owner info on the landing page', function () {
+it('shows the settings-driven opening, programs, and owner info on the landing page', function () {
     $course = makeCourse();
 
     $this->get('/')->assertOk()
-        ->assertSee('images/landing/slide-1.webp', false)
+        ->assertSee(setting('landing.hero_title'))
+        ->assertSee(setting('landing.feature1_title'))
+        ->assertSee(setting('landing.step1_title'))
         ->assertSee('data-slider', false)
         ->assertSee($course['program']->name)
         ->assertSee('Ikut Pelatihan')
         ->assertSee(SiteProfile::current()->company_name)
         ->assertDontSee('id="testimoni"', false)
         ->assertDontSee('id="mitra"', false);
+})->group('LANDING');
+
+it('seeds the owner profile and starter slides once, then leaves them to the admin', function () {
+    Storage::fake('local');
+
+    $this->artisan('stu:landing-defaults')->assertSuccessful();
+    expect(LandingSlide::query()->count())->toBe(3)
+        ->and(DB::table('site_profile')->where('id', 1)->exists())->toBeTrue()
+        ->and(Storage::disk('local')->exists(LandingSlide::query()->firstOrFail()->image_path))->toBeTrue();
+
+    LandingSlide::query()->delete();
+    $this->artisan('stu:landing-defaults')->assertSuccessful();
+    expect(LandingSlide::query()->count())->toBe(0); // dihapus admin → tidak dibuat ulang saat deploy
 })->group('LANDING');
 
 it('filters programs server-side by competency type, price and duration', function () {
@@ -117,10 +132,10 @@ it('rejects non-image uploads, svg, and unsafe slide links', function () {
 it('updates the site owner profile shown on the landing page', function () {
     signIn(RoleCode::AcademicAdmin);
 
-    $this->put('/admin/beranda/profil', [
+    $this->put('/admin/pengaturan/pemilik', [
         'company_name' => 'PT Pemilik Uji', 'email' => 'halo@pemilik.test', 'phone' => '021 555 0101',
         'whatsapp' => '0812 0000 1111', 'address' => 'Jl. Uji No. 1, Jakarta', 'website_url' => 'https://pemilik.test',
-    ])->assertRedirect(route('admin.landing.profile.edit'));
+    ])->assertRedirect(route('admin.settings.owner'));
 
     $this->get('/')->assertSee('PT Pemilik Uji')->assertSee('halo@pemilik.test')->assertSee('https://wa.me/6281200001111', false)->assertSee('Jl. Uji No. 1, Jakarta');
 })->group('LANDING');

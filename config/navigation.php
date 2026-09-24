@@ -63,8 +63,7 @@ return [
             ['label' => 'Jejak Audit', 'icon' => 'history', 'route' => 'admin.audit.index', 'permission' => 'audit_log.view'],
         ]],
         ['group' => 'Pengaturan', 'items' => [
-            ['label' => 'Konten Beranda', 'icon' => 'image', 'route' => 'admin.landing.slides.index', 'permission' => 'cms.view', 'active' => 'admin.landing.*'],
-            ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => 'admin.settings.edit', 'permission' => 'system_setting.view'],
+            ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => 'admin.settings.edit', 'permission' => ['system_setting.view', 'cms.view'], 'active' => ['admin.settings.*', 'admin.landing.*']],
             ['label' => 'Notifikasi', 'icon' => 'bell', 'route' => 'notifications.index', 'permission' => null],
             ['label' => 'Akun Saya', 'icon' => 'user', 'route' => 'account.profile', 'permission' => null],
         ]],

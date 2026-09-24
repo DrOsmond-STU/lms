@@ -31,7 +31,11 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
  */
 final class AttemptService
 {
-    public const GRACE_SECONDS = 30;
+    /** Toleransi pengumpulan setelah deadline (Pengaturan Sistem → Pembelajaran & Ujian; 0–60 dtk). */
+    public static function graceSeconds(): int
+    {
+        return max(0, min(60, (int) config('lms.exam_grace_seconds', 30)));
+    }
 
     public function __construct(
         private readonly AuditLogger $audit,
@@ -58,7 +62,7 @@ final class AttemptService
         $last = ExamAttempt::query()->where('enrollment_id', $enrollment->id)->where('assessment_id', $assessment->id)
             ->whereNotNull('submitted_at')->orderByDesc('submitted_at')->first();
         if ($last !== null && $assessment->cooldown_minutes > 0 && $last->submitted_at?->copy()->addMinutes($assessment->cooldown_minutes)->isFuture()) {
-            return 'Tunggu jeda antar kesempatan sampai '.$last->submitted_at->copy()->addMinutes($assessment->cooldown_minutes)->timezone('Asia/Jakarta')->format('H:i').' WIB.';
+            return 'Tunggu jeda antar kesempatan sampai '.$last->submitted_at->copy()->addMinutes($assessment->cooldown_minutes)->timezone(display_tz())->format('H:i').' '.tz_label().'.';
         }
 
         // Ujian akhir terkunci sampai lesson & kuis wajib selesai (FR-ASM-004).
@@ -207,7 +211,7 @@ final class AttemptService
      */
     public function saveAnswer(ExamAttempt $attempt, string $questionAlias, array $optionAliases, ?string $text): void
     {
-        if (! $attempt->isInProgress() || now()->greaterThan($attempt->deadline_at->copy()->addSeconds(self::GRACE_SECONDS))) {
+        if (! $attempt->isInProgress() || now()->greaterThan($attempt->deadline_at->copy()->addSeconds(self::graceSeconds()))) {
             throw new ConflictHttpException('Waktu mengerjakan sudah habis.');
         }
 
@@ -363,7 +367,7 @@ final class AttemptService
     {
         $count = 0;
         ExamAttempt::query()->where('status', 'in_progress')
-            ->where('deadline_at', '<', now()->subSeconds(self::GRACE_SECONDS))
+            ->where('deadline_at', '<', now()->subSeconds(self::graceSeconds()))
             ->orderBy('deadline_at')->limit(500)->get()
             ->each(function (ExamAttempt $attempt) use (&$count): void {
                 $this->submit($attempt, auto: true);

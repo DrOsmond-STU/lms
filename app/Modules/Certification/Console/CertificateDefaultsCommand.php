@@ -6,6 +6,7 @@ namespace App\Modules\Certification\Console;
 
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Certification\Models\CertificateTemplate;
+use App\Modules\Cms\Models\SiteProfile;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 
@@ -34,7 +35,7 @@ final class CertificateDefaultsCommand extends Command
                     'title_text' => $title,
                     'body_text' => 'telah menyelesaikan dan dinyatakan lulus {kategori} program berikut yang diselenggarakan oleh {penyelenggara}.',
                     'signatory_name' => 'Direktur Akademik',
-                    'signatory_title' => 'Semesta Teknologi Utama',
+                    'signatory_title' => SiteProfile::current()->company_name,
                     'accent_color' => $category === 'bnsp' ? '#0c766e' : '#0e3a63',
                     'is_active' => true,
                 ])->save();

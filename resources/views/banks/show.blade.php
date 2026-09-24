@@ -10,13 +10,29 @@
         </div>
     </x-slot:actions>
 
+    <x-form-error field="bank" />
+    <x-form-error field="question" />
+    <details class="card mb-5 p-4">
+        <summary class="cursor-pointer text-sm font-semibold text-slate-800">Kelola bank soal (ubah nama / hapus)</summary>
+        <div class="mt-3 flex flex-wrap items-end gap-3">
+            <form method="POST" action="{{ route('banks.update', $bank) }}" class="flex flex-wrap items-end gap-2">@csrf @method('PUT')
+                <div><label for="bank-name" class="form-label">Nama bank soal</label><input id="bank-name" name="name" value="{{ old('name', $bank->name) }}" minlength="3" maxlength="200" required class="form-input"></div>
+                <button type="submit" class="btn-secondary">Simpan nama</button>
+            </form>
+            <form method="POST" action="{{ route('banks.destroy', $bank) }}" data-confirm="Hapus bank soal ini beserta semua soalnya? Hanya bisa bila belum dipakai asesmen.">@csrf @method('DELETE')
+                <button type="submit" class="btn-danger">Hapus bank soal</button>
+            </form>
+        </div>
+        <x-form-error field="name" />
+    </details>
+
     <div class="space-y-3">
         @forelse ($questions as $question)
             <article @class(['card p-5', 'opacity-60' => ! $question->is_active])>
                 <div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
                     <span class="badge bg-brand-50 text-link">{{ \App\Modules\Assessment\Models\Question::TYPES[$question->type] }}</span>
                     <span class="badge bg-slate-100 text-slate-600">Kesulitan {{ $question->difficulty }}</span>
-                    <span class="badge bg-slate-100 text-slate-600">{{ rtrim(rtrim($question->points, '0'), '.') }} poin</span>
+                    <span class="badge bg-slate-100 text-slate-600">{{ fmt_score($question->points) }} poin</span>
                     <span class="badge bg-slate-100 text-slate-600">v{{ $question->version }}</span>
                     @unless ($question->is_active)<span class="badge bg-slate-200 text-slate-700">Nonaktif</span>@endunless
                     @foreach ($question->competency_tags as $tag)<span class="text-slate-500">#{{ $tag }}</span>@endforeach
@@ -34,6 +50,7 @@
                 <div class="mt-3 flex gap-3 text-xs">
                     <a href="{{ route('questions.edit', $question) }}" class="font-bold text-link hover:underline">Ubah</a>
                     <form method="POST" action="{{ route('questions.toggle', $question) }}">@csrf<button class="btn-mini">{{ $question->is_active ? 'Nonaktifkan' : 'Aktifkan' }}</button></form>
+                    <form method="POST" action="{{ route('questions.destroy', $question) }}" data-confirm="Hapus soal ini? Soal yang sudah muncul di ujian tidak dapat dihapus.">@csrf @method('DELETE')<button class="btn-mini-danger">Hapus</button></form>
                 </div>
             </article>
         @empty

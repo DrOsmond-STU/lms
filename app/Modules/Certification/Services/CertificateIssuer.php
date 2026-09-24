@@ -74,10 +74,10 @@ final class CertificateIssuer
                 'approved_at' => now(),
             ]);
 
-            $year = (int) now()->timezone('Asia/Jakarta')->format('Y');
+            $year = (int) now()->timezone(display_tz())->format('Y');
             DB::table('certificate_sequences')->insertOrIgnore(['program_id' => $program->id, 'year' => $year, 'last_value' => 0]);
             $sequence = DB::selectOne('UPDATE certificate_sequences SET last_value = last_value + 1 WHERE program_id = ? AND year = ? RETURNING last_value', [$program->id, $year]);
-            $orgCode = $enrollment->organization_id === null ? 'STU' : (string) (Organization::query()->whereKey($enrollment->organization_id)->value('code') ?? 'STU');
+            $orgCode = $enrollment->organization_id === null ? (string) config('lms.certificate_issuer_code') : (string) (Organization::query()->whereKey($enrollment->organization_id)->value('code') ?? 'STU');
             $number = implode('/', [
                 $program->category === 'bnsp' ? 'BNSP' : 'INT',
                 $program->short_code,

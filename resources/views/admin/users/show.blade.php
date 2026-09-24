@@ -22,9 +22,9 @@
                 <h2 id="profile-heading" class="mb-4 font-bold text-slate-800">Profil</h2>
                 <dl class="mb-5 grid gap-3 text-sm sm:grid-cols-2">
                     <div><dt class="text-slate-500">Email</dt><dd class="font-bold break-all">{{ $user->email }}</dd></div>
-                    <div><dt class="text-slate-500">Email terverifikasi</dt><dd class="font-bold">{{ $user->email_verified_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') ?? 'Belum' }}</dd></div>
-                    <div><dt class="text-slate-500">Terakhir masuk</dt><dd class="font-bold">{{ $user->last_login_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') ?? '—' }}</dd></div>
-                    <div><dt class="text-slate-500">Dibuat</dt><dd class="font-bold">{{ $user->created_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y') }}</dd></div>
+                    <div><dt class="text-slate-500">Email terverifikasi</dt><dd class="font-bold">{{ $user->email_verified_at?->timezone(display_tz())->translatedFormat('d M Y H:i') ?? 'Belum' }}</dd></div>
+                    <div><dt class="text-slate-500">Terakhir masuk</dt><dd class="font-bold">{{ $user->last_login_at?->timezone(display_tz())->translatedFormat('d M Y H:i') ?? '—' }}</dd></div>
+                    <div><dt class="text-slate-500">Dibuat</dt><dd class="font-bold">{{ $user->created_at?->timezone(display_tz())->translatedFormat('d M Y') }}</dd></div>
                 </dl>
                 @if ($canManage)
                     @can('user.update')

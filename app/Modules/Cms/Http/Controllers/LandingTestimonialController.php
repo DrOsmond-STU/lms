@@ -27,7 +27,7 @@ final class LandingTestimonialController
 
     public function create(): View
     {
-        return view('cms.testimonials.form', ['testimonial' => new LandingTestimonial(['rating' => 5, 'position' => LandingTestimonial::query()->count() + 1])]);
+        return view('cms.testimonials.form', ['testimonial' => (new LandingTestimonial)->forceFill(['rating' => 5, 'position' => LandingTestimonial::query()->count() + 1])]);
     }
 
     public function store(Request $request): RedirectResponse

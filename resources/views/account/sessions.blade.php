@@ -8,7 +8,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-sm">
                 <div>
                     <p class="font-bold text-slate-800">{{ $session['device'] }} @if ($session['current'])<span class="badge ml-1 bg-emerald-50 text-emerald-700">Sesi ini</span>@endif</p>
-                    <p class="text-xs text-slate-500">IP {{ $session['ip'] }} · masuk {{ $session['created']->translatedFormat('d M Y H:i') }} · aktif terakhir {{ $session['last']->translatedFormat('d M H:i') }} WIB</p>
+                    <p class="text-xs text-slate-500">IP {{ $session['ip'] }} · masuk {{ $session['created']->translatedFormat('d M Y H:i') }} · aktif terakhir {{ $session['last']->translatedFormat('d M H:i') }} {{ tz_label() }}</p>
                 </div>
                 @unless ($session['current'])
                     <form method="POST" action="{{ route('account.sessions.revoke', $session['id']) }}">@csrf<button class="btn-secondary">Keluarkan</button></form>

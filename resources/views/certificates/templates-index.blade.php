@@ -5,6 +5,7 @@
         @can('certificate_template.create')<a href="{{ route('admin.templates.create') }}" class="btn-primary w-auto">Template Baru</a>@endcan
     </x-slot:actions>
 
+    <x-form-error field="template" />
     <div class="card overflow-x-auto">
         <table class="data-table">
             <thead><tr><th scope="col">Nama</th><th scope="col">Kategori / Program</th><th scope="col">Versi</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr></thead>
@@ -23,6 +24,11 @@
                             · <a href="{{ route('admin.templates.create', ['dari' => $template->id]) }}" class="font-bold text-link hover:underline">Versi baru</a>
                             @if (! $template->isLocked() && ! $template->is_active)
                                 · <a href="{{ route('admin.templates.edit', $template) }}" class="font-bold text-link hover:underline">Ubah</a>
+                                @if (! isset($pending[$template->id]))
+                                    @can('certificate_template.update')
+                                        <form method="POST" action="{{ route('admin.templates.destroy', $template) }}" class="inline" data-confirm="Hapus template ini?">@csrf @method('DELETE')<button class="btn-mini-danger ml-1">Hapus</button></form>
+                                    @endcan
+                                @endif
                             @endif
                             @if (! $template->is_active && ! isset($pending[$template->id]))
                                 @can('certificate_template.activate')

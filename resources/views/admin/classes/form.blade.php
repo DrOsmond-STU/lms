@@ -67,7 +67,7 @@
             <p class="mb-3 text-xs text-slate-500">Semua lesson wajib & kuis wajib harus selesai. Tambahan:</p>
             <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="require_final_exam" value="1" @checked(old('require_final_exam', $rules['require_final_exam'] ?? true))> Wajib lulus ujian akhir</label>
             <div class="mt-3 max-w-xs">
-                <label for="min_final_score" class="form-label">Skor minimal ujian akhir (kosong = skor program: {{ rtrim(rtrim($program->passing_score, '0'), '.') }})</label>
+                <label for="min_final_score" class="form-label">Skor minimal ujian akhir (kosong = skor program: {{ fmt_score($program->passing_score) }})</label>
                 <input id="min_final_score" name="min_final_score" type="number" min="0" max="100" step="0.01" value="{{ old('min_final_score', $rules['min_final_score'] ?? '') }}" class="form-input">
             </div>
         </fieldset>

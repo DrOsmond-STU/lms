@@ -16,7 +16,7 @@
             <h2 class="font-bold text-slate-800">Riwayat Persetujuan</h2>
             <ul class="mt-3 space-y-2 text-xs">
                 @forelse ($history as $item)
-                    <li class="flex justify-between gap-2"><span>{{ ['terms' => 'Syarat & Ketentuan', 'privacy' => 'Kebijakan Privasi'][$item->document] ?? ($optional[$item->document] ?? $item->document) }} v{{ $item->version }}</span><span class="text-slate-500">{{ \Illuminate\Support\Carbon::parse($item->accepted_at)->timezone('Asia/Jakarta')->format('d M Y H:i') }}{{ $item->withdrawn_at ? ' · ditarik' : '' }}</span></li>
+                    <li class="flex justify-between gap-2"><span>{{ ['terms' => 'Syarat & Ketentuan', 'privacy' => 'Kebijakan Privasi'][$item->document] ?? ($optional[$item->document] ?? $item->document) }} v{{ $item->version }}</span><span class="text-slate-500">{{ \Illuminate\Support\Carbon::parse($item->accepted_at)->timezone(display_tz())->format('d M Y H:i') }}{{ $item->withdrawn_at ? ' · ditarik' : '' }}</span></li>
                 @empty
                     <li class="text-slate-500">Belum ada.</li>
                 @endforelse

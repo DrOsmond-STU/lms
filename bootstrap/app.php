@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Modules/Assessment/Console',
         __DIR__.'/../app/Modules/Catalog/Console',
         __DIR__.'/../app/Modules/Cms/Console',
+        __DIR__.'/../app/Modules/Enrollment/Console',
         __DIR__.'/../app/Modules/Certification/Console',
         __DIR__.'/../app/Modules/Audit/Console',
         __DIR__.'/../app/Modules/Identity/Console',

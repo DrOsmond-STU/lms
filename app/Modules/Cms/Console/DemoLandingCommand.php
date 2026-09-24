@@ -7,6 +7,7 @@ namespace App\Modules\Cms\Console;
 use App\Modules\Catalog\Models\Program;
 use App\Modules\Cms\Models\LandingPartner;
 use App\Modules\Cms\Models\LandingTestimonial;
+use App\Modules\Cms\Models\SiteProfile;
 use App\Modules\Learning\Models\CourseClass;
 use App\Support\Content\RichText;
 use App\Support\Tenancy\TenantContext;
@@ -50,7 +51,7 @@ final class DemoLandingCommand extends Command
                 $program = new Program;
                 $program->forceFill([
                     'category' => $item['category'], 'name' => $item['name'], 'slug' => Str::slug($item['name']),
-                    'provider_name' => 'Semesta Teknologi Utama', 'short_code' => $item['code'], 'level' => $item['level'],
+                    'provider_name' => SiteProfile::current()->company_name, 'short_code' => $item['code'], 'level' => $item['level'],
                     'duration_hours' => $item['hours'], 'language' => 'id', 'default_mode' => $item['mode'], 'passing_score' => 70,
                     'certificate_validity_months' => 36, 'price' => $item['price'],
                     'description_md' => "Program **contoh** untuk uji penerimaan (UAT). {$item['about']}",

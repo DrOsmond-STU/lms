@@ -15,11 +15,11 @@
     </form>
     <div class="card overflow-x-auto">
         <table class="data-table">
-            <thead><tr><th scope="col">Waktu (WIB)</th><th scope="col">Aktor</th><th scope="col">Aksi</th><th scope="col">Objek</th><th scope="col">Detail</th></tr></thead>
+            <thead><tr><th scope="col">Waktu ({{ tz_label() }})</th><th scope="col">Aktor</th><th scope="col">Aksi</th><th scope="col">Objek</th><th scope="col">Detail</th></tr></thead>
             <tbody>
                 @forelse ($entries as $entry)
                     <tr>
-                        <td class="text-xs whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($entry->occurred_at)->timezone('Asia/Jakarta')->format('d M Y H:i:s') }}</td>
+                        <td class="text-xs whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($entry->occurred_at)->timezone(display_tz())->format('d M Y H:i:s') }}</td>
                         <td class="text-xs">{{ $entry->actor_id ? ($actors[$entry->actor_id] ?? 'pengguna') : 'sistem' }}<span class="block text-slate-500">{{ $entry->actor_role }}</span></td>
                         <td class="font-mono text-xs">{{ $entry->action }}</td>
                         <td class="font-mono text-xs">{{ $entry->subject_type }}<span class="block text-slate-500">{{ $entry->subject_id ? \Illuminate\Support\Str::limit($entry->subject_id, 13, '…') : '' }}</span></td>

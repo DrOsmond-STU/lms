@@ -1,8 +1,8 @@
-<x-layouts.app title="Konten Beranda — Profil Situs" workspace="admin">
-    <x-slot:heading>Konten Beranda</x-slot:heading>
-    <x-slot:subtitle>Informasi pemilik situs yang tampil di bagian "Tentang Kami" dan kaki halaman beranda. Kolom kosong tidak ditampilkan.</x-slot:subtitle>
-    @include('cms._tabs')
-    <form method="POST" action="{{ route('admin.landing.profile.update') }}" class="card max-w-3xl space-y-4 p-6" novalidate>
+<x-layouts.app title="Pengaturan — Profil Pemilik" workspace="admin">
+    <x-slot:heading>Pengaturan Sistem</x-slot:heading>
+    <x-slot:subtitle>Informasi pemilik situs: tampil di beranda ("Tentang Kami", kontak, kaki halaman), sebagai penerbit pada PDF sertifikat, dan di halaman verifikasi. Kolom kosong tidak ditampilkan.</x-slot:subtitle>
+    @include('settings._tabs', ['tab' => 'pemilik'])
+    <form method="POST" action="{{ route('admin.settings.owner.update') }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf
         @method('PUT')
         <fieldset @disabled(! auth()->user()->can('cms.update')) class="space-y-4">

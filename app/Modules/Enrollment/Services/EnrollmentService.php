@@ -94,7 +94,8 @@ final class EnrollmentService
     {
         $this->transition($enrollment, 'cancelled', $actor, $reason);
         $this->audit->record('enrollment.cancelled', $actor, 'enrollment', $enrollment->id, ['status' => 'cancelled'], $reason, $enrollment->organization_id);
-        $this->notifier->send($enrollment->user, 'enrollment', 'Enrollment dibatalkan', 'Pendaftaran Anda pada '.$enrollment->program->name.' dibatalkan oleh admin.', '/peserta/pembelajaran', email: true);
+        $by = $actor->id === $enrollment->user_id ? 'atas permintaan Anda' : 'oleh admin';
+        $this->notifier->send($enrollment->user, 'enrollment', 'Enrollment dibatalkan', 'Pendaftaran Anda pada '.$enrollment->program->name.' dibatalkan '.$by.'.', '/peserta/pembelajaran', email: true);
     }
 
     private function create(User $user, CourseClass $class, string $source, ?User $actor, ?string $reason): Enrollment

@@ -1,6 +1,6 @@
 @php($editing = $partner->exists)
 <x-layouts.app :title="$editing ? 'Ubah Mitra' : 'Tambah Mitra'" workspace="admin">
-    <x-slot:back><a href="{{ route('admin.landing.partners.index') }}" class="hero-back">&larr; Mitra pengguna</a></x-slot:back>
+    <x-slot:back><a href="{{ route('admin.landing.partners.index') }}" class="hero-back">&larr; Pengaturan · Mitra pengguna</a></x-slot:back>
     <x-slot:heading>{{ $editing ? 'Ubah Mitra' : 'Tambah Mitra' }}</x-slot:heading>
     <x-slot:subtitle>Logo PNG/WebP berlatar transparan paling rapi (disarankan tinggi ≥ 120 px). SVG tidak diterima demi keamanan.</x-slot:subtitle>
 

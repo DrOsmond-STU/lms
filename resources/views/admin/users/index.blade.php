@@ -46,7 +46,7 @@
                         <td class="font-mono text-xs">{{ \App\Support\Privacy\Mask::email($item->email) }}</td>
                         <td>{{ collect($item->roleCodes())->map->label()->implode(', ') ?: '—' }}</td>
                         <td>@include('admin.users._status', ['status' => $item->status])</td>
-                        <td class="text-xs text-slate-600">{{ $item->last_login_at?->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') ?? '—' }}</td>
+                        <td class="text-xs text-slate-600">{{ $item->last_login_at?->timezone(display_tz())->translatedFormat('d M Y H:i') ?? '—' }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="py-8 text-center text-slate-500">Tidak ada pengguna yang cocok.</td></tr>

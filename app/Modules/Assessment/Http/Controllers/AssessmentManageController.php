@@ -18,6 +18,7 @@ use App\Modules\Learning\Services\ClassAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -41,7 +42,7 @@ final class AssessmentManageController
 
         return view('assessments.form', [
             'class' => $class,
-            'assessment' => new Assessment([
+            'assessment' => (new Assessment)->forceFill([
                 'kind' => $kind, 'duration_minutes' => $kind === 'final_exam' ? 90 : 20, 'max_attempts' => $kind === 'final_exam' ? 2 : 3,
                 'question_count' => $kind === 'final_exam' ? 20 : 5, 'passing_score' => $class->minimumScore(), 'cooldown_minutes' => 0,
                 'review_policy' => $kind === 'final_exam' ? 'after_close' : 'after_submit', 'shuffle_questions' => true, 'shuffle_options' => true,
@@ -86,6 +87,23 @@ final class AssessmentManageController
         $this->audit->record('assessment.updated', $user, 'assessment', $assessment->id, $changes);
 
         return redirect()->route('classes.assessments', $class)->with('status', 'Pengaturan asesmen disimpan.');
+    }
+
+    /** Hapus asesmen yang belum pernah dikerjakan dan tidak dirujuk lesson kuis. */
+    public function destroy(Request $request, CourseClass $class, Assessment $assessment): RedirectResponse
+    {
+        $user = $this->authorize($request, $class, 'assessment.delete');
+        abort_unless($assessment->course_class_id === $class->id, 404);
+        if (ExamAttempt::query()->where('assessment_id', $assessment->id)->exists()) {
+            throw ValidationException::withMessages(['assessment' => 'Asesmen sudah dikerjakan peserta sehingga tidak dapat dihapus (riwayat nilai harus utuh). Tutup jendela waktunya bila tidak dipakai lagi.']);
+        }
+        if (DB::table('lessons')->where('assessment_id', $assessment->id)->exists()) {
+            throw ValidationException::withMessages(['assessment' => 'Asesmen dipakai lesson kuis. Hapus atau ubah lesson tersebut terlebih dahulu.']);
+        }
+        $assessment->delete();
+        $this->audit->record('assessment.deleted', $user, 'assessment', $assessment->id, ['class_id' => $class->id, 'title' => $assessment->title]);
+
+        return redirect()->route('classes.assessments', $class)->with('status', 'Asesmen "'.$assessment->title.'" dihapus.');
     }
 
     public function attempts(Request $request, CourseClass $class, Assessment $assessment): View

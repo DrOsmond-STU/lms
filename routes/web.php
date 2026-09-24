@@ -208,6 +208,7 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('/', 'store')->middleware('can:certificate_template.create')->name('store');
                 Route::get('/{template}/ubah', 'edit')->middleware('can:certificate_template.update')->name('edit');
                 Route::put('/{template}', 'update')->middleware('can:certificate_template.update')->name('update');
+                Route::delete('/{template}', 'destroy')->middleware('can:certificate_template.update')->name('destroy');
                 Route::get('/{template}/pratinjau', 'preview')->middleware(['can:certificate_template.view_any', 'throttle:10,1,preview'])->name('preview');
                 Route::post('/{template}/aktivasi', 'requestActivation')->middleware(['can:certificate_template.activate', 'reauth'])->name('activate');
             });
@@ -234,12 +235,16 @@ Route::middleware('auth')->group(function (): void {
                         Route::delete('/{'.$param.'}', 'destroy')->middleware('can:cms.update')->name('destroy');
                     });
                 }
-                Route::get('/profil', [SiteProfileController::class, 'edit'])->middleware('can:cms.view')->name('profile.edit');
-                Route::put('/profil', [SiteProfileController::class, 'update'])->middleware(['can:cms.update', 'throttle:30,1,cms-profile-update'])->name('profile.update');
             });
 
-            Route::get('/pengaturan', [SettingsController::class, 'edit'])->middleware('can:system_setting.view')->name('settings.edit');
-            Route::put('/pengaturan', [SettingsController::class, 'update'])->middleware(['can:system_setting.update', 'reauth'])->name('settings.update');
+            // Pengaturan sistem bertab: identitas, profil pemilik, beranda, pendaftaran, pembelajaran,
+            // sertifikat, keamanan. Tab teknis memerlukan re-autentikasi saat menyimpan.
+            Route::get('/pengaturan', [SettingsController::class, 'index'])->name('settings.edit');
+            Route::get('/pengaturan/pemilik', [SiteProfileController::class, 'edit'])->middleware('can:cms.view')->name('settings.owner');
+            Route::put('/pengaturan/pemilik', [SiteProfileController::class, 'update'])->middleware(['can:cms.update', 'throttle:30,1,cms-profile-update'])->name('settings.owner.update');
+            Route::get('/pengaturan/{tab}', [SettingsController::class, 'show'])->whereIn('tab', ['umum', 'beranda', 'pendaftaran', 'pembelajaran', 'sertifikat', 'legal', 'keamanan'])->name('settings.tab');
+            Route::put('/pengaturan/beranda', [SettingsController::class, 'update'])->defaults('tab', 'beranda')->middleware(['can:cms.update', 'throttle:30,1,settings-landing'])->name('settings.landing.update');
+            Route::put('/pengaturan/{tab}', [SettingsController::class, 'update'])->whereIn('tab', ['umum', 'pendaftaran', 'pembelajaran', 'sertifikat', 'legal', 'keamanan'])->middleware(['can:system_setting.update', 'reauth', 'throttle:30,1,settings-update'])->name('settings.update');
         });
 
         // Area peserta (docs/08 PST-*).
@@ -250,6 +255,7 @@ Route::middleware('auth')->group(function (): void {
 
             Route::get('/pembelajaran', [LearningController::class, 'index'])->name('learning.index');
             Route::get('/kelas/{enrollment}', [LearningController::class, 'classroom'])->name('learning.classroom');
+            Route::post('/kelas/{enrollment}/batal', [LearningController::class, 'cancel'])->middleware('throttle:10,1,learning-cancel')->name('learning.cancel');
             Route::get('/kelas/{enrollment}/materi/{lesson}', [LearningController::class, 'lesson'])->name('learning.lesson');
             Route::post('/kelas/{enrollment}/materi/{lesson}/heartbeat', [LearningController::class, 'heartbeat'])->middleware('throttle:20,1,learning-heartbeat')->name('learning.heartbeat');
             Route::post('/kelas/{enrollment}/materi/{lesson}/selesai', [LearningController::class, 'complete'])->middleware('throttle:30,1,learning-complete')->name('learning.complete');
@@ -280,6 +286,7 @@ Route::middleware('auth')->group(function (): void {
         Route::prefix('kelola')->group(function (): void {
             Route::get('/kelas/{class}', [ClassManageController::class, 'show'])->name('classes.manage');
             Route::get('/kelas/{class}/peserta', [ClassManageController::class, 'participants'])->name('classes.participants');
+            Route::post('/kelas/{class}/peserta/{enrollment}/batal', [ClassManageController::class, 'cancelEnrollment'])->middleware('throttle:30,1,class-cancel')->name('classes.enrollments.cancel');
             Route::get('/kelas/{class}/asesmen', [ClassManageController::class, 'assessments'])->name('classes.assessments');
 
             Route::controller(ContentController::class)->prefix('kelas/{class}')->name('content.')->group(function (): void {
@@ -306,6 +313,7 @@ Route::middleware('auth')->group(function (): void {
                 Route::put('/asesmen/{assessment}', 'update')->name('update');
                 Route::get('/asesmen/{assessment}/attempt', 'attempts')->name('attempts');
                 Route::post('/asesmen/{assessment}/kesempatan', 'grant')->middleware('throttle:30,1,grant')->name('grant');
+                Route::delete('/asesmen/{assessment}', 'destroy')->name('destroy');
                 Route::get('/attempt/{attempt}/nilai', 'gradeForm')->name('grade');
                 Route::post('/attempt/{attempt}/nilai', 'grade')->name('grade.store');
                 Route::post('/attempt/{attempt}/batalkan', 'void')->name('void');
@@ -315,11 +323,14 @@ Route::middleware('auth')->group(function (): void {
                 Route::get('/program/{program}/bank-soal', 'index')->name('banks.index');
                 Route::post('/program/{program}/bank-soal', 'store')->name('banks.store');
                 Route::get('/bank-soal/{bank}', 'show')->name('banks.show');
+                Route::put('/bank-soal/{bank}', 'updateBank')->name('banks.update');
+                Route::delete('/bank-soal/{bank}', 'destroyBank')->name('banks.destroy');
                 Route::get('/bank-soal/{bank}/soal/baru', 'create')->name('questions.create');
                 Route::post('/bank-soal/{bank}/soal', 'storeQuestion')->name('questions.store');
                 Route::get('/soal/{question}/ubah', 'edit')->name('questions.edit');
                 Route::put('/soal/{question}', 'update')->name('questions.update');
                 Route::post('/soal/{question}/status', 'toggle')->name('questions.toggle');
+                Route::delete('/soal/{question}', 'destroyQuestion')->name('questions.destroy');
             });
         });
     });

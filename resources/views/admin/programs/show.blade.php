@@ -23,7 +23,7 @@
                     <div><dt class="text-slate-500">Penyelenggara</dt><dd class="font-bold">{{ $program->provider_name }}</dd></div>
                     <div><dt class="text-slate-500">Kode skema</dt><dd class="font-bold">{{ $program->scheme_code ?? '—' }}</dd></div>
                     <div><dt class="text-slate-500">Harga</dt><dd class="font-bold">{{ $program->priceLabel() }}</dd></div>
-                    <div><dt class="text-slate-500">Skor minimal</dt><dd class="font-bold">{{ rtrim(rtrim($program->passing_score, '0'), '.') }}</dd></div>
+                    <div><dt class="text-slate-500">Skor minimal</dt><dd class="font-bold">{{ fmt_score($program->passing_score) }}</dd></div>
                     <div><dt class="text-slate-500">Masa berlaku sertifikat</dt><dd class="font-bold">{{ $program->certificate_validity_months > 0 ? $program->certificate_validity_months.' bulan' : 'Tanpa kedaluwarsa' }}</dd></div>
                     <div><dt class="text-slate-500">Durasi</dt><dd class="font-bold">{{ $program->duration_hours }} jam</dd></div>
                     <div><dt class="text-slate-500">Mode</dt><dd class="font-bold">{{ \App\Modules\Catalog\Models\Program::MODES[$program->default_mode] ?? $program->default_mode }}</dd></div>

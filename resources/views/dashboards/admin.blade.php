@@ -9,7 +9,7 @@
         ($programsInReview ?? 0) > 0 ? ['medium', 'Review program', $programsInReview.' program menunggu diterbitkan', route('admin.programs.index', ['status' => 'in_review'])] : null,
     ]);
 @endphp
-<x-layouts.app title="Dashboard Administrator" workspace="admin" :eyebrow="'Administrator · '.now()->timezone('Asia/Jakarta')->translatedFormat('F Y')">
+<x-layouts.app title="Dashboard Administrator" workspace="admin" :eyebrow="'Administrator · '.now()->timezone(display_tz())->translatedFormat('F Y')">
     <x-slot:heading>Kondisi platform hari ini</x-slot:heading>
     <x-slot:subtitle>Selamat datang, {{ $user->name }}. Ringkasan peserta, kelas, dan sertifikasi di seluruh organisasi.</x-slot:subtitle>
     <x-slot:aside>
@@ -59,7 +59,7 @@
                             <span class="feed-title truncate">{{ $enrollment->user?->name }}</span>
                             <span class="feed-meta truncate">{{ $enrollment->program?->name }} · <span class="chip chip-{{ \App\Modules\Enrollment\Models\Enrollment::STATUS_TONES[$enrollment->status] ?? 'neutral' }} px-1.5 py-0.5 text-[10px]">{{ $enrollment->statusLabel() }}</span></span>
                         </span>
-                        <span class="feed-when">{{ $enrollment->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span>
+                        <span class="feed-when">{{ $enrollment->created_at->timezone(display_tz())->translatedFormat('d M H:i') }}</span>
                     </div>
                 @empty
                     <p class="py-6 text-center text-sm text-slate-500">Belum ada pendaftaran.</p>

@@ -34,7 +34,7 @@ final class ClassAdminController
     {
         abort_if($program->status === 'archived', 409, 'Program diarsipkan.');
 
-        return view('admin.classes.form', ['program' => $program, 'class' => new CourseClass(['quota' => 30, 'mode' => $program->default_mode]), 'organizations' => $this->organizations()]);
+        return view('admin.classes.form', ['program' => $program, 'class' => (new CourseClass)->forceFill(['quota' => 30, 'mode' => $program->default_mode]), 'organizations' => $this->organizations()]);
     }
 
     public function store(Request $request, Program $program): RedirectResponse

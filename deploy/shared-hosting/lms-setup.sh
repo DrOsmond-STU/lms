@@ -65,10 +65,14 @@ $PHP artisan migrate --database=pgsql_migrator --force || { echo "GAGAL: migrate
 # --- 4. Peran/izin, data awal & cache produksi -----------------------------
 $PHP artisan stu:access-sync
 $PHP artisan stu:certificate-defaults
+$PHP artisan stu:landing-defaults         # profil pemilik & slide awal beranda (sekali; selanjutnya milik admin)
 $PHP artisan stu:signing-key            # sertifikat penandatangan UJI (staging); produksi memakai PSrE/KMS
 $PHP artisan stu:demo-content           # konten contoh sintetis untuk UAT (ditolak di produksi)
 $PHP artisan stu:demo-landing           # program, testimoni & mitra contoh untuk beranda (ditolak di produksi)
 $PHP artisan config:cache && $PHP artisan route:cache && $PHP artisan view:cache && $PHP artisan event:cache
+# Simulasi perjalanan peserta fiktif (@simulasi.test): daftar → belajar → ujian → sertifikat → verifikasi.
+# Idempoten; hanya melapor (tidak menghentikan pemasangan) bila ada langkah yang gagal.
+$PHP artisan stu:simulate || echo "PERINGATAN: simulasi perjalanan peserta melaporkan kegagalan (lihat tabel di atas)"
 
 # --- 5. Super Admin pertama (sekali) ----------------------------------------
 if [ ! -f "$HOME_DIR/.lms-admin.done" ] && [ -f "$HOME_DIR/.lms-admin-email" ]; then

@@ -60,12 +60,40 @@ final class QuestionBankController
         return view('banks.show', ['bank' => $bank, 'questions' => $questions, 'workspace' => $this->access->workspaceFor($user)]);
     }
 
+    public function updateBank(Request $request, QuestionBank $bank): RedirectResponse
+    {
+        $user = $this->authorize($request, $bank->program);
+        $data = $request->validate(['name' => ['required', 'string', 'min:3', 'max:200']]);
+        $bank->forceFill(['name' => trim($data['name'])])->save();
+        $this->audit->record('question_bank.renamed', $user, 'question_bank', $bank->id, ['name' => $bank->name]);
+
+        return redirect()->route('banks.show', $bank)->with('status', 'Nama bank soal diperbarui.');
+    }
+
+    /** Hapus bank soal yang tidak dipakai asesmen dan soalnya belum pernah dijawab. */
+    public function destroyBank(Request $request, QuestionBank $bank): RedirectResponse
+    {
+        $user = $this->authorize($request, $bank->program);
+        if (DB::table('assessments')->where('question_bank_id', $bank->id)->exists()) {
+            throw ValidationException::withMessages(['bank' => 'Bank soal dipakai asesmen. Ganti bank soal pada asesmen tersebut terlebih dahulu.']);
+        }
+        $questionIds = Question::query()->where('question_bank_id', $bank->id)->pluck('id');
+        if ($questionIds->isNotEmpty() && DB::table('attempt_answers')->whereIn('question_id', $questionIds)->exists()) {
+            throw ValidationException::withMessages(['bank' => 'Soal di bank ini sudah pernah dijawab peserta sehingga bank tidak dapat dihapus.']);
+        }
+        $program = $bank->program;
+        $bank->delete();
+        $this->audit->record('question_bank.deleted', $user, 'question_bank', $bank->id, ['program_id' => $program->id, 'name' => $bank->name]);
+
+        return redirect()->route('banks.index', $program)->with('status', 'Bank soal "'.$bank->name.'" dihapus.');
+    }
+
     public function create(Request $request, QuestionBank $bank): View
     {
         $user = $this->authorize($request, $bank->program);
         $type = array_key_exists((string) $request->query('tipe'), Question::TYPES) ? (string) $request->query('tipe') : 'single_choice';
 
-        return view('banks.question-form', ['bank' => $bank, 'question' => new Question(['type' => $type, 'difficulty' => 3, 'points' => 1]), 'options' => [], 'answers' => '', 'workspace' => $this->access->workspaceFor($user)]);
+        return view('banks.question-form', ['bank' => $bank, 'question' => (new Question)->forceFill(['type' => $type, 'difficulty' => 3, 'points' => 1]), 'options' => [], 'answers' => '', 'workspace' => $this->access->workspaceFor($user)]);
     }
 
     public function storeQuestion(Request $request, QuestionBank $bank): RedirectResponse
@@ -127,6 +155,22 @@ final class QuestionBankController
         });
 
         return redirect()->route('banks.show', $question->question_bank_id)->with('status', $used ? 'Soal sudah dipakai: disimpan sebagai versi baru, versi lama dinonaktifkan.' : 'Soal diperbarui.');
+    }
+
+    /** Hapus soal yang belum pernah muncul di attempt; soal terpakai cukup dinonaktifkan. */
+    public function destroyQuestion(Request $request, Question $question): RedirectResponse
+    {
+        $user = $this->authorize($request, $question->bank->program);
+        $used = DB::table('attempt_answers')->where('question_id', $question->id)->exists()
+            || DB::table('exam_attempts')->whereJsonContains('question_order', $question->id)->exists();
+        if ($used) {
+            throw ValidationException::withMessages(['question' => 'Soal sudah muncul di ujian peserta sehingga tidak dapat dihapus — nonaktifkan saja.']);
+        }
+        $bankId = $question->question_bank_id;
+        $question->delete();
+        $this->audit->record('question.deleted', $user, 'question', $question->id, ['bank_id' => $bankId]);
+
+        return redirect()->route('banks.show', $bankId)->with('status', 'Soal dihapus.');
     }
 
     public function toggle(Request $request, Question $question): RedirectResponse

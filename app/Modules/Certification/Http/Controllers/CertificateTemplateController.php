@@ -43,7 +43,7 @@ final class CertificateTemplateController
         $source = Str::isUuid($sourceId) ? CertificateTemplate::query()->whereKey($sourceId)->first() : null;
 
         return view('certificates.template-form', [
-            'template' => $source?->replicate(['is_active', 'used_at', 'activated_by']) ?? new CertificateTemplate([
+            'template' => $source?->replicate(['is_active', 'used_at', 'activated_by']) ?? (new CertificateTemplate)->forceFill([
                 'category' => 'international', 'title_text' => 'Sertifikat Pelatihan', 'accent_color' => '#0e3a63',
                 'body_text' => 'telah menyelesaikan dan dinyatakan lulus {kategori} program berikut yang diselenggarakan oleh {penyelenggara}.',
             ]),
@@ -94,6 +94,23 @@ final class CertificateTemplateController
         $workflow->request('certificate_template.activate', 'certificate_template', $template->id, ['version' => $template->version], $data['reason'], $user);
 
         return back()->with('status', 'Aktivasi template diajukan. Menunggu persetujuan admin kedua.');
+    }
+
+    /** Hapus template yang tidak aktif dan belum pernah dipakai menerbitkan sertifikat. */
+    public function destroy(Request $request, CertificateTemplate $template): RedirectResponse
+    {
+        if ($template->is_active || $template->used_at !== null || DB::table('certificates')->where('template_id', $template->id)->exists()) {
+            throw ValidationException::withMessages(['template' => 'Template aktif atau yang sudah dipakai tidak dapat dihapus.']);
+        }
+        if (DB::table('approval_requests')->where('subject_id', $template->id)->whereNull('decision')->exists()) {
+            throw ValidationException::withMessages(['template' => 'Template sedang menunggu persetujuan aktivasi.']);
+        }
+        /** @var User $actor */
+        $actor = $request->user();
+        $template->delete();
+        $this->audit->record('certificate_template.deleted', $actor, 'certificate_template', $template->id, ['name' => $template->name, 'version' => $template->version]);
+
+        return redirect()->route('admin.templates.index')->with('status', 'Template "'.$template->name.'" dihapus.');
     }
 
     public function preview(CertificateTemplate $template, CertificatePdfRenderer $renderer): Response

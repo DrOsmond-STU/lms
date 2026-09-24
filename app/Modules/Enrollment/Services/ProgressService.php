@@ -22,7 +22,11 @@ final class ProgressService
 
     private const TOLERANCE_SECONDS = 5;
 
-    public const VIDEO_COMPLETION_RATIO = 0.9;
+    /** Rasio tonton minimum agar video dianggap selesai (Pengaturan Sistem → Pembelajaran). */
+    public static function videoCompletionRatio(): float
+    {
+        return max(50, min(100, (int) config('lms.video_completion_percent', 90))) / 100;
+    }
 
     public function __construct(
         private readonly EnrollmentService $enrollments,
@@ -72,7 +76,7 @@ final class ProgressService
                 'last_heartbeat_at' => $now,
                 'integrity_flags' => $flags === [] ? null : $flags,
             ];
-            if ($progress->status !== 'completed' && $duration > 0 && $watched >= (int) floor($duration * self::VIDEO_COMPLETION_RATIO)) {
+            if ($progress->status !== 'completed' && $duration > 0 && $watched >= (int) floor($duration * self::videoCompletionRatio())) {
                 $attributes += ['status' => 'completed', 'completed_at' => $now];
             }
             $progress->forceFill($attributes)->save();

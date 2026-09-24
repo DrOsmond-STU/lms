@@ -9,7 +9,7 @@
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 class="font-bold text-slate-800">{{ \App\Modules\Access\Models\ApprovalRequest::ACTIONS[$item->action] ?? $item->action }}</h2>
-                        <p class="text-xs text-slate-500">Diajukan {{ $item->requester->name }} · {{ $item->requested_at->timezone('Asia/Jakarta')->format('d M Y H:i') }} · kedaluwarsa {{ $item->expires_at->timezone('Asia/Jakarta')->format('d M Y') }}</p>
+                        <p class="text-xs text-slate-500">Diajukan {{ $item->requester->name }} · {{ $item->requested_at->timezone(display_tz())->format('d M Y H:i') }} · kedaluwarsa {{ $item->expires_at->timezone(display_tz())->format('d M Y') }}</p>
                         <p class="mt-2 text-sm">Alasan: {{ $item->reason }}</p>
                         <p class="mt-1 font-mono text-xs text-slate-500">@foreach ($item->payload as $key => $value){{ $key }}={{ is_scalar($value) ? $value : json_encode($value) }} @endforeach</p>
                     </div>
@@ -33,7 +33,7 @@
         <h2 class="mt-8 mb-3 font-bold text-slate-800">Riwayat terbaru</h2>
         <ul class="card divide-y divide-slate-100 text-sm">
             @foreach ($recent as $item)
-                <li class="flex justify-between px-5 py-3"><span>{{ \App\Modules\Access\Models\ApprovalRequest::ACTIONS[$item->action] ?? $item->action }} — {{ $item->requester->name }}</span><span class="text-xs {{ $item->decision === 'approved' ? 'text-emerald-700' : 'text-rose-700' }}">{{ $item->decision === 'approved' ? 'Disetujui' : 'Ditolak' }} {{ $item->decided_at?->timezone('Asia/Jakarta')->format('d M H:i') }}</span></li>
+                <li class="flex justify-between px-5 py-3"><span>{{ \App\Modules\Access\Models\ApprovalRequest::ACTIONS[$item->action] ?? $item->action }} — {{ $item->requester->name }}</span><span class="text-xs {{ $item->decision === 'approved' ? 'text-emerald-700' : 'text-rose-700' }}">{{ $item->decision === 'approved' ? 'Disetujui' : 'Ditolak' }} {{ $item->decided_at?->timezone(display_tz())->format('d M H:i') }}</span></li>
             @endforeach
         </ul>
     @endif

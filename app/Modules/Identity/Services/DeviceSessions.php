@@ -50,7 +50,7 @@ final class DeviceSessions
 
         if ($hasHistory && ! $known) {
             $this->notifier->send($user, 'security', 'Login dari perangkat baru',
-                'Akun Anda baru saja masuk dari '.$label.' ('.self::maskedIp((string) $request->ip()).') pada '.now()->timezone('Asia/Jakarta')->format('d M Y H:i').' WIB. Bukan Anda? Segera ubah kata sandi dan keluarkan sesi lain.',
+                'Akun Anda baru saja masuk dari '.$label.' ('.self::maskedIp((string) $request->ip()).') pada '.now()->timezone(display_tz())->format('d M Y H:i').' '.tz_label().'. Bukan Anda? Segera ubah kata sandi dan keluarkan sesi lain.',
                 '/akun/keamanan/sesi', email: true);
         }
     }

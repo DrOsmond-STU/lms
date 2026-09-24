@@ -20,7 +20,7 @@ final class SiteProfileController
 
     public function edit(): View
     {
-        return view('cms.profile', ['profile' => SiteProfile::current()]);
+        return view('settings.owner', ['profile' => SiteProfile::current()]);
     }
 
     public function update(Request $request): RedirectResponse
@@ -48,6 +48,6 @@ final class SiteProfileController
         $profile->save();
         $this->audit->record('cms.site_profile.updated', $actor, 'site_profile', null, ['fields' => array_values(array_diff($changed, ['updated_by', 'updated_at']))]);
 
-        return redirect()->route('admin.landing.profile.edit')->with('status', 'Informasi pemilik situs disimpan.');
+        return redirect()->route('admin.settings.owner')->with('status', 'Profil pemilik situs disimpan.');
     }
 }

@@ -10,8 +10,8 @@
                     <tr>
                         <td class="font-bold">{{ $enrollment->user->name }}<span class="block font-mono text-xs font-normal text-slate-500">{{ \App\Support\Privacy\Mask::email($enrollment->user->email) }}</span></td>
                         <td>{{ $enrollment->program->name }}<span class="block text-xs text-slate-500">{{ $enrollment->courseClass->batch_name }}</span></td>
-                        <td>{{ $enrollment->final_score !== null ? rtrim(rtrim($enrollment->final_score, '0'), '.') : '—' }}</td>
-                        <td class="text-xs">{{ $enrollment->completed_at?->timezone('Asia/Jakarta')->format('d M Y H:i') }}</td>
+                        <td>{{ $enrollment->final_score !== null ? fmt_score($enrollment->final_score) : '—' }}</td>
+                        <td class="text-xs">{{ $enrollment->completed_at?->timezone(display_tz())->format('d M Y H:i') }}</td>
                         <td class="text-right"><a href="{{ route('admin.approvals.show', $enrollment) }}" class="font-bold text-link hover:underline">Tinjau</a></td>
                     </tr>
                 @empty

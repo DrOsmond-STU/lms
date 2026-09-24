@@ -114,8 +114,8 @@ final class AccountController
             ->orderByDesc('last_activity_at')->get()
             ->map(fn (object $row): array => [
                 'id' => $row->id, 'device' => $row->device_label, 'ip' => Mask::ip($row->ip),
-                'created' => Carbon::parse($row->created_at)->timezone('Asia/Jakarta'),
-                'last' => Carbon::parse($row->last_activity_at)->timezone('Asia/Jakarta'),
+                'created' => Carbon::parse($row->created_at)->timezone(display_tz()),
+                'last' => Carbon::parse($row->last_activity_at)->timezone(display_tz()),
                 'current' => $row->id === $current,
             ]);
 

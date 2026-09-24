@@ -10,11 +10,11 @@
             'cta_label' => $s->cta_label, 'cta_url' => $s->cta_url,
             'image' => $s->image_path ? route('landing.image.slide', ['slide' => $s, 'v' => $s->updated_at?->timestamp]) : null,
         ])->all()
-        : [
-            ['eyebrow' => 'Pelatihan & Sertifikasi', 'title' => 'Tingkatkan kompetensi Anda bersama STU LMS', 'subtitle' => 'Program pelatihan bersertifikat Internasional & BNSP — belajar fleksibel, ujian yang adil, dan sertifikat digital yang dapat diverifikasi publik.', 'cta_label' => 'Lihat Pelatihan', 'cta_url' => '#pelatihan', 'image' => asset('images/landing/slide-1.webp')],
-            ['eyebrow' => 'Asesmen daring', 'title' => 'Ujian terukur, hasil langsung terlihat', 'subtitle' => 'Waktu ujian dijaga server, soal diacak untuk setiap peserta, dan penilaian otomatis yang transparan.', 'cta_label' => 'Mulai Belajar', 'cta_url' => $registrationOpen ? route('register') : route('login'), 'image' => asset('images/landing/slide-2.webp')],
-            ['eyebrow' => 'Sertifikat terverifikasi', 'title' => 'Sertifikat digital yang dapat dibuktikan keasliannya', 'subtitle' => 'Setiap sertifikat bertanda tangan digital dengan QR & kode unik — perusahaan dan kampus dapat memverifikasinya kapan saja.', 'cta_label' => 'Verifikasi Sertifikat', 'cta_url' => route('verification.form'), 'image' => asset('images/landing/slide-3.webp')],
-        ];
+        : [[
+            // Belum ada slide aktif: pembuka teks dari Pengaturan Sistem → Beranda.
+            'eyebrow' => setting('landing.hero_eyebrow'), 'title' => setting('landing.hero_title'), 'subtitle' => setting('landing.hero_subtitle'),
+            'cta_label' => 'Lihat Pelatihan', 'cta_url' => '#pelatihan', 'image' => null,
+        ]];
     $visibleCount = $cards->where('visible', true)->count();
     $jenisLink = fn (?string $value) => url('/').'?'.http_build_query(array_filter(array_merge($filter->active, ['jenis' => $value]))).'#pelatihan';
     $contacts = array_filter([
@@ -32,8 +32,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#062b63">
-    <title>{{ config('app.name') }} — Platform Pelatihan &amp; Sertifikasi</title>
-    <meta name="description" content="STU LMS: pelatihan sertifikasi Internasional & BNSP dengan sertifikat yang dapat diverifikasi publik. Dikelola oleh {{ $profile->company_name }}.">
+    <title>{{ config('app.name') }} — {{ setting('branding.tagline') }}</title>
+    <meta name="description" content="{{ setting('branding.short_name') }}: {{ setting('landing.hero_subtitle') }} Dikelola oleh {{ $profile->company_name }}.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans text-slate-700">
@@ -41,12 +41,9 @@
 <x-environment-banner />
 
 {{-- ===================== Slide ===================== --}}
-<section class="landing-hero" data-slider aria-roledescription="carousel" aria-label="Sorotan STU LMS">
+<section class="landing-hero" data-slider aria-roledescription="carousel" aria-label="Sorotan {{ setting('branding.short_name') }}">
     <header class="landing-nav mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <a href="{{ route('home') }}" class="flex items-center gap-3">
-            <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
-            <span><span class="brand-name block">STU LMS</span><span class="brand-tag block">Pelatihan &amp; Sertifikasi</span></span>
-        </a>
+        <a href="{{ route('home') }}" class="flex items-center gap-3"><x-brand /></a>
         <nav class="hidden items-center gap-1 text-sm font-semibold lg:flex" aria-label="Navigasi beranda">
             <a href="#pelatihan" class="rounded-lg px-3 py-2 hover:bg-white/10">Pelatihan</a>
             @if ($testimonials->isNotEmpty())<a href="#testimoni" class="rounded-lg px-3 py-2 hover:bg-white/10">Testimoni</a>@endif
@@ -118,11 +115,9 @@
     {{-- Keunggulan (menumpang di bawah slide) --}}
     <div class="page-overlap relative z-20 mx-auto max-w-6xl px-4 sm:px-6">
         <div class="grid gap-4 md:grid-cols-3">
-            @foreach ([
-                ['book', 'Belajar terarah', 'Modul, video, materi PDF, dan kuis dengan progres yang tersimpan otomatis.'],
-                ['clipboard', 'Ujian yang adil', 'Waktu dijaga server, soal diacak per peserta, dan penilaian otomatis.'],
-                ['shield', 'Sertifikat terverifikasi', 'PDF bertanda tangan digital dengan QR & kode verifikasi publik.'],
-            ] as [$icon, $title, $text])
+            @foreach (['book' => 1, 'clipboard' => 2, 'shield' => 3] as $icon => $n)
+                @php([$title, $text] = [setting("landing.feature{$n}_title"), setting("landing.feature{$n}_text")])
+                @continue(blank($title))
                 <div class="card tile">
                     <span class="tile-icon"><x-icon :name="$icon" class="h-[18px] w-[18px]" /></span>
                     <h2 class="mt-1 text-[17px] font-semibold text-slate-800">{{ $title }}</h2>
@@ -136,8 +131,8 @@
     <section id="pelatihan" class="mx-auto max-w-6xl scroll-mt-6 px-4 pt-16 sm:px-6" aria-labelledby="pelatihan-heading">
         <div class="section-head">
             <div>
-                <p class="label-caps text-link">Pelatihan tersedia</p>
-                <h2 id="pelatihan-heading" class="mt-1 font-display text-2xl font-bold text-slate-800 md:text-3xl">Pilih pelatihan, langsung bergabung</h2>
+                <p class="label-caps text-link">{{ setting('landing.programs_eyebrow') }}</p>
+                <h2 id="pelatihan-heading" class="mt-1 font-display text-2xl font-bold text-slate-800 md:text-3xl">{{ setting('landing.programs_title') }}</h2>
             </div>
             <span class="sub"><span data-program-count>{{ $visibleCount }}</span> dari {{ $cards->count() }} program</span>
         </div>
@@ -211,14 +206,9 @@
 
     {{-- ===================== Cara bergabung ===================== --}}
     <section class="mx-auto max-w-6xl px-4 pt-16 sm:px-6" aria-labelledby="alur-heading">
-        <div class="section-head"><h2 id="alur-heading">Cara bergabung</h2><span class="sub">Empat langkah menuju sertifikat</span></div>
+        <div class="section-head"><h2 id="alur-heading">{{ setting('landing.steps_title') }}</h2><span class="sub">{{ setting('landing.steps_subtitle') }}</span></div>
         <ol class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            @foreach ([
-                ['Daftar akun', 'Buat akun peserta gratis dan verifikasi email Anda.'],
-                ['Pilih kelas', 'Tentukan program & batch yang sesuai jadwal, lalu klik "Ikut Pelatihan".'],
-                ['Belajar & ujian', 'Ikuti materi, kerjakan kuis, dan selesaikan ujian akhir.'],
-                ['Terima sertifikat', 'Sertifikat digital terbit dan dapat diverifikasi publik.'],
-            ] as $i => [$title, $text])
+            @foreach (collect(range(1, 4))->map(fn ($n) => [setting("landing.step{$n}_title"), setting("landing.step{$n}_text")])->filter(fn ($step) => filled($step[0]))->values() as $i => [$title, $text])
                 <li class="card flex gap-3 p-4">
                     <span class="step-no">{{ $i + 1 }}</span>
                     <span><span class="block text-sm font-semibold text-slate-800">{{ $title }}</span><span class="mt-0.5 block text-[13px] leading-5 text-slate-500">{{ $text }}</span></span>
@@ -231,7 +221,7 @@
     @if ($testimonials->isNotEmpty())
         <section id="testimoni" class="mx-auto max-w-6xl scroll-mt-6 px-4 pt-16 sm:px-6" aria-labelledby="testimoni-heading">
             <div class="section-head">
-                <div><p class="label-caps text-link">Testimoni</p><h2 id="testimoni-heading" class="mt-1 font-display text-2xl font-bold text-slate-800 md:text-3xl">Apa kata peserta & mitra kami</h2></div>
+                <div><p class="label-caps text-link">Testimoni</p><h2 id="testimoni-heading" class="mt-1 font-display text-2xl font-bold text-slate-800 md:text-3xl">{{ setting('landing.testimonials_title') }}</h2></div>
             </div>
             <div class="testimonial-track">
                 @foreach ($testimonials as $item)
@@ -261,7 +251,7 @@
     @if ($partners->isNotEmpty())
         <section id="mitra" class="scroll-mt-6 pt-16" aria-labelledby="mitra-heading">
             <div class="mx-auto max-w-6xl px-4 sm:px-6">
-                <div class="section-head justify-center text-center"><div><p class="label-caps text-link">Mitra pengguna</p><h2 id="mitra-heading" class="mt-1 font-display text-2xl font-bold text-slate-800">Dipercaya perusahaan & perguruan tinggi</h2></div></div>
+                <div class="section-head justify-center text-center"><div><p class="label-caps text-link">Mitra pengguna</p><h2 id="mitra-heading" class="mt-1 font-display text-2xl font-bold text-slate-800">{{ setting('landing.partners_title') }}</h2></div></div>
             </div>
             <div class="marquee" data-marquee>
                 <ul class="marquee-track">
@@ -286,8 +276,8 @@
         <div class="hero relative overflow-hidden rounded-[20px] px-6 py-10 sm:px-10">
             <div class="relative z-10 flex flex-wrap items-center justify-between gap-6">
                 <div class="max-w-xl">
-                    <h2 class="font-display text-2xl leading-tight font-bold text-white md:text-3xl">Siap meningkatkan kompetensi Anda?</h2>
-                    <p class="hero-sub mt-2">Daftar sekarang dan ikuti pelatihan bersertifikat — atau verifikasi keaslian sertifikat STU yang Anda terima.</p>
+                    <h2 class="font-display text-2xl leading-tight font-bold text-white md:text-3xl">{{ setting('landing.cta_title') }}</h2>
+                    @if (setting('landing.cta_text'))<p class="hero-sub mt-2">{{ setting('landing.cta_text') }}</p>@endif
                 </div>
                 <div class="flex flex-wrap gap-3">
                     @guest @if ($registrationOpen)<a href="{{ route('register') }}" class="btn-primary w-auto px-6">Daftar Peserta</a>@endif @endguest
@@ -336,8 +326,8 @@
 <footer class="landing-footer">
     <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
-            <div class="flex items-center gap-3"><span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span><span><span class="brand-name block">STU LMS</span><span class="brand-tag block">Pelatihan &amp; Sertifikasi</span></span></div>
-            <p class="mt-4 text-sm leading-6 text-brand-300">Platform pelatihan & sertifikasi kompetensi milik {{ $profile->company_name }}.</p>
+            <div class="flex items-center gap-3"><x-brand /></div>
+            <p class="mt-4 text-sm leading-6 text-brand-300">{{ $profile->tagline ?: setting('branding.tagline') }} — {{ $profile->company_name }}.</p>
         </div>
         <div>
             <p class="footer-head">Jelajahi</p>

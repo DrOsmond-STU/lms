@@ -6,6 +6,8 @@ namespace App\Modules\Certification\Services;
 
 use App\Modules\Certification\Models\Certificate;
 use App\Modules\Certification\Models\CertificateTemplate;
+use App\Modules\Cms\Models\SiteProfile;
+use App\Modules\Settings\Services\SystemSettings;
 use Illuminate\Support\Carbon;
 
 /**
@@ -19,9 +21,10 @@ final class CertificatePdfRenderer
 
     public function render(Certificate $certificate, CertificateTemplate $template): string
     {
+        $issuer = SiteProfile::current()->company_name;
         $pdf = new CertificatePdf('L', 'mm', 'A4');
         $pdf->SetCreator(config('app.name').' Certificate Service');
-        $pdf->SetAuthor('Semesta Teknologi Utama');
+        $pdf->SetAuthor($issuer);
         $pdf->SetTitle('Sertifikat '.$certificate->number);
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
@@ -109,11 +112,11 @@ final class CertificatePdfRenderer
         $pdf->MultiCell(95, 4, "Verifikasi keaslian:\n".$url."\nKode verifikasi: ".$certificate->formattedCode(), 0, 'L');
         $pdf->SetXY(70, 178);
         $pdf->SetFont('helvetica', 'I', 7);
-        $pdf->MultiCell(100, 3.5, 'Sertifikat pelatihan yang diterbitkan Semesta Teknologi Utama. Bukan sertifikat resmi vendor/BNSP kecuali dinyatakan lain. Status terkini selalu mengacu pada halaman verifikasi.', 0, 'L');
+        $pdf->MultiCell(100, 3.5, SystemSettings::text('certificate.disclaimer', $issuer).' Status terkini selalu mengacu pada halaman verifikasi.', 0, 'L');
 
         if ($this->signer->isConfigured()) {
             $pdf->setSignature($this->signer->certificatePem(), $this->signer->privateKeyPem(), '', '', 2, [
-                'Name' => 'Semesta Teknologi Utama',
+                'Name' => $issuer,
                 'Location' => 'Indonesia',
                 'Reason' => 'Penerbitan sertifikat '.$certificate->number,
                 'ContactInfo' => (string) config('app.url'),

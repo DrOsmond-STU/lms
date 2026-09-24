@@ -17,11 +17,10 @@
         'admin.templates.index' => 'Desain & versi sertifikat',
         'admin.certificates.index' => 'Cari, cabut & ekspor CSV',
         'admin.audit.index' => 'Rekam jejak berantai hash',
-        'admin.landing.slides.index' => 'Slide, testimoni, mitra & profil',
-        'admin.settings.edit' => 'Batas keamanan sistem',
+        'admin.settings.edit' => 'Identitas, beranda, sertifikat & keamanan',
     ];
     $shortcuts = collect(config("navigation.{$workspace}", []))->flatMap(fn ($group) => $group['items'])
-        ->filter(fn ($item) => isset($hints[$item['route'] ?? '']) && ($item['permission'] === null || $user->can($item['permission'])))
+        ->filter(fn ($item) => isset($hints[$item['route'] ?? '']) && ($item['permission'] === null || collect((array) $item['permission'])->contains(fn ($permission) => $user->can($permission))))
         ->take(4);
 @endphp
 @if ($shortcuts->isNotEmpty())

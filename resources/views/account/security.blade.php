@@ -55,7 +55,7 @@
                                 <span @class(['font-bold', 'text-emerald-700' => $login['success'], 'text-rose-700' => ! $login['success']])>{{ $login['success'] ? 'Berhasil' : 'Gagal' }}</span>
                                 <span class="block text-xs text-slate-500">{{ $login['agent'] }}</span>
                             </span>
-                            <span class="text-right text-xs text-slate-600">{{ $login['at']->translatedFormat('d M Y H:i') }} WIB<span class="block">{{ $login['ip'] }}</span></span>
+                            <span class="text-right text-xs text-slate-600">{{ $login['at']->translatedFormat('d M Y H:i') }} {{ tz_label() }}<span class="block">{{ $login['ip'] }}</span></span>
                         </li>
                     @empty
                         <li class="py-2 text-slate-500">Belum ada aktivitas tercatat.</li>

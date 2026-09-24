@@ -48,7 +48,10 @@ final class ProgramAdminController
 
     public function create(): View
     {
-        return view('admin.programs.form', ['program' => new Program(['passing_score' => 70]), 'tags' => '']);
+        return view('admin.programs.form', ['program' => (new Program)->forceFill([
+            'passing_score' => (int) config('lms.default_passing_score'),
+            'certificate_validity_months' => (int) config('lms.default_certificate_validity_months'),
+        ]), 'tags' => '']);
     }
 
     public function store(Request $request): RedirectResponse

@@ -9,9 +9,9 @@
                 <div><dt class="text-slate-500">Jenis</dt><dd class="font-bold">{{ \App\Modules\Assessment\Models\Assessment::KINDS[$assessment->kind] }}</dd></div>
                 <div><dt class="text-slate-500">Jumlah soal</dt><dd class="font-bold">{{ $assessment->question_count }}</dd></div>
                 <div><dt class="text-slate-500">Durasi</dt><dd class="font-bold">{{ $assessment->duration_minutes }} menit</dd></div>
-                <div><dt class="text-slate-500">Skor minimal</dt><dd class="font-bold">{{ rtrim(rtrim($assessment->passing_score, '0'), '.') }}</dd></div>
+                <div><dt class="text-slate-500">Skor minimal</dt><dd class="font-bold">{{ fmt_score($assessment->passing_score) }}</dd></div>
                 <div><dt class="text-slate-500">Sisa kesempatan</dt><dd class="font-bold">{{ max(0, $remaining) }}</dd></div>
-                <div><dt class="text-slate-500">Jendela</dt><dd class="font-bold">{{ $assessment->opens_at?->timezone('Asia/Jakarta')->format('d M H:i') ?? 'kapan saja' }} – {{ $assessment->closes_at?->timezone('Asia/Jakarta')->format('d M H:i') ?? 'tanpa batas' }}</dd></div>
+                <div><dt class="text-slate-500">Jendela</dt><dd class="font-bold">{{ $assessment->opens_at?->timezone(display_tz())->format('d M H:i') ?? 'kapan saja' }} – {{ $assessment->closes_at?->timezone(display_tz())->format('d M H:i') ?? 'tanpa batas' }}</dd></div>
             </dl>
             <div class="mt-5 rounded-lg bg-slate-50 p-4 text-xs text-slate-600">
                 <p class="font-bold text-slate-700">Transparansi pengawasan</p>
@@ -36,7 +36,7 @@
                 @forelse ($history as $attempt)
                     <li class="flex items-center justify-between gap-2">
                         <a href="{{ $attempt->isInProgress() ? route('exams.take', $attempt) : route('exams.result', $attempt) }}" class="font-bold text-link hover:underline">Attempt #{{ $attempt->attempt_no }}</a>
-                        <span class="text-xs">{{ \App\Modules\Assessment\Models\ExamAttempt::STATUSES[$attempt->status] }} {{ $attempt->score !== null ? '· '.rtrim(rtrim($attempt->score, '0'), '.') : '' }} {{ $attempt->passed ? '✓' : '' }}</span>
+                        <span class="text-xs">{{ \App\Modules\Assessment\Models\ExamAttempt::STATUSES[$attempt->status] }} {{ $attempt->score !== null ? '· '.fmt_score($attempt->score) : '' }} {{ $attempt->passed ? '✓' : '' }}</span>
                     </li>
                 @empty
                     <li class="text-slate-500">Belum pernah dikerjakan.</li>

@@ -40,6 +40,16 @@
                                     </div>
                                 @endif
                             </div>
+                            @if ($canEditContent)
+                                <details class="border-b border-slate-100 px-4 py-2 text-sm">
+                                    <summary class="cursor-pointer text-xs font-bold text-link">Ganti nama bab</summary>
+                                    <form method="POST" action="{{ route('content.chapters.update', [$class, $chapter]) }}" class="mt-2 flex gap-2">@csrf @method('PUT')
+                                        <label for="ct-{{ $chapter->id }}" class="sr-only">Judul bab</label>
+                                        <input id="ct-{{ $chapter->id }}" name="title" value="{{ $chapter->title }}" maxlength="200" required class="form-input py-1.5">
+                                        <button class="btn-secondary">Simpan</button>
+                                    </form>
+                                </details>
+                            @endif
                             <ul class="divide-y divide-slate-100 text-sm">
                                 @forelse ($chapter->lessons as $lesson)
                                     <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2">

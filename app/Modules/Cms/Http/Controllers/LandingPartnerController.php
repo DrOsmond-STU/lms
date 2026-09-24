@@ -30,7 +30,7 @@ final class LandingPartnerController
 
     public function create(): View
     {
-        return view('cms.partners.form', ['partner' => new LandingPartner(['type' => 'company', 'is_active' => true, 'position' => LandingPartner::query()->count() + 1])]);
+        return view('cms.partners.form', ['partner' => (new LandingPartner)->forceFill(['type' => 'company', 'is_active' => true, 'position' => LandingPartner::query()->count() + 1])]);
     }
 
     public function store(Request $request): RedirectResponse

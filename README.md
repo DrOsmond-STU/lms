@@ -111,7 +111,9 @@ Setiap PR wajib lulus CI dan checklist keamanan.
 | `php artisan stu:signing-key` | Sertifikat penandatangan **uji** (non-produksi) |
 | `php artisan stu:demo-content` | Konten contoh sintetis untuk lokal/UAT (ditolak di produksi) |
 | `php artisan stu:demo-landing` | Program, testimoni (berlabel Contoh) & mitra fiktif untuk beranda UAT (ditolak di produksi) |
+| `php artisan stu:landing-defaults` | Profil pemilik & 3 slide awal beranda (sekali; selanjutnya dikelola admin) |
+| `php artisan stu:simulate` | Simulasi perjalanan peserta fiktif sampai sertifikat & verifikasi (ditolak di produksi) |
 | `php artisan stu:exams-auto-submit` | Auto-submit attempt kedaluwarsa (terjadwal tiap menit) |
-| `php artisan stu:certificates-expiry-reminders` | Pengingat sertifikat 60 hari sebelum kedaluwarsa (harian) |
+| `php artisan stu:certificates-expiry-reminders` | Pengingat sertifikat sebelum kedaluwarsa (hari diatur di Pengaturan Sistem; harian) |
 | `php artisan stu:prune-unverified` | Hapus registrasi tak terverifikasi & token kedaluwarsa (harian) |
 | `php artisan stu:audit-verify` | Verifikasi rantai hash jejak audit (harian) |

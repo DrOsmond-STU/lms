@@ -40,7 +40,7 @@ final class MfaSetupController
             $request->session()->put(self::SESSION_SECRET, $secret);
         }
 
-        $uri = Totp::provisioningUri($secret, $user->email, (string) config('security.mfa.issuer'));
+        $uri = Totp::provisioningUri($secret, $user->email, (string) config('app.name'));
         $qrSvg = (new Writer(new ImageRenderer(new RendererStyle(200, 1), new SvgImageBackEnd)))->writeString($uri);
 
         return view('auth.mfa-setup', [

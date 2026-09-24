@@ -1,5 +1,5 @@
 @php($firstName = \Illuminate\Support\Str::of($user->name)->before(',')->trim()->explode(' ')->first())
-<x-layouts.app title="Dashboard Peserta" workspace="participant" :eyebrow="'Peserta · '.now()->timezone('Asia/Jakarta')->translatedFormat('l, d F Y')">
+<x-layouts.app title="Dashboard Peserta" workspace="participant" :eyebrow="'Peserta · '.now()->timezone(display_tz())->translatedFormat('l, d F Y')">
     <x-slot:heading>Halo, {{ $firstName }}</x-slot:heading>
     <x-slot:subtitle>Lanjutkan pelatihan Anda — progres tersimpan otomatis dan sertifikat terbit setelah Anda lulus.</x-slot:subtitle>
     <x-slot:aside>
@@ -44,7 +44,7 @@
                 @forelse ($notifications as $item)
                     <div class="feed-item">
                         <span @class(['mt-1.5 h-2.5 w-2.5 flex-none rounded-full', 'bg-brand-500' => $item->read_at === null, 'bg-slate-300' => $item->read_at !== null])></span>
-                        <span class="min-w-0"><span class="feed-title">{{ $item->title }}</span><span class="feed-meta">{{ $item->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span></span>
+                        <span class="min-w-0"><span class="feed-title">{{ $item->title }}</span><span class="feed-meta">{{ $item->created_at->timezone(display_tz())->translatedFormat('d M H:i') }}</span></span>
                     </div>
                 @empty
                     <p class="py-6 text-center text-sm text-slate-500">Belum ada notifikasi.</p>

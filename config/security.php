@@ -35,7 +35,6 @@ return [
     ],
 
     'mfa' => [
-        'issuer' => env('APP_NAME', 'STU LMS'),
         'pending_ttl_seconds' => 300,
         'max_attempts' => 5,
         'recovery_codes' => 10,

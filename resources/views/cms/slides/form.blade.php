@@ -1,6 +1,6 @@
 @php($editing = $slide->exists)
 <x-layouts.app :title="$editing ? 'Ubah Slide' : 'Tambah Slide'" workspace="admin">
-    <x-slot:back><a href="{{ route('admin.landing.slides.index') }}" class="hero-back">&larr; Slide beranda</a></x-slot:back>
+    <x-slot:back><a href="{{ route('admin.landing.slides.index') }}" class="hero-back">&larr; Pengaturan · Slide beranda</a></x-slot:back>
     <x-slot:heading>{{ $editing ? 'Ubah Slide' : 'Tambah Slide' }}</x-slot:heading>
     <x-slot:subtitle>Gunakan foto berorientasi lanskap (disarankan 1920×900). Gambar diproses ulang otomatis; metadata foto dihapus.</x-slot:subtitle>
 

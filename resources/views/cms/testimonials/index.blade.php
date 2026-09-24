@@ -1,10 +1,10 @@
-<x-layouts.app title="Konten Beranda — Testimoni" workspace="admin">
-    <x-slot:heading>Konten Beranda</x-slot:heading>
+<x-layouts.app title="Pengaturan — Testimoni" workspace="admin">
+    <x-slot:heading>Pengaturan Sistem</x-slot:heading>
     <x-slot:subtitle>Testimoni pengguna. Terbitkan hanya testimoni yang pemiliknya sudah menyetujui publikasi nama & kutipannya.</x-slot:subtitle>
     @can('cms.update')
         <x-slot:actions><a href="{{ route('admin.landing.testimonials.create') }}" class="btn-primary w-auto"><x-icon name="plus" class="h-4 w-4" />Tambah Testimoni</a></x-slot:actions>
     @endcan
-    @include('cms._tabs')
+    @include('settings._tabs', ['tab' => 'beranda', 'sub' => 'testimoni'])
     <div class="card overflow-x-auto">
         <table class="data-table">
             <thead><tr><th scope="col">Nama</th><th scope="col">Kutipan</th><th scope="col">Nilai</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr></thead>

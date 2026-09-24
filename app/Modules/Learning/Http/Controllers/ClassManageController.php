@@ -6,11 +6,14 @@ namespace App\Modules\Learning\Http\Controllers;
 
 use App\Modules\Assessment\Models\Assessment;
 use App\Modules\Enrollment\Models\Enrollment;
+use App\Modules\Enrollment\Services\EnrollmentService;
 use App\Modules\Identity\Models\User;
 use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Learning\Services\ClassAccess;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -40,6 +43,20 @@ final class ClassManageController
             ->orderBy('status')->orderByDesc('progress_percent')->paginate(50);
 
         return view('classes.participants', $this->common($user, $class) + ['tab' => 'participants', 'enrollments' => $enrollments]);
+    }
+
+    /** Admin membatalkan enrollment peserta (dengan alasan); kuota kelas kembali. */
+    public function cancelEnrollment(Request $request, CourseClass $class, Enrollment $enrollment, EnrollmentService $enrollments): RedirectResponse
+    {
+        $user = $this->authorize($request, $class);
+        abort_unless($user->can('enrollment.cancel') && $enrollment->course_class_id === $class->id, 404);
+        if (! in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true)) {
+            throw ValidationException::withMessages(['enrollment' => 'Pendaftaran dengan status '.$enrollment->statusLabel().' tidak dapat dibatalkan.']);
+        }
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:300']]);
+        $enrollments->cancel($enrollment->load('program', 'user'), $user, $data['reason']);
+
+        return redirect()->route('classes.participants', $class)->with('status', 'Enrollment '.$enrollment->user->name.' dibatalkan.');
     }
 
     public function assessments(Request $request, CourseClass $class): View

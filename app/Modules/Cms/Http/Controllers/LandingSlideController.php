@@ -29,7 +29,7 @@ final class LandingSlideController
 
     public function create(): View
     {
-        return view('cms.slides.form', ['slide' => new LandingSlide(['is_active' => true, 'position' => LandingSlide::query()->count() + 1])]);
+        return view('cms.slides.form', ['slide' => (new LandingSlide)->forceFill(['is_active' => true, 'position' => LandingSlide::query()->count() + 1])]);
     }
 
     public function store(Request $request): RedirectResponse
