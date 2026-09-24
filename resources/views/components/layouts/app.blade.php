@@ -31,7 +31,8 @@
             @foreach ($group['items'] as $item)
                 @continue($item['permission'] !== null && ! $user->can($item['permission']))
                 @if ($item['route'])
-                    <a href="{{ route($item['route']) }}" @class(['nav-link', 'nav-link-active' => request()->routeIs($item['route'])]) @if (request()->routeIs($item['route'])) aria-current="page" @endif>
+                    @php($active = request()->routeIs(str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']))
+                    <a href="{{ route($item['route']) }}" @class(['nav-link', 'nav-link-active' => $active]) @if ($active) aria-current="page" @endif>
                         <x-icon :name="$item['icon']" /><span>{{ $item['label'] }}</span>
                     </a>
                 @else
@@ -56,7 +57,7 @@
     <span class="badge bg-brand-50 text-brand-700">{{ $workspaceLabels[$workspace] ?? '' }}</span>
     <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-extrabold text-brand-800" aria-hidden="true">{{ $initials }}</span>
-        <span class="hidden text-sm leading-tight md:block"><span class="block font-bold text-slate-800">{{ $user->name }}</span><span class="block text-xs text-slate-600">{{ $user->email }}</span></span>
+        <a href="{{ route('account.security') }}" class="hidden text-sm leading-tight hover:underline md:block" title="Keamanan akun"><span class="block font-bold text-slate-800">{{ $user->name }}</span><span class="block text-xs text-slate-600">{{ $user->email }}</span></a>
     </div>
     <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
         @csrf

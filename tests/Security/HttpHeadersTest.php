@@ -62,3 +62,13 @@ it('rejects state-changing requests without a valid CSRF token', function () {
     expect(fn () => $middleware->handle($request, fn () => response('ok')))
         ->toThrow(TokenMismatchException::class);
 })->group('SEC-INPUT-07');
+
+it('forbids caching and proxy rewriting of HTML pages, including guest pages', function () {
+    $cacheControl = (string) $this->get('/masuk')->headers->get('Cache-Control');
+
+    expect($cacheControl)->toContain('no-store')->toContain('no-transform');
+})->group('SEC-AUTHZ-12', 'SEC-INPUT-04');
+
+it('sends no-referrer on invitation links so the token never leaks', function () {
+    expect($this->get('/undangan/'.str_repeat('a', 43))->headers->get('Referrer-Policy'))->toBe('no-referrer');
+})->group('SEC-AUTH-22');

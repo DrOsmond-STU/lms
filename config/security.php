@@ -47,6 +47,29 @@ return [
         'max' => 128,
     ],
 
+    // Registrasi mandiri peserta (FR-AUTH-001..003, keamanan/02 SEC-AUTH-09).
+    'registration' => [
+        'enabled' => (bool) env('REGISTRATION_ENABLED', true),
+        'otp_ttl_minutes' => 10,
+        'otp_max_attempts' => 5,
+        'otp_resend_per_hour' => 3,
+        'per_ip_per_hour' => 10,
+        'prune_unverified_after_days' => 7,
+    ],
+
+    // Undangan akun dari admin (FR-USER-003, docs/07 §7).
+    'invitation' => [
+        'ttl_hours' => 72,
+    ],
+
+    // Domain email publik tidak boleh dijadikan domain terverifikasi organisasi: siapa pun
+    // dapat memiliki alamatnya sehingga akan membuka keanggotaan otomatis (FR-AUTH-003).
+    'public_email_domains' => [
+        'gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.co.id', 'ymail.com', 'outlook.com', 'hotmail.com',
+        'live.com', 'msn.com', 'icloud.com', 'me.com', 'aol.com', 'proton.me', 'protonmail.com', 'gmx.com',
+        'mail.com', 'zoho.com', 'yandex.com', 'rocketmail.com',
+    ],
+
     // Proxy tepercaya (rentang IP CDN/LB), dipisah koma. Kosong = tidak ada proxy; jangan '*'.
     'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
 

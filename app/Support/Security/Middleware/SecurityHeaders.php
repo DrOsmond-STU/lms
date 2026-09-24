@@ -30,7 +30,7 @@ final class SecurityHeaders
         $headers->set('Content-Security-Policy', $this->contentSecurityPolicy($nonce));
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('X-Frame-Options', 'DENY');
-        $headers->set('Referrer-Policy', $request->routeIs('password.reset', 'password.request')
+        $headers->set('Referrer-Policy', $request->routeIs('password.reset', 'password.request', 'invitation.*')
             ? 'no-referrer'
             : 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
@@ -47,9 +47,13 @@ final class SecurityHeaders
             $headers->set('Strict-Transport-Security', (string) config('security.headers.hsts'));
         }
 
-        // Halaman untuk pengguna login tidak boleh di-cache oleh proxy/CDN (SEC-AUTHZ-12).
-        if ($request->user() !== null || $request->hasSession() && $request->session()->has('login.pending_user_id')) {
-            $headers->set('Cache-Control', 'no-store, private');
+        // Halaman HTML dinamis (memuat token CSRF/nonce/data pengguna) tidak boleh di-cache
+        // proxy/CDN (SEC-AUTHZ-12). `no-transform` mencegah optimizer proxy hosting
+        // (mis. PageSpeed) menulis ulang HTML sehingga nonce CSP & SRI tetap utuh.
+        $contentType = (string) $headers->get('Content-Type', '');
+        if ($request->user() !== null || str_starts_with($contentType, 'text/html')
+            || ($request->hasSession() && $request->session()->has('login.pending_user_id'))) {
+            $headers->set('Cache-Control', 'no-store, no-transform, private');
         }
 
         return $response;

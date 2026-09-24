@@ -9,16 +9,16 @@ use App\Modules\Access\Services\AccessSynchronizer;
 use App\Modules\Access\Services\RoleAssigner;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Services\UserAdministration;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 
 /**
  * Membuat Super Admin pertama (keamanan/02 SEC-AUTH-32). Menolak berjalan bila sudah ada
- * Super Admin. Tidak ada kata sandi yang ditetapkan: pengguna menerima tautan atur kata
- * sandi dan wajib mendaftarkan MFA pada login pertama.
+ * Super Admin. Tidak ada kata sandi yang ditetapkan: pengguna menerima undangan atur kata
+ * sandi (sekali pakai) dan wajib mendaftarkan MFA pada login pertama.
  */
 final class BootstrapAdminCommand extends Command
 {
@@ -26,7 +26,7 @@ final class BootstrapAdminCommand extends Command
 
     protected $description = 'Membuat akun Super Admin pertama (sekali jalan)';
 
-    public function handle(AccessSynchronizer $access, RoleAssigner $roles, AuditLogger $audit, TenantContext $tenant): int
+    public function handle(AccessSynchronizer $access, RoleAssigner $roles, AuditLogger $audit, TenantContext $tenant, UserAdministration $users): int
     {
         $email = mb_strtolower(trim((string) $this->option('email')));
         $name = trim((string) $this->option('name'));
@@ -55,14 +55,15 @@ final class BootstrapAdminCommand extends Command
         }
 
         $user = new User(['name' => $name, 'email' => $email]);
-        $user->forceFill(['status' => 'active', 'email_verified_at' => now()])->save();
+        $user->forceFill(['status' => 'pending_verification'])->save();
         $roles->assign($user, RoleCode::SuperAdmin, null, null);
         $audit->record('user.super_admin_bootstrapped', null, 'user', $user->id, ['email' => $email]);
 
-        Password::sendResetLink(['email' => $email]);
+        $users->sendInvitation($user, RoleCode::SuperAdmin);
         $tenant->clear();
 
-        $this->info("Super Admin dibuat untuk {$email}. Tautan atur kata sandi telah dikirim ke email tersebut.");
+        $hours = (int) config('security.invitation.ttl_hours');
+        $this->info("Super Admin dibuat untuk {$email}. Undangan atur kata sandi (berlaku {$hours} jam) telah dikirim ke email tersebut.");
 
         return self::SUCCESS;
     }

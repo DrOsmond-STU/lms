@@ -20,5 +20,8 @@
         <button type="submit" class="btn-primary">Masuk</button>
     </form>
 
-    <p class="mt-6 text-xs text-slate-500">Akun trainer &amp; admin dibuat oleh administrator dan wajib memakai autentikasi dua faktor.</p>
+    @if (config('security.registration.enabled'))
+        <p class="mt-6 text-sm text-slate-600">Belum punya akun? <a href="{{ route('register') }}" class="font-bold text-brand-700 hover:underline">Daftar sebagai peserta</a></p>
+    @endif
+    <p class="mt-3 text-xs text-slate-500">Akun trainer &amp; admin dibuat oleh administrator dan wajib memakai autentikasi dua faktor.</p>
 </x-layouts.guest>

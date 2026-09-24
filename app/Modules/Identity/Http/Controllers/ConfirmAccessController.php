@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Http\Controllers;
 
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Services\MfaService;
+use App\Support\Security\Middleware\RequireRecentAuth;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ final class ConfirmAccessController
         }
 
         $request->session()->regenerate(true);
-        $request->session()->put('auth.password_confirmed_at', now()->getTimestamp());
+        $request->session()->put(RequireRecentAuth::SESSION_KEY, now()->getTimestamp());
 
         return redirect()->intended(route('dashboard'));
     }

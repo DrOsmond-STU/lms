@@ -145,9 +145,25 @@ FR-* / NFR-* (dok. 02, 03)
 | Shell UI dari purwarupa, dashboard per area, halaman error | ✅ | `resources/views` |
 | Docker (image non-root, read-only), Compose lokal, Nginx | ✅ (config tervalidasi; build image diuji di CI) | `Dockerfile`, `docker/`, `docker-compose.yml` |
 | CI: Pint, Larastan L8, Pest (PostgreSQL+Redis nyata), composer/npm audit, gitleaks, Semgrep | ✅ | `.github/workflows/ci.yml`, `.semgrep.yml` |
-| IaC (OpenTofu), staging, deploy CD, image signing | ⏳ Fase 0 lanjutan | dok. 11 |
-| CAPTCHA adaptif, notifikasi login perangkat baru, daftar sesi/perangkat, registrasi mandiri + OTP | ⏳ Fase 1 | FR-AUTH-001..003, 009, 010 |
+| Staging UAT di shared hosting cPanel (`lms.semestateknologiutama.com`) | ✅ (deviasi dari topologi produksi tercatat) | `deploy/shared-hosting/` |
+| IaC (OpenTofu), staging cloud, deploy CD, image signing | ⏳ Fase 0 lanjutan | dok. 11 |
 | WebAuthn/Passkey | ⏳ Fase 3 | FR-AUTH-006 |
+
+## Status Implementasi — Fase 1 (MVP Inti), inkremen Sprint 1–2
+
+| Komponen | Status | Lokasi kode / uji |
+|---|---|---|
+| Registrasi mandiri peserta + OTP email (10 menit, maks. 5 percobaan, kirim ulang 3/jam), anti-enumerasi, persetujuan S&K/Privasi berversi | ✅ | `RegistrationService`, `tests/Security/RegistrationTest.php` (FR-AUTH-001, 002) |
+| Keanggotaan organisasi saat registrasi: aktif hanya bila domain email terverifikasi, selain itu *pending* | ✅ | FR-AUTH-003 |
+| Token sekali pakai ter-hash (`one_time_tokens`) untuk OTP & undangan; payload antrian berisi rahasia dienkripsi | ✅ | `OneTimeTokens` |
+| Halaman Keamanan Akun: ubah kata sandi (wajib sandi lama, cabut sesi lain, notifikasi email), buat ulang kode pemulihan (re-auth), riwayat masuk | ✅ | `tests/Security/AccountSecurityTest.php` (FR-AUTH-008, 010 sebagian) |
+| Re-autentikasi `reauth` untuk aksi sensitif (kembali ke halaman asal, POST tidak diputar ulang) | ✅ | `RequireRecentAuth` (FR-AUTH-014) |
+| Master Organisasi: CRUD, kode immutable, arsip dengan alasan, domain email terverifikasi (domain email publik ditolak) | ✅ | `tests/Security/OrganizationAdminTest.php` (FR-ORG-001) |
+| Master Pengguna: daftar (email disamarkan), undangan 72 jam, tetapkan/cabut peran sesuai hierarki, nonaktif/aktifkan (cabut sesi), reset MFA terverifikasi | ✅ | `tests/Security/UserAdministrationTest.php` (FR-USER-001, 002, 003, 006) |
+| Penetapan `super_admin` via UI | ⛔ Ditolak sampai alur persetujuan kedua (maker–checker) tersedia | FR-USER-002 |
+| Pembersihan registrasi tak terverifikasi (7 hari) & token kedaluwarsa | ✅ terjadwal harian | `stu:prune-unverified` |
+| Persetujuan anggota oleh Admin Organisasi, sesi & perangkat, notifikasi login perangkat baru, CAPTCHA adaptif, profil peserta | ⏳ Sprint berikutnya | FR-AUTH-009, 010, FR-USER-005, ORG-02 |
+| Katalog program, kelas, konten, asesmen, enrollment, sertifikat | ⏳ Sprint 3–9 | EP-05…EP-10 |
 
 ## Hal yang Masih Perlu Ditetapkan (di Fase 0)
 

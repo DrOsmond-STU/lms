@@ -11,6 +11,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -25,6 +26,11 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Parameter rute berformat UUID divalidasi sebelum menyentuh basis data (ID tidak
+        // valid → 404, bukan galat SQL). Token tautan: 43 karakter base64url.
+        $uuid = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+        Route::patterns(['organization' => $uuid, 'user' => $uuid, 'domain' => $uuid, 'assignment' => $uuid, 'token' => '[A-Za-z0-9_-]{16,128}']);
+
         // Staging diperlakukan seketat produksi (keamanan/13 SEC-INFRA-34).
         if ($this->app->environment('production', 'staging')) {
             ProductionGuard::enforce();

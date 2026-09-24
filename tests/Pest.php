@@ -7,6 +7,7 @@ use App\Modules\Access\Services\RoleAssigner;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Services\MfaService;
 use App\Modules\Organization\Models\Organization;
+use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\Totp;
 use App\Support\Tenancy\TenantContext;
 use Database\Factories\UserFactory;
@@ -83,4 +84,26 @@ function loginAs(User $user, ?string $totpSecret = null): void
 function nextRequest(): void
 {
     app('auth')->forgetGuards();
+}
+
+/** Login sebagai pengguna ber-peran (dengan MFA bila perannya wajib) lalu kembalikan pengguna. */
+function signIn(RoleCode $role, ?Organization $organization = null): User
+{
+    $user = makeUser($role, $organization);
+    loginAs($user, $role->requiresMfa() ? enrollTotp($user) : null);
+    nextRequest();
+
+    return $user;
+}
+
+/** Menandai sesi sudah re-autentikasi baru saja (middleware `reauth`). */
+function confirmAccess(): void
+{
+    test()->withSession([RequireRecentAuth::SESSION_KEY => now()->getTimestamp()]);
+}
+
+/** Kata sandi uji yang dibangkitkan saat runtime (tanpa literal rahasia di repositori). */
+function freshPassword(int $length = 24): string
+{
+    return 'Uji-'.Str::random($length);
 }

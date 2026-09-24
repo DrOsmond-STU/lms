@@ -6,15 +6,17 @@ namespace App\Modules\Identity\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\CanResetPassword;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Email atur ulang kata sandi. URL dibangun dari APP_URL, bukan header Host
- * (keamanan/02 SEC-AUTH-22). Dikirim via antrian agar waktu respons seragam (SEC-AUTH-06).
+ * (keamanan/02 SEC-AUTH-22). Dikirim via antrian agar waktu respons seragam (SEC-AUTH-06);
+ * payload antrian dienkripsi karena memuat token.
  */
-final class ResetPasswordNotification extends Notification implements ShouldQueue
+final class ResetPasswordNotification extends Notification implements ShouldBeEncrypted, ShouldQueue
 {
     use Queueable;
 

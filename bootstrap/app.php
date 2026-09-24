@@ -6,6 +6,7 @@ use App\Modules\Access\Http\Middleware\RequireWorkspace;
 use App\Modules\Identity\Http\Middleware\EnsureMfaVerified;
 use App\Modules\Identity\Http\Middleware\ValidateSessionState;
 use App\Support\Security\Middleware\AssignRequestId;
+use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\Middleware\SecurityHeaders;
 use App\Support\Tenancy\Middleware\ApplyTenantContext;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'mfa' => EnsureMfaVerified::class,
             'workspace' => RequireWorkspace::class,
+            'reauth' => RequireRecentAuth::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

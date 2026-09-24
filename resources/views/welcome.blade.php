@@ -23,7 +23,12 @@
         <span class="badge mb-5 bg-white/10 text-white">Platform Resmi Pelatihan &amp; Sertifikasi</span>
         <h1 class="max-w-3xl text-3xl leading-tight font-extrabold md:text-5xl">Satu platform untuk pelatihan &amp; sertifikasi <span class="text-accent-400">Internasional</span> &amp; <span class="text-accent-400">BNSP</span></h1>
         <p class="mt-5 max-w-2xl text-white/80">Pilih program pelatihan, belajar terarah lewat modul &amp; ujian, hingga menerima sertifikat bertanda tangan digital yang dapat divalidasi publik.</p>
-        <a href="{{ route('login') }}" class="mt-8 inline-flex rounded-lg bg-accent-500 px-6 py-3 font-bold text-brand-900 hover:bg-accent-400">Masuk ke LMS</a>
+        <div class="mt-8 flex flex-wrap gap-3">
+            <a href="{{ route('login') }}" class="inline-flex rounded-lg bg-accent-500 px-6 py-3 font-bold text-brand-900 hover:bg-accent-400">Masuk ke LMS</a>
+            @if (config('security.registration.enabled'))
+                <a href="{{ route('register') }}" class="inline-flex rounded-lg border border-white/40 px-6 py-3 font-bold text-white hover:bg-white/10">Daftar Peserta</a>
+            @endif
+        </div>
     </div>
 </main>
 <footer class="py-8 text-center text-xs text-slate-500">&copy; {{ now()->year }} Semesta Teknologi Utama — STU LMS</footer>

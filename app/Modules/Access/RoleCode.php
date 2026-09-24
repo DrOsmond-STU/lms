@@ -36,6 +36,15 @@ enum RoleCode: string
         return in_array($this, [self::SuperAdmin, self::AcademicAdmin, self::FinanceAdmin, self::SupportAdmin], true);
     }
 
+    /**
+     * Peran yang wajib terikat organisasi. Trainer & peserta boleh tanpa organisasi
+     * (trainer internal STU, peserta umum yang mendaftar mandiri) — docs/07 §2.
+     */
+    public function requiresOrganization(): bool
+    {
+        return $this === self::OrgAdmin;
+    }
+
     public function requiresMfa(): bool
     {
         return in_array($this->value, config('security.mfa_required_roles', []), true);

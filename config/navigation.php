@@ -18,7 +18,7 @@ return [
             ['label' => 'Sertifikat Saya', 'icon' => 'shield', 'route' => null, 'permission' => 'certificate.view'],
             ['label' => 'Pencapaian', 'icon' => 'trophy', 'route' => null, 'permission' => 'gamification.view_leaderboard'],
             ['label' => 'Notifikasi', 'icon' => 'bell', 'route' => null, 'permission' => null],
-            ['label' => 'Profil & Keamanan', 'icon' => 'user', 'route' => 'mfa.setup', 'permission' => null],
+            ['label' => 'Keamanan Akun', 'icon' => 'lock', 'route' => 'account.security', 'permission' => null],
         ]],
     ],
     'trainer' => [
@@ -28,6 +28,7 @@ return [
             ['label' => 'Peserta & Nilai', 'icon' => 'users', 'route' => null, 'permission' => 'submission.review'],
             ['label' => 'Diskusi', 'icon' => 'chat', 'route' => null, 'permission' => 'discussion.moderate'],
             ['label' => 'Laporan', 'icon' => 'chart', 'route' => null, 'permission' => 'report.view_class'],
+            ['label' => 'Keamanan Akun', 'icon' => 'lock', 'route' => 'account.security', 'permission' => null],
         ]],
     ],
     'organization' => [
@@ -37,6 +38,7 @@ return [
             ['label' => 'Pendaftaran Massal', 'icon' => 'clipboard', 'route' => null, 'permission' => 'enrollment.bulk_create'],
             ['label' => 'Laporan Organisasi', 'icon' => 'chart', 'route' => null, 'permission' => 'report.view_organization'],
             ['label' => 'Tinjauan Akses', 'icon' => 'shield', 'route' => null, 'permission' => 'organization.access_review'],
+            ['label' => 'Keamanan Akun', 'icon' => 'lock', 'route' => 'account.security', 'permission' => null],
         ]],
     ],
     'admin' => [
@@ -47,8 +49,8 @@ return [
         ['group' => 'Master Data', 'items' => [
             ['label' => 'Program Pelatihan', 'icon' => 'cert', 'route' => null, 'permission' => 'program.view_any'],
             ['label' => 'Kelas & Jadwal', 'icon' => 'layers', 'route' => null, 'permission' => 'course_class.view_any'],
-            ['label' => 'Organisasi', 'icon' => 'building', 'route' => null, 'permission' => 'organization.view_any'],
-            ['label' => 'Pengguna', 'icon' => 'users', 'route' => null, 'permission' => 'user.view_any'],
+            ['label' => 'Organisasi', 'icon' => 'building', 'route' => 'admin.organizations.index', 'permission' => 'organization.view_any'],
+            ['label' => 'Pengguna', 'icon' => 'users', 'route' => 'admin.users.index', 'permission' => 'user.view_any'],
             ['label' => 'Template Sertifikat', 'icon' => 'doc', 'route' => null, 'permission' => 'certificate_template.view_any'],
         ]],
         ['group' => 'Operasional', 'items' => [
@@ -62,6 +64,7 @@ return [
         ]],
         ['group' => 'Pengaturan', 'items' => [
             ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => null, 'permission' => 'system_setting.view'],
+            ['label' => 'Keamanan Akun', 'icon' => 'lock', 'route' => 'account.security', 'permission' => null],
         ]],
     ],
 ];

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Controllers;
 
+use App\Modules\Audit\Services\AuditLogger;
+use App\Modules\Audit\Services\SecurityEventLogger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Services\MfaService;
 use App\Modules\Identity\Services\SessionAuthenticator;
@@ -15,6 +17,7 @@ use BaconQrCode\Writer;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -84,5 +87,26 @@ final class MfaSetupController
         return is_array($codes)
             ? view('auth.mfa-recovery-codes', ['codes' => $codes])
             : redirect()->route('dashboard');
+    }
+
+    /** Buat ulang kode pemulihan — wajib re-auth (docs/08 BARU-06). Kode lama langsung tidak berlaku. */
+    public function regenerateRecoveryCodes(Request $request, MfaService $mfa, AuditLogger $audit, SecurityEventLogger $securityEvents): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        if (! $user->hasConfirmedMfa()) {
+            return redirect()->route('mfa.setup');
+        }
+
+        $codes = DB::transaction(function () use ($mfa, $audit, $user): array {
+            $codes = $mfa->regenerateRecoveryCodes($user);
+            $audit->record('user.mfa_recovery_codes_regenerated', $user, 'user', $user->id);
+
+            return $codes;
+        });
+        $securityEvents->log('mfa_recovery_codes_regenerated', 'info', $user->id);
+        $request->session()->flash('mfa.recovery_codes', $codes);
+
+        return redirect()->route('mfa.recovery-codes');
     }
 }

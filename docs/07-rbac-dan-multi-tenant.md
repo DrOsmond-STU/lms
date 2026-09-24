@@ -44,7 +44,10 @@ Catatan:
   tetapi **peran admin platform tidak boleh digabung dengan peran `participant` pada akun yang
   sama** — gunakan akun terpisah.
 - Penugasan peran bersifat per organisasi (`role_user.organization_id`) untuk `org_admin`,
-  `trainer`, dan `participant`; `NULL` untuk peran platform.
+  `trainer`, dan `participant`; `NULL` untuk peran platform. `org_admin` **wajib** terikat
+  organisasi; `trainer` (trainer internal STU) dan `participant` (peserta umum hasil registrasi
+  mandiri, atau yang keanggotaannya masih *pending*) boleh tanpa organisasi — datanya tetap
+  hanya terlihat oleh dirinya sendiri & staf platform.
 - Setiap perubahan peran tercatat di audit log dan memicu notifikasi ke pengguna & Super Admin.
 
 ## 3. Pemisahan Tugas (Segregation of Duties)

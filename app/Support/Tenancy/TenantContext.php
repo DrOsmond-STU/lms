@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Tenancy;
 
 use App\Modules\Identity\Models\User;
+use Closure;
 use Illuminate\Database\DatabaseManager;
 
 /**
@@ -43,6 +44,28 @@ final class TenantContext
         $this->organizationIds = [];
         $this->platformStaff = true;
         $this->push();
+    }
+
+    /**
+     * Menjalankan callback dalam konteks sistem (mis. registrasi tamu yang menulis tabel
+     * ber-tenant) lalu memulihkan konteks sebelumnya.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function runAsSystem(Closure $callback): mixed
+    {
+        $previous = [$this->userId, $this->organizationIds, $this->platformStaff];
+        $this->applySystem();
+
+        try {
+            return $callback();
+        } finally {
+            [$this->userId, $this->organizationIds, $this->platformStaff] = $previous;
+            $this->push();
+        }
     }
 
     public function clear(): void

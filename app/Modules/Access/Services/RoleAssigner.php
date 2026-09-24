@@ -24,8 +24,12 @@ final class RoleAssigner
         if ($role->isPlatform() && $organizationId !== null) {
             throw new InvalidArgumentException('Peran platform tidak boleh terikat organisasi.');
         }
-        if (! $role->isPlatform() && $organizationId === null) {
-            throw new InvalidArgumentException('Peran organisasi wajib memiliki organization_id.');
+        if ($role->requiresOrganization() && $organizationId === null) {
+            throw new InvalidArgumentException('Peran ini wajib terikat organisasi.');
+        }
+        if (self::conflictsWith($user, $role)) {
+            // Peran admin platform tidak boleh digabung dengan peserta (docs/07 §2).
+            throw new InvalidArgumentException('Peran admin platform tidak boleh digabung dengan peran Peserta pada akun yang sama.');
         }
 
         DB::transaction(function () use ($user, $role, $organizationId, $grantedBy): void {
@@ -54,6 +58,16 @@ final class RoleAssigner
         });
 
         $user->flushPermissionCache();
+    }
+
+    public static function conflictsWith(User $user, RoleCode $role): bool
+    {
+        $codes = $user->roleCodes();
+        if ($role === RoleCode::Participant) {
+            return array_filter($codes, fn (RoleCode $code): bool => $code->isPlatform()) !== [];
+        }
+
+        return $role->isPlatform() && in_array(RoleCode::Participant, $codes, true);
     }
 
     public function revoke(User $user, RoleCode $role, ?string $organizationId, ?User $revokedBy, string $reason): void
