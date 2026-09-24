@@ -21,7 +21,7 @@ Domainesia). Shared hosting **bukan** target produksi penuh — lihat
 ## Cron
 
 ```
-*/2 * * * *  flock -n $HOME/.lms-setup.lock /bin/bash $HOME/lms-setup.sh
+*/6 * * * *  flock -n $HOME/.lms-setup.lock /bin/bash $HOME/lms-setup.sh
 *   * * * *  cd $HOME/lms-app && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
 */2 * * * *  cd $HOME/lms-app && flock -n $HOME/.lms-queue.lock /opt/alt/php83/usr/bin/php artisan queue:work database --stop-when-empty --tries=3 --max-time=100 >> /dev/null 2>&1
 *   * * * *  /bin/bash $HOME/lms-verify.sh >> /dev/null 2>&1
