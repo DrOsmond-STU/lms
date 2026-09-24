@@ -1,14 +1,12 @@
 @php($typeLabels = ['institution' => 'Institusi', 'corporate' => 'Korporat'])
 <x-layouts.app title="Organisasi" workspace="admin">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Organisasi</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Institusi pendidikan &amp; korporat mitra. Organisasi diarsipkan, tidak dihapus.</p>
-        </div>
+    <x-slot:heading>Organisasi</x-slot:heading>
+    <x-slot:subtitle>Institusi pendidikan &amp; korporat mitra. Organisasi diarsipkan, tidak dihapus.</x-slot:subtitle>
+    <x-slot:actions>
         @can('organization.create')
-            <a href="{{ route('admin.organizations.create') }}" class="btn-primary w-auto">Tambah Organisasi</a>
+        <a href="{{ route('admin.organizations.create') }}" class="btn-primary w-auto">Tambah Organisasi</a>
         @endcan
-    </div>
+    </x-slot:actions>
 
     <form method="GET" action="{{ route('admin.organizations.index') }}" class="card mb-5 flex flex-wrap items-end gap-3 p-4" role="search">
         <div class="min-w-48 flex-1">
@@ -44,7 +42,7 @@
             <tbody>
                 @forelse ($organizations as $organization)
                     <tr>
-                        <td><a href="{{ route('admin.organizations.show', $organization) }}" class="font-bold text-brand-700 hover:underline">{{ $organization->name }}</a></td>
+                        <td><a href="{{ route('admin.organizations.show', $organization) }}" class="font-bold text-link hover:underline">{{ $organization->name }}</a></td>
                         <td class="font-mono">{{ $organization->code }}</td>
                         <td>{{ $typeLabels[$organization->type] ?? $organization->type }}</td>
                         <td>{{ $organization->city ?? '—' }}</td>

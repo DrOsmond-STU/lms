@@ -11,5 +11,5 @@
         </div>
         <button type="submit" class="btn-primary">Kirim Tautan</button>
     </form>
-    <p class="mt-6 text-center text-xs text-slate-500"><a href="{{ route('login') }}" class="font-bold text-brand-700 hover:underline">Kembali ke halaman masuk</a></p>
+    <p class="mt-6 text-center text-xs text-slate-500"><a href="{{ route('login') }}" class="font-bold text-link hover:underline">Kembali ke halaman masuk</a></p>
 </x-layouts.guest>

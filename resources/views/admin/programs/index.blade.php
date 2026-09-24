@@ -1,14 +1,12 @@
 @php($categories = \App\Modules\Catalog\Models\Program::CATEGORIES)
 <x-layouts.app title="Program Pelatihan" workspace="admin">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Program Pelatihan</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Program melalui review sebelum terbit di katalog. Penerbit harus berbeda dari pengaju.</p>
-        </div>
+    <x-slot:heading>Program Pelatihan</x-slot:heading>
+    <x-slot:subtitle>Program melalui review sebelum terbit di katalog. Penerbit harus berbeda dari pengaju.</x-slot:subtitle>
+    <x-slot:actions>
         @can('program.create')
-            <a href="{{ route('admin.programs.create') }}" class="btn-primary w-auto">Tambah Program</a>
+        <a href="{{ route('admin.programs.create') }}" class="btn-primary w-auto">Tambah Program</a>
         @endcan
-    </div>
+    </x-slot:actions>
 
     <form method="GET" class="card mb-5 flex flex-wrap items-end gap-3 p-4" role="search">
         <div class="min-w-48 flex-1">
@@ -43,7 +41,7 @@
             <tbody>
                 @forelse ($programs as $program)
                     <tr>
-                        <td><a href="{{ route('admin.programs.show', $program) }}" class="font-bold text-brand-700 hover:underline">{{ $program->name }}</a><span class="block text-xs text-slate-500">{{ $program->provider_name }}</span></td>
+                        <td><a href="{{ route('admin.programs.show', $program) }}" class="font-bold text-link hover:underline">{{ $program->name }}</a><span class="block text-xs text-slate-500">{{ $program->provider_name }}</span></td>
                         <td class="font-mono text-xs">{{ $program->short_code }}</td>
                         <td>{{ $categories[$program->category] ?? $program->category }}</td>
                         <td>{{ $program->priceLabel() }}</td>

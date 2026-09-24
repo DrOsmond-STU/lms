@@ -1,7 +1,7 @@
 <x-layouts.app title="Tinjau Approval" workspace="admin">
-    <a href="{{ route('admin.approvals.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Approval Sertifikat</a>
-    <h1 class="mt-2 text-xl font-extrabold text-slate-800">{{ $enrollment->user->name }}</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">{{ $enrollment->program->name }} · {{ $enrollment->courseClass->batch_name }}</p>
+    <x-slot:back><a href="{{ route('admin.approvals.index') }}" class="hero-back">&larr; Approval Sertifikat</a></x-slot:back>
+    <x-slot:heading>{{ $enrollment->user->name }}</x-slot:heading>
+    <x-slot:subtitle>{{ $enrollment->program->name }} · {{ $enrollment->courseClass->batch_name }}</x-slot:subtitle>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">

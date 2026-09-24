@@ -1,41 +1,72 @@
-@php($max = max(1, collect($enrollmentsPerMonth)->max('total')))
-<x-layouts.app title="Dashboard Administrator" workspace="admin">
-    <h1 class="text-xl font-extrabold text-slate-800">Dashboard Administrator</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Selamat datang, {{ $user->name }}.</p>
-    @if (($approvalQueue ?? 0) > 0 || $secondApprovals > 0 || ($programsInReview ?? 0) > 0)
-        <div class="mb-6 flex flex-wrap gap-3">
-            @if (($approvalQueue ?? 0) > 0)<a href="{{ route('admin.approvals.index') }}" class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800">{{ $approvalQueue }} sertifikat menunggu approval</a>@endif
-            @if ($secondApprovals > 0)<a href="{{ route('admin.second-approvals.index') }}" class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800">{{ $secondApprovals }} persetujuan kedua</a>@endif
-            @if (($programsInReview ?? 0) > 0)<a href="{{ route('admin.programs.index', ['status' => 'in_review']) }}" class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800">{{ $programsInReview }} program menunggu review</a>@endif
+@php
+    $months = collect($enrollmentsPerMonth);
+    $thisMonth = (int) ($months->last()['total'] ?? 0);
+    $lastMonth = (int) ($months->slice(-2, 1)->first()['total'] ?? 0);
+    $diff = $thisMonth - $lastMonth;
+    $actions = array_filter([
+        ($approvalQueue ?? 0) > 0 ? ['critical', 'Approval sertifikat', $approvalQueue.' peserta lulus menunggu penerbitan sertifikat', route('admin.approvals.index')] : null,
+        $secondApprovals > 0 ? ['high', 'Persetujuan kedua', $secondApprovals.' aksi berdampak tinggi menunggu admin kedua', route('admin.second-approvals.index')] : null,
+        ($programsInReview ?? 0) > 0 ? ['medium', 'Review program', $programsInReview.' program menunggu diterbitkan', route('admin.programs.index', ['status' => 'in_review'])] : null,
+    ]);
+@endphp
+<x-layouts.app title="Dashboard Administrator" workspace="admin" :eyebrow="'Administrator · '.now()->timezone('Asia/Jakarta')->translatedFormat('F Y')">
+    <x-slot:heading>Kondisi platform hari ini</x-slot:heading>
+    <x-slot:subtitle>Selamat datang, {{ $user->name }}. Ringkasan peserta, kelas, dan sertifikasi di seluruh organisasi.</x-slot:subtitle>
+    <x-slot:aside>
+        <div class="num">{{ $passRate === null ? '—' : str_replace('.', ',', (string) $passRate).'%' }}</div>
+        <div class="lbl">Tingkat kelulusan</div>
+    </x-slot:aside>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @include('dashboards._tile', ['label' => 'Peserta', 'value' => number_format($participants, 0, ',', '.'), 'icon' => 'users', 'trend' => ($diff >= 0 ? '+' : '').$diff.' pendaftaran vs bulan lalu', 'tone' => $diff > 0 ? 'good' : ($diff < 0 ? 'bad' : 'flat'), 'note' => 'Akun dengan peran peserta', 'link' => $user->can('user.view_any') ? route('admin.users.index') : null])
+        @include('dashboards._tile', ['label' => 'Organisasi aktif', 'value' => $organizations, 'icon' => 'building', 'note' => 'Institusi & korporat mitra', 'link' => $user->can('organization.view_any') ? route('admin.organizations.index') : null])
+        @include('dashboards._tile', ['label' => 'Kelas berjalan', 'value' => $classes, 'icon' => 'calendar', 'trend' => $programs.' program terbit', 'note' => 'Kelas berstatus dibuka atau berjalan', 'link' => $user->can('course_class.view_any') ? route('admin.classes.index') : null])
+        @include('dashboards._tile', ['label' => 'Sertifikat aktif', 'value' => number_format($certificates, 0, ',', '.'), 'icon' => 'cert', 'note' => 'Dapat diverifikasi publik', 'link' => $user->can('certificate.view_any') ? route('admin.certificates.index') : null])
+    </div>
+
+    <section class="mt-8 card p-5">
+        <h2 class="card-title">Tren Pendaftaran 6 Bulan</h2>
+        <p class="card-sub">Enrollment baru per bulan · {{ $months->first()['label'] ?? '' }} – {{ $months->last()['label'] ?? '' }}</p>
+        <x-line-chart :series="$months->map(fn ($m) => ['label' => \Illuminate\Support\Str::before($m['label'], ' '), 'value' => $m['total']])->all()" label="Grafik jumlah enrollment baru enam bulan terakhir" />
+        <table class="sr-only"><caption>Enrollment baru per bulan</caption><tbody>@foreach ($months as $row)<tr><th scope="row">{{ $row['label'] }}</th><td>{{ $row['total'] }}</td></tr>@endforeach</tbody></table>
+    </section>
+
+    <section class="mt-8 grid gap-4 lg:grid-cols-2">
+        <div class="card p-5">
+            <h2 class="card-title">Perhatian Segera</h2>
+            <p class="card-sub">Antrean yang menunggu keputusan Anda</p>
+            <div>
+                @forelse ($actions as [$tone, $label, $text, $href])
+                    <a href="{{ $href }}" class="feed-item group">
+                        <span class="min-w-0">
+                            <span class="chip chip-{{ $tone }}">{{ $label }}</span>
+                            <span class="feed-title mt-1.5 group-hover:text-link">{{ $text }}</span>
+                        </span>
+                    </a>
+                @empty
+                    <p class="py-6 text-center text-sm text-slate-500">Tidak ada antrean. Semua beres.</p>
+                @endforelse
+            </div>
         </div>
-    @endif
-    <div class="mb-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        @include('dashboards._stat', ['label' => 'Peserta', 'value' => number_format($participants, 0, ',', '.')])
-        @include('dashboards._stat', ['label' => 'Organisasi Aktif', 'value' => $organizations])
-        @include('dashboards._stat', ['label' => 'Kelas Berjalan/Dibuka', 'value' => $classes])
-        @include('dashboards._stat', ['label' => 'Sertifikat Aktif', 'value' => number_format($certificates, 0, ',', '.')])
-    </div>
-    <div class="grid gap-6 lg:grid-cols-3">
-        <section class="card p-6 lg:col-span-2" aria-labelledby="trend-heading">
-            <h2 id="trend-heading" class="font-bold text-slate-800">Pendaftaran per Bulan</h2>
-            <table class="mt-4 w-full text-sm">
-                <caption class="sr-only">Jumlah enrollment baru enam bulan terakhir</caption>
-                <tbody>
-                    @foreach ($enrollmentsPerMonth as $row)
-                        <tr>
-                            <th scope="row" class="w-24 py-1.5 pr-3 text-left text-xs font-bold text-slate-500">{{ $row['label'] }}</th>
-                            <td class="py-1.5"><div class="h-3 rounded bg-brand-500 progress-{{ (int) (round($row['total'] * 20 / $max) * 5) }}"></div></td>
-                            <td class="w-12 py-1.5 text-right text-xs font-bold">{{ $row['total'] }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </section>
-        <section class="card p-6">
-            <h2 class="font-bold text-slate-800">Tingkat Kelulusan</h2>
-            <p class="mt-3 text-3xl font-extrabold text-slate-800">{{ $passRate === null ? '—' : $passRate.'%' }}</p>
-            <p class="mt-1 text-xs text-slate-500">Lulus dibanding lulus + tidak lulus. Program terbit: {{ $programs }}.</p>
-            <p class="mt-4 text-xs text-slate-500">Laporan keuangan tersedia setelah modul pembayaran (Fase 2).</p>
-        </section>
-    </div>
+        <div class="card p-5">
+            <h2 class="card-title">Aktivitas Terbaru</h2>
+            <p class="card-sub">Pendaftaran pelatihan terakhir</p>
+            <div>
+                @forelse ($recentEnrollments as $enrollment)
+                    <div class="feed-item">
+                        <span class="feed-icon bg-brand-100 text-brand-700"><x-icon name="book" class="h-4 w-4" /></span>
+                        <span class="min-w-0">
+                            <span class="feed-title truncate">{{ $enrollment->user?->name }}</span>
+                            <span class="feed-meta truncate">{{ $enrollment->program?->name }} · <span class="chip chip-{{ \App\Modules\Enrollment\Models\Enrollment::STATUS_TONES[$enrollment->status] ?? 'neutral' }} px-1.5 py-0.5 text-[10px]">{{ $enrollment->statusLabel() }}</span></span>
+                        </span>
+                        <span class="feed-when">{{ $enrollment->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span>
+                    </div>
+                @empty
+                    <p class="py-6 text-center text-sm text-slate-500">Belum ada pendaftaran.</p>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    @include('dashboards._shortcuts', ['workspace' => 'admin'])
 </x-layouts.app>

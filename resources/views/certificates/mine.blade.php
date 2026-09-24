@@ -1,6 +1,7 @@
 <x-layouts.app title="Sertifikat Saya" workspace="participant">
-    <h1 class="text-xl font-extrabold text-slate-800">Sertifikat Saya</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Unduhan memakai tautan aman yang berlaku 5 menit.</p>
+    <x-slot:heading>Sertifikat Saya</x-slot:heading>
+    <x-slot:subtitle>Unduhan memakai tautan aman yang berlaku 5 menit.</x-slot:subtitle>
+
     <div class="grid gap-5 md:grid-cols-2">
         @forelse ($certificates as $certificate)
             @php($status = $certificate->publicStatus())

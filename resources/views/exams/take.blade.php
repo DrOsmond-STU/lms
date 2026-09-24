@@ -1,6 +1,6 @@
-<x-layouts.app :title="$attempt->assessment->title" workspace="participant">
+<x-layouts.app :title="$attempt->assessment->title" workspace="participant" :hero="false">
     <div data-exam data-seconds-left="{{ $attempt->secondsLeft() }}" data-answer-url="{{ route('exams.answer', $attempt) }}" data-integrity-url="{{ route('exams.integrity', $attempt) }}">
-        <div class="sticky top-16 z-20 -mx-4 mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:-mx-8 lg:px-8">
+        <div class="sticky top-[58px] z-20 -mx-4 mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-surface/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8 lg:top-0">
             <div>
                 <h1 class="font-extrabold text-slate-800">{{ $attempt->assessment->title }} · Attempt #{{ $attempt->attempt_no }}</h1>
                 <p class="text-xs text-slate-500" data-exam-status aria-live="polite">Jawaban tersimpan otomatis.</p>

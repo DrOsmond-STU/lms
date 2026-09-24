@@ -1,6 +1,6 @@
 <x-layouts.app title="Hasil Asesmen" workspace="participant">
-    <a href="{{ route('exams.show', [$attempt->enrollment_id, $attempt->assessment_id]) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $attempt->assessment->title }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">Hasil — Attempt #{{ $attempt->attempt_no }}</h1>
+    <x-slot:back><a href="{{ route('exams.show', [$attempt->enrollment_id, $attempt->assessment_id]) }}" class="hero-back">&larr; {{ $attempt->assessment->title }}</a></x-slot:back>
+    <x-slot:heading>Hasil — Attempt #{{ $attempt->attempt_no }}</x-slot:heading>
 
     <section class="card p-6">
         @if ($attempt->status === 'graded')

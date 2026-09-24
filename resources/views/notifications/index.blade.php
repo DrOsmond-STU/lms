@@ -1,14 +1,13 @@
 <x-layouts.app title="Notifikasi" :workspace="$workspace">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Notifikasi</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Informasi enrollment, ujian, sertifikat, dan keamanan akun Anda.</p>
-        </div>
+    <x-slot:heading>Notifikasi</x-slot:heading>
+    <x-slot:subtitle>Informasi enrollment, ujian, sertifikat, dan keamanan akun Anda.</x-slot:subtitle>
+    <x-slot:actions>
         <form method="POST" action="{{ route('notifications.read-all') }}">
-            @csrf
-            <button type="submit" class="btn-secondary">Tandai semua dibaca</button>
+        @csrf
+        <button type="submit" class="btn-secondary">Tandai semua dibaca</button>
         </form>
-    </div>
+    </x-slot:actions>
+
     <nav class="mb-4 flex gap-2 text-sm" aria-label="Filter notifikasi">
         <a href="{{ route('notifications.index') }}" @class(['badge', 'bg-brand-800 text-white' => ! $unreadOnly, 'bg-slate-100 text-slate-700' => $unreadOnly]) @if (! $unreadOnly) aria-current="page" @endif>Semua</a>
         <a href="{{ route('notifications.index', ['filter' => 'belum-dibaca']) }}" @class(['badge', 'bg-brand-800 text-white' => $unreadOnly, 'bg-slate-100 text-slate-700' => ! $unreadOnly]) @if ($unreadOnly) aria-current="page" @endif>Belum dibaca</a>

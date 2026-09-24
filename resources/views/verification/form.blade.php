@@ -1,7 +1,5 @@
-<x-layouts.public title="Verifikasi Sertifikat">
+<x-layouts.public title="Verifikasi Sertifikat" subtitle="Periksa keaslian sertifikat STU dengan kode verifikasi (tercetak di sertifikat / dari QR) atau nomor sertifikat.">
     <div class="mx-auto max-w-xl">
-        <h1 class="text-2xl font-extrabold text-slate-800">Verifikasi Sertifikat</h1>
-        <p class="mt-1 mb-6 text-sm text-slate-600">Periksa keaslian sertifikat STU dengan kode verifikasi (tercetak di sertifikat / dari QR) atau nomor sertifikat.</p>
         <form method="POST" action="{{ route('verification.lookup') }}" class="card space-y-4 p-6" novalidate>
             @csrf
             <input type="hidden" name="mode" value="code">
@@ -13,7 +11,7 @@
             <button class="btn-primary">Verifikasi</button>
         </form>
         <details class="card mt-4 p-6">
-            <summary class="cursor-pointer text-sm font-bold text-brand-700">Cari dengan nomor sertifikat</summary>
+            <summary class="cursor-pointer text-sm font-bold text-link">Cari dengan nomor sertifikat</summary>
             <form method="POST" action="{{ route('verification.lookup') }}" class="mt-4 space-y-4" novalidate>
                 @csrf
                 <input type="hidden" name="mode" value="number">

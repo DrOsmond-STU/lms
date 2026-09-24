@@ -1,14 +1,14 @@
 <x-layouts.app :title="$user->name" workspace="admin">
-    <a href="{{ route('admin.users.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Pengguna</a>
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-        <h1 class="text-xl font-extrabold text-slate-800">{{ $user->name }}</h1>
+    <x-slot:back><a href="{{ route('admin.users.index') }}" class="hero-back">&larr; Pengguna</a></x-slot:back>
+    <x-slot:heading>{{ $user->name }}</x-slot:heading>
+    <x-slot:meta>
         @include('admin.users._status', ['status' => $user->status])
         @if ($hasMfa)
-            <span class="badge bg-emerald-50 text-emerald-700">MFA aktif</span>
+        <span class="badge bg-emerald-50 text-emerald-700">MFA aktif</span>
         @else
-            <span class="badge bg-amber-50 text-amber-700">MFA belum aktif</span>
+        <span class="badge bg-amber-50 text-amber-700">MFA belum aktif</span>
         @endif
-    </div>
+    </x-slot:meta>
 
     @unless ($canManage)
         <div class="mb-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700" role="note">
@@ -59,7 +59,7 @@
                                         @method('DELETE')
                                         <label for="reason-{{ $role->pivot->id }}" class="sr-only">Alasan pencabutan</label>
                                         <input id="reason-{{ $role->pivot->id }}" name="reason" type="text" required minlength="5" maxlength="500" placeholder="Alasan pencabutan" class="form-input py-1.5 text-xs">
-                                        <button type="submit" class="text-xs font-bold text-rose-700 hover:underline">Cabut</button>
+                                        <button type="submit" class="btn-mini-danger">Cabut</button>
                                     </form>
                                 @endcan
                             @endif

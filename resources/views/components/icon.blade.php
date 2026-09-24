@@ -65,5 +65,38 @@
     @case('lock')
         <rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke-linecap="round"/>
         @break
+    @case('menu')
+        <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/>
+        @break
+    @case('close')
+        <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/>
+        @break
+    @case('sun')
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/>
+        @break
+    @case('moon')
+        <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('monitor')
+        <rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8" stroke-linecap="round"/>
+        @break
+    @case('up')
+        <path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('down')
+        <path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('plus')
+        <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+        @break
+    @case('download')
+        <path d="M12 4v11M7 11l5 5 5-5M4 20h16" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('play')
+        <circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5v-7Z" stroke-linejoin="round"/>
+        @break
+    @case('graduation')
+        <path d="M2.5 9 12 4.5 21.5 9 12 13.5 2.5 9Z" stroke-linejoin="round"/><path d="M6.5 11v4.5c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3V11M21.5 9v5" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
 @endswitch
 </svg>

@@ -1,10 +1,10 @@
 <x-layouts.app :title="$lesson->title" workspace="participant">
-    <a href="{{ route('learning.classroom', $enrollment) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $enrollment->program->name }}</a>
-    <div class="mt-2 mb-5 flex flex-wrap items-center gap-3">
-        <h1 class="text-xl font-extrabold text-slate-800">{{ $lesson->title }}</h1>
+    <x-slot:back><a href="{{ route('learning.classroom', $enrollment) }}" class="hero-back">&larr; {{ $enrollment->program->name }}</a></x-slot:back>
+    <x-slot:heading>{{ $lesson->title }}</x-slot:heading>
+    <x-slot:meta>
         <span class="badge bg-slate-100 text-slate-600">{{ \App\Modules\Learning\Models\Lesson::TYPES[$lesson->type] }}</span>
         @if ($progress?->status === 'completed')<span class="badge bg-emerald-50 text-emerald-700">Selesai</span>@endif
-    </div>
+    </x-slot:meta>
 
     <div class="card p-6">
         @switch($lesson->type)
@@ -49,7 +49,7 @@
     </div>
 
     <nav class="mt-5 flex justify-between text-sm font-bold" aria-label="Navigasi lesson">
-        @if ($previousId)<a href="{{ route('learning.lesson', [$enrollment, $previousId]) }}" class="text-brand-700 hover:underline">&larr; Sebelumnya</a>@else<span></span>@endif
-        @if ($nextId)<a href="{{ route('learning.lesson', [$enrollment, $nextId]) }}" class="text-brand-700 hover:underline">Berikutnya &rarr;</a>@endif
+        @if ($previousId)<a href="{{ route('learning.lesson', [$enrollment, $previousId]) }}" class="text-link hover:underline">&larr; Sebelumnya</a>@else<span></span>@endif
+        @if ($nextId)<a href="{{ route('learning.lesson', [$enrollment, $nextId]) }}" class="text-link hover:underline">Berikutnya &rarr;</a>@endif
     </nav>
 </x-layouts.app>

@@ -1,7 +1,8 @@
 @php($locked = $profile !== null && $profile->source !== 'self')
 <x-layouts.app title="Profil" :workspace="$workspace">
-    <h1 class="text-xl font-extrabold text-slate-800">Akun Saya</h1>
-    <p class="mt-0.5 mb-4 text-sm text-slate-600">Nama Anda dicetak pada sertifikat — pastikan sesuai identitas.</p>
+    <x-slot:heading>Akun Saya</x-slot:heading>
+    <x-slot:subtitle>Nama Anda dicetak pada sertifikat — pastikan sesuai identitas.</x-slot:subtitle>
+
     @include('account._tabs')
     <form method="POST" action="{{ route('account.profile.update') }}" class="card max-w-2xl space-y-4 p-6" novalidate>
         @csrf

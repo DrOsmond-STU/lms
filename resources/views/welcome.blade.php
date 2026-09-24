@@ -1,36 +1,62 @@
+@php($theme = \App\Support\Ui\Theme::current())
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" @if ($theme) data-theme="{{ $theme }}" @endif>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#062b63">
     <title>{{ config('app.name') }} — Platform Pelatihan &amp; Sertifikasi</title>
     <meta name="description" content="STU LMS: pelatihan sertifikasi Internasional & BNSP dengan sertifikat yang dapat diverifikasi publik.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-white font-sans text-slate-800">
+<body class="flex min-h-screen flex-col font-sans text-slate-700">
 <x-environment-banner />
-<header class="border-b border-slate-100">
-    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-800 text-sm font-extrabold text-white">STU</span>
-            <span class="font-extrabold text-slate-800">STU LMS</span>
+<div class="hero relative overflow-hidden rounded-b-[20px]">
+    <header class="relative z-10 mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <a href="{{ route('home') }}" class="flex items-center gap-3">
+            <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
+            <span><span class="brand-name block">STU LMS</span><span class="brand-tag block">Pelatihan &amp; Sertifikasi</span></span>
         </a>
-        <a href="{{ route('login') }}" class="rounded-lg bg-brand-800 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700">Masuk</a>
-    </div>
-</header>
-<main class="bg-gradient-to-br from-brand-900 to-brand-700 text-white">
-    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28">
-        <span class="badge mb-5 bg-white/10 text-white">Platform Resmi Pelatihan &amp; Sertifikasi</span>
-        <h1 class="max-w-3xl text-3xl leading-tight font-extrabold md:text-5xl">Satu platform untuk pelatihan &amp; sertifikasi <span class="text-accent-400">Internasional</span> &amp; <span class="text-accent-400">BNSP</span></h1>
-        <p class="mt-5 max-w-2xl text-white/80">Pilih program pelatihan, belajar terarah lewat modul &amp; ujian, hingga menerima sertifikat bertanda tangan digital yang dapat divalidasi publik.</p>
+        <nav class="flex flex-wrap items-center gap-2 text-sm font-semibold" aria-label="Navigasi publik">
+            <a href="{{ route('catalog.public') }}" class="rounded-lg px-3 py-2 hover:bg-white/10">Program</a>
+            <a href="{{ route('verification.form') }}" class="rounded-lg px-3 py-2 hover:bg-white/10">Verifikasi Sertifikat</a>
+            <x-theme-switch onbrand />
+        </nav>
+    </header>
+    <svg class="pointer-events-none absolute top-24 -right-10 hidden h-[140px] w-[320px] text-white md:block" viewBox="0 0 320 140" aria-hidden="true" preserveAspectRatio="none">
+        <g fill="currentColor">
+            <rect x="0" y="0" width="52" height="24" rx="6" opacity=".14"/><rect x="58" y="0" width="24" height="24" rx="6" opacity=".22"/><rect x="88" y="0" width="24" height="24" rx="6" opacity=".30"/>
+            <rect x="0" y="30" width="24" height="24" rx="6" opacity=".10"/><rect x="30" y="30" width="24" height="24" rx="6" opacity=".18"/><rect x="60" y="30" width="52" height="24" rx="6" opacity=".26"/>
+            <rect x="0" y="60" width="24" height="24" rx="6" opacity=".08"/><rect x="30" y="60" width="24" height="24" rx="6" opacity=".14"/><rect x="60" y="60" width="24" height="24" rx="6" opacity=".20"/><rect x="90" y="60" width="24" height="24" rx="6" opacity=".30"/>
+        </g>
+    </svg>
+    <div class="relative z-10 mx-auto max-w-6xl px-4 pt-10 pb-24 sm:px-6 md:pt-16 md:pb-32">
+        <p class="hero-eyebrow">Platform resmi pelatihan &amp; sertifikasi</p>
+        <h1 class="mt-3 max-w-3xl font-display text-3xl leading-tight font-bold text-balance md:text-5xl">Satu platform untuk pelatihan &amp; sertifikasi <span class="text-brand-300">Internasional</span> &amp; <span class="text-brand-300">BNSP</span></h1>
+        <p class="hero-sub mt-5 text-base">Pilih program pelatihan, belajar terarah lewat modul &amp; ujian, hingga menerima sertifikat bertanda tangan digital yang dapat divalidasi publik.</p>
         <div class="mt-8 flex flex-wrap gap-3">
-            <a href="{{ route('login') }}" class="inline-flex rounded-lg bg-accent-500 px-6 py-3 font-bold text-brand-900 hover:bg-accent-400">Masuk ke LMS</a>
+            <a href="{{ route('login') }}" class="btn-primary w-auto px-6">Masuk ke LMS</a>
             @if (config('security.registration.enabled'))
-                <a href="{{ route('register') }}" class="inline-flex rounded-lg border border-white/40 px-6 py-3 font-bold text-white hover:bg-white/10">Daftar Peserta</a>
+                <a href="{{ route('register') }}" class="btn-onhero px-6">Daftar Peserta</a>
             @endif
         </div>
     </div>
+</div>
+<main class="page-overlap mx-auto w-full max-w-6xl flex-1 px-4 pb-12 sm:px-6">
+    <div class="grid gap-4 md:grid-cols-3">
+        @foreach ([
+            ['book', 'Belajar terarah', 'Modul, video, materi PDF, dan kuis dengan progres yang tersimpan otomatis.'],
+            ['clipboard', 'Ujian yang adil', 'Waktu dijaga server, soal diacak per peserta, dan penilaian otomatis.'],
+            ['shield', 'Sertifikat terverifikasi', 'PDF bertanda tangan digital dengan QR & kode verifikasi publik.'],
+        ] as [$icon, $title, $text])
+            <div class="card tile">
+                <span class="tile-icon"><x-icon :name="$icon" class="h-[18px] w-[18px]" /></span>
+                <h2 class="mt-1 text-[17px] font-semibold text-slate-800">{{ $title }}</h2>
+                <p class="text-sm text-slate-500">{{ $text }}</p>
+            </div>
+        @endforeach
+    </div>
 </main>
-<footer class="py-8 text-center text-xs text-slate-500">&copy; {{ now()->year }} Semesta Teknologi Utama — STU LMS</footer>
+<footer class="py-8 text-center text-xs text-slate-500">&copy; {{ now()->year }} Semesta Teknologi Utama — STU LMS · <a href="{{ route('legal.privacy') }}" class="hover:underline">Kebijakan Privasi</a> · <a href="{{ route('legal.terms') }}" class="hover:underline">Syarat &amp; Ketentuan</a></footer>
 </body>
 </html>

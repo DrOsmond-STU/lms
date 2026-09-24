@@ -1,9 +1,9 @@
 <x-layouts.app :title="$enrollment->program->name" workspace="participant">
-    <a href="{{ route('learning.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Pembelajaran Saya</a>
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-        <h1 class="text-xl font-extrabold text-slate-800">{{ $enrollment->program->name }}</h1>
-        <span class="badge bg-brand-50 text-brand-700">{{ $enrollment->statusLabel() }}</span>
-    </div>
+    <x-slot:back><a href="{{ route('learning.index') }}" class="hero-back">&larr; Pembelajaran Saya</a></x-slot:back>
+    <x-slot:heading>{{ $enrollment->program->name }}</x-slot:heading>
+    <x-slot:meta>
+        <span class="badge bg-brand-50 text-link">{{ $enrollment->statusLabel() }}</span>
+    </x-slot:meta>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-4 lg:col-span-2">
@@ -15,7 +15,7 @@
                         <ul class="mt-1 divide-y divide-slate-100 text-sm">
                             @foreach ($chapter->lessons as $lesson)
                                 <li>
-                                    <a href="{{ route('learning.lesson', [$enrollment, $lesson]) }}" class="flex items-center justify-between gap-3 py-2 hover:text-brand-700">
+                                    <a href="{{ route('learning.lesson', [$enrollment, $lesson]) }}" class="flex items-center justify-between gap-3 py-2 hover:text-link">
                                         <span class="flex items-center gap-2">
                                             <span @class(['flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold', 'bg-emerald-500 text-white' => isset($done[$lesson->id]), 'border border-slate-300 text-slate-400' => ! isset($done[$lesson->id])]) aria-hidden="true">{{ isset($done[$lesson->id]) ? '✓' : '' }}</span>
                                             <span>{{ $lesson->title }}</span>
@@ -61,7 +61,7 @@
                     @forelse ($assessments as $assessment)
                         @php($stat = $attemptStats->get($assessment->id))
                         <li>
-                            <a href="{{ route('exams.show', [$enrollment, $assessment]) }}" class="font-bold text-brand-700 hover:underline">{{ $assessment->title }}</a>
+                            <a href="{{ route('exams.show', [$enrollment, $assessment]) }}" class="font-bold text-link hover:underline">{{ $assessment->title }}</a>
                             <span class="block text-xs text-slate-500">{{ \App\Modules\Assessment\Models\Assessment::KINDS[$assessment->kind] }} · sisa {{ max(0, $remaining[$assessment->id]) }} kesempatan
                                 @if ($stat) · terbaik {{ $stat->best !== null ? rtrim(rtrim((string) $stat->best, '0'), '.') : '—' }} {{ $stat->passed ? '✓' : '' }}@endif
                                 @if ($stat?->active) · <span class="font-bold text-amber-700">sedang dikerjakan</span>@endif

@@ -1,16 +1,16 @@
 @php($typeLabels = ['institution' => 'Institusi pendidikan', 'corporate' => 'Korporat'])
 <x-layouts.app :title="$organization->name" workspace="admin">
-    <a href="{{ route('admin.organizations.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Organisasi</a>
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-        <h1 class="text-xl font-extrabold text-slate-800">{{ $organization->name }}</h1>
-        <span class="badge bg-brand-50 font-mono text-brand-700">{{ $organization->code }}</span>
+    <x-slot:back><a href="{{ route('admin.organizations.index') }}" class="hero-back">&larr; Organisasi</a></x-slot:back>
+    <x-slot:heading>{{ $organization->name }}</x-slot:heading>
+    <x-slot:meta>
+        <span class="badge bg-brand-50 font-mono text-link">{{ $organization->code }}</span>
         <span class="badge bg-slate-100 text-slate-700">{{ $typeLabels[$organization->type] ?? $organization->type }}</span>
         @if ($organization->status === 'active')
-            <span class="badge bg-emerald-50 text-emerald-700">Aktif</span>
+        <span class="badge bg-emerald-50 text-emerald-700">Aktif</span>
         @else
-            <span class="badge bg-slate-100 text-slate-600">Diarsipkan</span>
+        <span class="badge bg-slate-100 text-slate-600">Diarsipkan</span>
         @endif
-    </div>
+    </x-slot:meta>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <section class="card p-6 lg:col-span-2" aria-labelledby="profile-heading">
@@ -39,7 +39,7 @@
                     @forelse ($admins as $admin)
                         <li>
                             @can('user.view')
-                                <a href="{{ route('admin.users.show', $admin) }}" class="font-bold text-brand-700 hover:underline">{{ $admin->name }}</a>
+                                <a href="{{ route('admin.users.show', $admin) }}" class="font-bold text-link hover:underline">{{ $admin->name }}</a>
                             @else
                                 {{ $admin->name }}
                             @endcan
@@ -50,7 +50,7 @@
                     @endforelse
                 </ul>
                 @can('user.create')
-                    <a href="{{ route('admin.users.create', ['peran' => 'org_admin', 'organisasi' => $organization->id]) }}" class="mt-3 inline-block text-sm font-bold text-brand-700 hover:underline">Undang Admin Organisasi</a>
+                    <a href="{{ route('admin.users.create', ['peran' => 'org_admin', 'organisasi' => $organization->id]) }}" class="mt-3 inline-block text-sm font-bold text-link hover:underline">Undang Admin Organisasi</a>
                 @endcan
             </section>
 
@@ -65,7 +65,7 @@
                                 <form method="POST" action="{{ route('admin.organizations.domains.destroy', [$organization, $domain->id]) }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-xs font-bold text-rose-700 hover:underline">Hapus</button>
+                                    <button type="submit" class="btn-mini-danger">Hapus</button>
                                 </form>
                             @endcan
                         </li>

@@ -1,5 +1,5 @@
 <x-layouts.guest title="Terjadi Kesalahan">
-    <p class="text-sm font-bold text-brand-700">Kode 500</p>
+    <p class="text-sm font-bold text-link">Kode 500</p>
     <h2 class="mt-1 text-2xl font-extrabold text-slate-800">Terjadi Kesalahan</h2>
     <p class="mt-2 text-sm text-slate-600">Terjadi kesalahan pada sistem. Tim kami telah diberi tahu.</p>
     @if ($rid = request()->attributes->get('request_id'))

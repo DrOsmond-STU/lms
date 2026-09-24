@@ -1,6 +1,7 @@
 <x-layouts.app title="Keamanan Akun" :workspace="$workspace">
-    <h1 class="text-xl font-extrabold text-slate-800">Keamanan Akun</h1>
-    <p class="mt-0.5 mb-4 text-sm text-slate-600">Kelola kata sandi, autentikasi dua faktor, dan pantau aktivitas masuk akun Anda.</p>
+    <x-slot:heading>Keamanan Akun</x-slot:heading>
+    <x-slot:subtitle>Kelola kata sandi, autentikasi dua faktor, dan pantau aktivitas masuk akun Anda.</x-slot:subtitle>
+
     @include('account._tabs')
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -35,12 +36,12 @@
                     <p class="mt-2 text-sm"><span class="badge bg-emerald-50 text-emerald-700">Aktif</span> <span class="ml-1 text-slate-600">Aplikasi authenticator terdaftar.</span></p>
                     <form method="POST" action="{{ route('mfa.recovery-codes.regenerate') }}" class="mt-3">
                         @csrf
-                        <button type="submit" class="text-sm font-bold text-brand-700 hover:underline">Buat ulang kode pemulihan</button>
+                        <button type="submit" class="btn-mini">Buat ulang kode pemulihan</button>
                         <p class="mt-1 text-xs text-slate-500">Kode lama langsung tidak berlaku. Memerlukan konfirmasi identitas.</p>
                     </form>
                 @else
                     <p class="mt-2 text-sm"><span class="badge bg-amber-50 text-amber-700">Belum aktif</span> <span class="ml-1 text-slate-600">Lindungi akun Anda dengan aplikasi authenticator.</span></p>
-                    <a href="{{ route('mfa.setup') }}" class="mt-3 inline-block text-sm font-bold text-brand-700 hover:underline">Aktifkan sekarang</a>
+                    <a href="{{ route('mfa.setup') }}" class="mt-3 inline-block text-sm font-bold text-link hover:underline">Aktifkan sekarang</a>
                 @endif
             </section>
 

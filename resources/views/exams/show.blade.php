@@ -1,6 +1,6 @@
 <x-layouts.app :title="$assessment->title" workspace="participant">
-    <a href="{{ route('learning.classroom', $enrollment) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $enrollment->program->name }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $assessment->title }}</h1>
+    <x-slot:back><a href="{{ route('learning.classroom', $enrollment) }}" class="hero-back">&larr; {{ $enrollment->program->name }}</a></x-slot:back>
+    <x-slot:heading>{{ $assessment->title }}</x-slot:heading>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <section class="card p-6 lg:col-span-2" aria-labelledby="rules-heading">
@@ -35,7 +35,7 @@
             <ul class="mt-3 space-y-2 text-sm">
                 @forelse ($history as $attempt)
                     <li class="flex items-center justify-between gap-2">
-                        <a href="{{ $attempt->isInProgress() ? route('exams.take', $attempt) : route('exams.result', $attempt) }}" class="font-bold text-brand-700 hover:underline">Attempt #{{ $attempt->attempt_no }}</a>
+                        <a href="{{ $attempt->isInProgress() ? route('exams.take', $attempt) : route('exams.result', $attempt) }}" class="font-bold text-link hover:underline">Attempt #{{ $attempt->attempt_no }}</a>
                         <span class="text-xs">{{ \App\Modules\Assessment\Models\ExamAttempt::STATUSES[$attempt->status] }} {{ $attempt->score !== null ? '· '.rtrim(rtrim($attempt->score, '0'), '.') : '' }} {{ $attempt->passed ? '✓' : '' }}</span>
                     </li>
                 @empty

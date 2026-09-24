@@ -1,11 +1,11 @@
 @php($categories = \App\Modules\Catalog\Models\Program::CATEGORIES)
 <x-layouts.app :title="$program->name" workspace="admin">
-    <a href="{{ route('admin.programs.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Program Pelatihan</a>
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-        <h1 class="text-xl font-extrabold text-slate-800">{{ $program->name }}</h1>
-        <span class="badge bg-brand-50 font-mono text-brand-700">{{ $program->short_code }}</span>
+    <x-slot:back><a href="{{ route('admin.programs.index') }}" class="hero-back">&larr; Program Pelatihan</a></x-slot:back>
+    <x-slot:heading>{{ $program->name }}</x-slot:heading>
+    <x-slot:meta>
+        <span class="badge bg-brand-50 font-mono text-link">{{ $program->short_code }}</span>
         @include('admin.programs._status', ['status' => $program->status])
-    </div>
+    </x-slot:meta>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">
@@ -44,7 +44,7 @@
                 <ul class="divide-y divide-slate-100 text-sm">
                     @forelse ($classes as $class)
                         <li class="flex flex-wrap items-center justify-between gap-2 py-3">
-                            <span><a href="{{ route('classes.manage', $class) }}" class="font-bold text-brand-700 hover:underline">{{ $class->batch_name }}</a>
+                            <span><a href="{{ route('classes.manage', $class) }}" class="font-bold text-link hover:underline">{{ $class->batch_name }}</a>
                                 <span class="block text-xs text-slate-500">{{ $class->starts_on->translatedFormat('d M Y') }} – {{ $class->ends_on->translatedFormat('d M Y') }} · {{ $class->enrolled_count }}/{{ $class->quota }} peserta</span></span>
                             <span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Learning\Models\CourseClass::STATUSES[$class->status] ?? $class->status }}</span>
                         </li>
@@ -102,12 +102,12 @@
                 <h2 id="bank-heading" class="font-bold text-slate-800">Bank Soal</h2>
                 <ul class="mt-3 space-y-1 text-sm">
                     @forelse ($banks as $bank)
-                        <li><a href="{{ route('banks.show', $bank->id) }}" class="font-bold text-brand-700 hover:underline">{{ $bank->name }}</a></li>
+                        <li><a href="{{ route('banks.show', $bank->id) }}" class="font-bold text-link hover:underline">{{ $bank->name }}</a></li>
                     @empty
                         <li class="text-slate-500">Belum ada bank soal.</li>
                     @endforelse
                 </ul>
-                <a href="{{ route('banks.index', $program) }}" class="mt-3 inline-block text-sm font-bold text-brand-700 hover:underline">Kelola bank soal</a>
+                <a href="{{ route('banks.index', $program) }}" class="mt-3 inline-block text-sm font-bold text-link hover:underline">Kelola bank soal</a>
             </section>
         </div>
     </div>

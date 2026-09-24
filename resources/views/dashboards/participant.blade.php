@@ -1,37 +1,58 @@
-<x-layouts.app title="Dashboard Peserta" workspace="participant">
-    <h1 class="text-xl font-extrabold text-slate-800">Halo, {{ $user->name }}</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Lanjutkan pelatihan Anda.</p>
+@php($firstName = \Illuminate\Support\Str::of($user->name)->before(',')->trim()->explode(' ')->first())
+<x-layouts.app title="Dashboard Peserta" workspace="participant" :eyebrow="'Peserta · '.now()->timezone('Asia/Jakarta')->translatedFormat('l, d F Y')">
+    <x-slot:heading>Halo, {{ $firstName }}</x-slot:heading>
+    <x-slot:subtitle>Lanjutkan pelatihan Anda — progres tersimpan otomatis dan sertifikat terbit setelah Anda lulus.</x-slot:subtitle>
+    <x-slot:aside>
+        <div class="num">{{ $certificates }}</div>
+        <div class="lbl">Sertifikat aktif</div>
+    </x-slot:aside>
+
     @include('dashboards._mfa')
-    <div class="mb-6 grid gap-5 sm:grid-cols-3">
-        @include('dashboards._stat', ['label' => 'Pelatihan Aktif', 'value' => $active->count(), 'link' => route('learning.index'), 'linkLabel' => 'Pembelajaran Saya'])
-        @include('dashboards._stat', ['label' => 'Lulus', 'value' => $passed])
-        @include('dashboards._stat', ['label' => 'Sertifikat Aktif', 'value' => $certificates, 'link' => route('certificates.mine'), 'linkLabel' => 'Sertifikat Saya'])
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @include('dashboards._tile', ['label' => 'Pelatihan aktif', 'value' => $active->count(), 'icon' => 'book', 'note' => 'Terdaftar atau sedang belajar', 'link' => route('learning.index')])
+        @include('dashboards._tile', ['label' => 'Lulus', 'value' => $passed, 'icon' => 'trophy', 'trend' => $passed > 0 ? 'Selamat atas kelulusan Anda' : 'Belum ada kelulusan', 'tone' => $passed > 0 ? 'good' : 'flat', 'note' => 'Program yang telah Anda selesaikan'])
+        @include('dashboards._tile', ['label' => 'Sertifikat aktif', 'value' => $certificates, 'icon' => 'cert', 'note' => 'Dapat diverifikasi publik', 'link' => route('certificates.mine')])
+        @include('dashboards._tile', ['label' => 'Notifikasi baru', 'value' => $unread, 'icon' => 'bell', 'trend' => $unread > 0 ? 'Perlu dibaca' : 'Semua sudah dibaca', 'tone' => $unread > 0 ? 'bad' : 'good', 'note' => 'Enrollment, ujian & sertifikat', 'link' => route('notifications.index')])
     </div>
-    <div class="grid gap-6 lg:grid-cols-3">
-        <section class="card p-6 lg:col-span-2" aria-labelledby="active-heading">
-            <h2 id="active-heading" class="font-bold text-slate-800">Sedang Dipelajari</h2>
-            <ul class="mt-3 space-y-4">
+
+    <section class="mt-8 grid gap-4 lg:grid-cols-3">
+        <div class="card p-5 lg:col-span-2">
+            <h2 class="card-title">Sedang Dipelajari</h2>
+            <p class="card-sub">Pelatihan terakhir yang Anda buka</p>
+            <div>
                 @forelse ($active as $enrollment)
-                    <li>
-                        <a href="{{ route('learning.classroom', $enrollment) }}" class="font-bold text-brand-700 hover:underline">{{ $enrollment->program->name }}</a>
-                        <span class="block text-xs text-slate-500">{{ $enrollment->courseClass->batch_name }} · {{ $enrollment->statusLabel() }}</span>
-                        <div class="mt-1 flex items-center gap-2"><div class="h-2 flex-1 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-accent-500 progress-{{ (int) (floor($enrollment->progress_percent / 5) * 5) }}"></div></div><span class="text-xs font-bold">{{ $enrollment->progress_percent }}%</span></div>
-                    </li>
+                    <a href="{{ route('learning.classroom', $enrollment) }}" class="feed-item group items-center">
+                        <span class="feed-icon bg-brand-100 text-brand-700"><x-icon name="play" class="h-4 w-4" /></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="feed-title truncate group-hover:text-link">{{ $enrollment->program->name }}</span>
+                            <span class="feed-meta">{{ $enrollment->courseClass->batch_name }} · {{ $enrollment->statusLabel() }}</span>
+                            <span class="mt-2 flex items-center gap-3"><span class="bar flex-1"><span class="progress-{{ (int) (floor($enrollment->progress_percent / 5) * 5) }}"></span></span><span class="font-mono text-xs font-semibold text-slate-800">{{ $enrollment->progress_percent }}%</span></span>
+                        </span>
+                    </a>
                 @empty
-                    <li class="text-sm text-slate-500">Belum ada pelatihan aktif. <a href="{{ route('catalog.participant') }}" class="font-bold text-brand-700 hover:underline">Pilih pelatihan</a>.</li>
+                    <div class="py-8 text-center">
+                        <p class="text-sm text-slate-500">Belum ada pelatihan aktif.</p>
+                        @can('program.view_any')<a href="{{ route('catalog.participant') }}" class="btn-primary mt-4 w-auto">Pilih Pelatihan</a>@endcan
+                    </div>
                 @endforelse
-            </ul>
-        </section>
-        <section class="card p-6" aria-labelledby="notif-heading">
-            <h2 id="notif-heading" class="font-bold text-slate-800">Notifikasi <span class="text-xs font-normal text-slate-500">({{ $unread }} belum dibaca)</span></h2>
-            <ul class="mt-3 space-y-3 text-sm">
+            </div>
+        </div>
+        <div class="card p-5">
+            <h2 class="card-title">Notifikasi</h2>
+            <p class="card-sub">{{ $unread }} belum dibaca</p>
+            <div>
                 @forelse ($notifications as $item)
-                    <li><span class="font-bold">{{ $item->title }}</span><span class="block text-xs text-slate-500">{{ $item->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span></li>
+                    <div class="feed-item">
+                        <span @class(['mt-1.5 h-2.5 w-2.5 flex-none rounded-full', 'bg-brand-500' => $item->read_at === null, 'bg-slate-300' => $item->read_at !== null])></span>
+                        <span class="min-w-0"><span class="feed-title">{{ $item->title }}</span><span class="feed-meta">{{ $item->created_at->timezone('Asia/Jakarta')->translatedFormat('d M H:i') }}</span></span>
+                    </div>
                 @empty
-                    <li class="text-slate-500">Belum ada notifikasi.</li>
+                    <p class="py-6 text-center text-sm text-slate-500">Belum ada notifikasi.</p>
                 @endforelse
-            </ul>
-            <a href="{{ route('notifications.index') }}" class="mt-3 inline-block text-xs font-bold text-brand-700 hover:underline">Semua notifikasi</a>
-        </section>
-    </div>
+            </div>
+            <a href="{{ route('notifications.index') }}" class="btn-secondary mt-4 w-full">Semua notifikasi</a>
+        </div>
+    </section>
+
+    @include('dashboards._shortcuts', ['workspace' => 'participant'])
 </x-layouts.app>

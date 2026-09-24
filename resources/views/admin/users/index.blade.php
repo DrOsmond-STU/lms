@@ -1,13 +1,11 @@
 <x-layouts.app title="Pengguna" workspace="admin">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Pengguna</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Akun dinonaktifkan, tidak dihapus. Admin tidak pernah menetapkan kata sandi — pengguna baru menerima undangan.</p>
-        </div>
+    <x-slot:heading>Pengguna</x-slot:heading>
+    <x-slot:subtitle>Akun dinonaktifkan, tidak dihapus. Admin tidak pernah menetapkan kata sandi — pengguna baru menerima undangan.</x-slot:subtitle>
+    <x-slot:actions>
         @can('user.create')
-            <a href="{{ route('admin.users.create') }}" class="btn-primary w-auto">Undang Pengguna</a>
+        <a href="{{ route('admin.users.create') }}" class="btn-primary w-auto">Undang Pengguna</a>
         @endcan
-    </div>
+    </x-slot:actions>
 
     <form method="GET" action="{{ route('admin.users.index') }}" class="card mb-5 flex flex-wrap items-end gap-3 p-4" role="search">
         <div class="min-w-48 flex-1">
@@ -44,7 +42,7 @@
             <tbody>
                 @forelse ($users as $item)
                     <tr>
-                        <td><a href="{{ route('admin.users.show', $item) }}" class="font-bold text-brand-700 hover:underline">{{ $item->name }}</a></td>
+                        <td><a href="{{ route('admin.users.show', $item) }}" class="font-bold text-link hover:underline">{{ $item->name }}</a></td>
                         <td class="font-mono text-xs">{{ \App\Support\Privacy\Mask::email($item->email) }}</td>
                         <td>{{ collect($item->roleCodes())->map->label()->implode(', ') ?: '—' }}</td>
                         <td>@include('admin.users._status', ['status' => $item->status])</td>

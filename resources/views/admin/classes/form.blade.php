@@ -1,9 +1,9 @@
 @php($editing = $class->exists)
 @php($rules = $class->completion_rules ?? [])
 <x-layouts.app :title="$editing ? 'Pengaturan Kelas' : 'Tambah Kelas'" workspace="admin">
-    <a href="{{ $editing ? route('classes.manage', $class) : route('admin.programs.show', $program) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $editing ? 'Kelola kelas' : $program->name }}</a>
-    <h1 class="mt-2 text-xl font-extrabold text-slate-800">{{ $editing ? 'Pengaturan Kelas' : 'Tambah Kelas' }}</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">{{ $program->name }}</p>
+    <x-slot:back><a href="{{ $editing ? route('classes.manage', $class) : route('admin.programs.show', $program) }}" class="hero-back">&larr; {{ $editing ? 'Kelola kelas' : $program->name }}</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Pengaturan Kelas' : 'Tambah Kelas' }}</x-slot:heading>
+    <x-slot:subtitle>{{ $program->name }}</x-slot:subtitle>
 
     <form method="POST" action="{{ $editing ? route('admin.classes.update', $class) : route('admin.classes.store', $program) }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf

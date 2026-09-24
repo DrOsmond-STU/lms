@@ -1,11 +1,10 @@
 <x-layouts.app title="Jejak Audit" :workspace="$workspace">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Jejak Audit</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Append-only dan berantai hash — tidak dapat diubah siapa pun. Nilai sensitif disamarkan.</p>
-        </div>
+    <x-slot:heading>Jejak Audit</x-slot:heading>
+    <x-slot:subtitle>Append-only dan berantai hash — tidak dapat diubah siapa pun. Nilai sensitif disamarkan.</x-slot:subtitle>
+    <x-slot:actions>
         @can('audit_log.export')<a href="{{ route($workspace === 'admin' ? 'admin.audit.export' : 'org.audit.export', request()->query()) }}" class="btn-secondary">Ekspor CSV</a>@endcan
-    </div>
+    </x-slot:actions>
+
     <form method="GET" class="card mb-5 flex flex-wrap items-end gap-3 p-4" role="search">
         <div><label for="aktor" class="form-label">Email aktor</label><input id="aktor" name="aktor" value="{{ $filters['aktor'] ?? '' }}" maxlength="254" class="form-input"></div>
         <div><label for="aksi" class="form-label">Aksi (awalan)</label><input id="aksi" name="aksi" value="{{ $filters['aksi'] ?? '' }}" maxlength="64" placeholder="certificate." class="form-input"></div>

@@ -1,8 +1,7 @@
 @php($label = \App\Modules\Certification\Models\Certificate::statusLabel($status === 'generating' ? 'not_found' : $status))
-<x-layouts.public title="Hasil Verifikasi">
+<x-layouts.public title="Hasil Verifikasi" subtitle="Status keaslian sertifikat menurut basis data STU LMS.">
     <div class="mx-auto max-w-xl">
-        <h1 class="text-2xl font-extrabold text-slate-800">Hasil Verifikasi</h1>
-        <div class="card mt-5 p-6">
+        <div class="card p-6">
             @if ($certificate && $status !== 'generating')
                 <p @class(['text-2xl font-extrabold', 'text-emerald-700' => $status === 'valid', 'text-amber-700' => $status === 'expired', 'text-rose-700' => in_array($status, ['revoked', 'superseded'], true)])>{{ $label }}</p>
                 <dl class="mt-4 space-y-2 text-sm">
@@ -19,6 +18,6 @@
                 <p class="mt-2 text-sm text-slate-600">Tidak ada sertifikat yang cocok dengan data tersebut. Periksa kembali penulisan kode/nomor.</p>
             @endif
         </div>
-        <a href="{{ route('verification.form') }}" class="mt-4 inline-block text-sm font-bold text-brand-700 hover:underline">Verifikasi lain</a>
+        <a href="{{ route('verification.form') }}" class="mt-4 inline-block text-sm font-bold text-link hover:underline">Verifikasi lain</a>
     </div>
 </x-layouts.public>

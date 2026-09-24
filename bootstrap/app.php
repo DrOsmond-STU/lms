@@ -10,6 +10,7 @@ use App\Support\Security\Middleware\AssignRequestId;
 use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\Middleware\SecurityHeaders;
 use App\Support\Tenancy\Middleware\ApplyTenantContext;
+use App\Support\Ui\Theme;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -50,6 +51,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'reauth' => RequireRecentAuth::class,
             'consent' => EnsureConsentIsCurrent::class,
         ]);
+
+        // Preferensi tema diset skrip klien (bukan rahasia); nilainya divalidasi allowlist.
+        $middleware->encryptCookies(except: [Theme::COOKIE]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('dashboard'));

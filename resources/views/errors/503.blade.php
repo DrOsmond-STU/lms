@@ -1,5 +1,5 @@
 <x-layouts.guest title="Sedang Pemeliharaan">
-    <p class="text-sm font-bold text-brand-700">Kode 503</p>
+    <p class="text-sm font-bold text-link">Kode 503</p>
     <h2 class="mt-1 text-2xl font-extrabold text-slate-800">Sedang Pemeliharaan</h2>
     <p class="mt-2 text-sm text-slate-600">Layanan sedang dalam pemeliharaan. Silakan kembali beberapa saat lagi.</p>
     @if ($rid = request()->attributes->get('request_id'))

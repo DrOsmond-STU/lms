@@ -1,6 +1,7 @@
 <x-layouts.app title="Persetujuan Kedua" workspace="admin">
-    <h1 class="text-xl font-extrabold text-slate-800">Persetujuan Kedua</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Aksi berdampak tinggi dieksekusi setelah disetujui admin lain (maker–checker). Pengaju tidak dapat memutus permintaannya sendiri.</p>
+    <x-slot:heading>Persetujuan Kedua</x-slot:heading>
+    <x-slot:subtitle>Aksi berdampak tinggi dieksekusi setelah disetujui admin lain (maker–checker). Pengaju tidak dapat memutus permintaannya sendiri.</x-slot:subtitle>
+
     <x-form-error field="decision" />
     <div class="space-y-4">
         @forelse ($open as $item)

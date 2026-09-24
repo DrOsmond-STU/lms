@@ -1,37 +1,43 @@
 @props(['title' => 'Masuk'])
+@php($theme = \App\Support\Ui\Theme::current())
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" @if ($theme) data-theme="{{ $theme }}" @endif>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#062b63">
     <title>{{ $title }} — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 font-sans text-slate-800">
+<body class="min-h-screen font-sans text-slate-700">
 <x-environment-banner />
 <div class="grid min-h-screen lg:grid-cols-2">
-    <div class="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-brand-900 to-brand-700 p-12 text-white lg:flex">
-        <div class="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-accent-500/20"></div>
-        <div class="absolute bottom-10 -left-16 h-56 w-56 rounded-full bg-white/5"></div>
-        <a href="{{ route('home') }}" class="relative flex items-center gap-2.5">
-            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500 text-sm font-extrabold text-brand-900">STU</span>
-            <span class="leading-tight"><span class="block font-extrabold tracking-wide">STU LMS</span><span class="block text-xs text-white/60">Pelatihan &amp; Sertifikasi</span></span>
+    <div class="login-brandside relative flex flex-col gap-8 overflow-hidden px-6 py-8 sm:px-10 lg:px-12 lg:py-12">
+        <a href="{{ route('home') }}" class="relative z-10 flex items-center gap-3">
+            <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
+            <span><span class="brand-name block">STU LMS</span><span class="brand-tag block">Pelatihan &amp; Sertifikasi</span></span>
         </a>
-        <div class="relative">
-            <h1 class="mb-4 text-3xl leading-tight font-extrabold">Belajar, dinilai, dan buktikan kompetensi Anda.</h1>
-            <p class="max-w-md text-white/75">Kelola pembelajaran sertifikasi Internasional &amp; BNSP dalam satu platform — mulai dari pendaftaran, materi, ujian, hingga sertifikat yang dapat diverifikasi publik.</p>
+        <div class="relative z-10 hidden max-w-[34ch] lg:mt-auto lg:block">
+            <p class="hero-eyebrow">Sertifikasi BNSP &amp; Internasional</p>
+            <h2 class="mt-3 mb-1 font-display text-[26px] leading-8 font-bold text-balance">Belajar, dinilai, dan buktikan kompetensi Anda.</h2>
+            <p class="text-sm text-brand-300">Pendaftaran, materi, ujian, hingga sertifikat digital dalam satu platform.</p>
+            <blockquote class="mt-6 border-l-[3px] border-brand-400 pl-4 text-[15px] leading-6 text-brand-300">Setiap sertifikat dapat diverifikasi publik melalui kode unik dan QR.</blockquote>
         </div>
-        <p class="relative text-xs text-white/50">&copy; {{ now()->year }} Semesta Teknologi Utama</p>
+        <svg class="pointer-events-none absolute top-12 -right-10 hidden h-[140px] w-[320px] text-white lg:block" viewBox="0 0 320 140" aria-hidden="true" preserveAspectRatio="none">
+            <g fill="currentColor">
+                <rect x="0" y="0" width="52" height="24" rx="6" opacity=".14"/><rect x="58" y="0" width="24" height="24" rx="6" opacity=".22"/><rect x="88" y="0" width="24" height="24" rx="6" opacity=".30"/>
+                <rect x="0" y="30" width="24" height="24" rx="6" opacity=".10"/><rect x="30" y="30" width="24" height="24" rx="6" opacity=".18"/><rect x="60" y="30" width="52" height="24" rx="6" opacity=".26"/>
+                <rect x="0" y="60" width="24" height="24" rx="6" opacity=".08"/><rect x="30" y="60" width="24" height="24" rx="6" opacity=".14"/><rect x="60" y="60" width="24" height="24" rx="6" opacity=".20"/><rect x="90" y="60" width="24" height="24" rx="6" opacity=".30"/>
+            </g>
+        </svg>
+        <p class="relative z-10 hidden text-xs text-brand-300 lg:block">&copy; {{ now()->year }} Semesta Teknologi Utama</p>
     </div>
-    <main class="flex items-center justify-center p-6 sm:p-10">
-        <div class="w-full max-w-md">
-            <a href="{{ route('home') }}" class="mb-8 flex items-center gap-2.5 lg:hidden">
-                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-800 text-sm font-extrabold text-white">STU</span>
-                <span class="font-extrabold text-slate-800">STU LMS</span>
-            </a>
+    <main class="flex flex-col items-center bg-slate-50 px-4 pt-6 pb-12 sm:px-6">
+        <div class="mb-6 flex w-full max-w-[440px] justify-end"><x-theme-switch /></div>
+        <div class="login-card my-auto w-full max-w-[440px] p-6 sm:p-8">
             @if (session('status'))
-                <div class="mb-5 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800" role="status">{{ session('status') }}</div>
+                <div class="mb-5 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-slate-800" role="status">{{ session('status') }}</div>
             @endif
             {{ $slot }}
         </div>

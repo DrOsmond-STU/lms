@@ -1,10 +1,11 @@
 @php($status = $certificate->publicStatus())
 <x-layouts.app :title="$certificate->number" workspace="admin">
-    <a href="{{ route('admin.certificates.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Basis Data Sertifikat</a>
-    <div class="mt-2 mb-6 flex flex-wrap items-center gap-3">
-        <h1 class="font-mono text-lg font-extrabold text-slate-800">{{ $certificate->number }}</h1>
+    <x-slot:back><a href="{{ route('admin.certificates.index') }}" class="hero-back">&larr; Basis Data Sertifikat</a></x-slot:back>
+    <x-slot:heading>{{ $certificate->number }}</x-slot:heading>
+    <x-slot:meta>
         <span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Certification\Models\Certificate::statusLabel($status) }}</span>
-    </div>
+    </x-slot:meta>
+
     <div class="grid gap-6 lg:grid-cols-3">
         <section class="card p-6 lg:col-span-2">
             <dl class="grid gap-3 text-sm sm:grid-cols-2">
@@ -36,7 +37,7 @@
                 <section class="card p-5 text-sm">
                     <h2 class="font-bold text-amber-700">Pencabutan menunggu persetujuan kedua</h2>
                     <p class="mt-2">Diajukan oleh {{ $people[$pending->requested_by] ?? '—' }}: {{ $pending->reason }}</p>
-                    <a href="{{ route('admin.second-approvals.index') }}" class="mt-2 inline-block font-bold text-brand-700 hover:underline">Buka Persetujuan Kedua</a>
+                    <a href="{{ route('admin.second-approvals.index') }}" class="mt-2 inline-block font-bold text-link hover:underline">Buka Persetujuan Kedua</a>
                 </section>
             @elseif ($status !== 'revoked')
                 @can('certificate.revoke')

@@ -1,7 +1,7 @@
 <x-layouts.app title="Undang Pengguna" workspace="admin">
-    <a href="{{ route('admin.users.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Pengguna</a>
-    <h1 class="mt-2 text-xl font-extrabold text-slate-800">Undang Pengguna</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Pengguna menerima email berisi tautan untuk mengatur kata sandi sendiri (berlaku {{ config('security.invitation.ttl_hours') }} jam). Peran admin &amp; trainer wajib mengaktifkan MFA saat masuk pertama.</p>
+    <x-slot:back><a href="{{ route('admin.users.index') }}" class="hero-back">&larr; Pengguna</a></x-slot:back>
+    <x-slot:heading>Undang Pengguna</x-slot:heading>
+    <x-slot:subtitle>Pengguna menerima email berisi tautan untuk mengatur kata sandi sendiri (berlaku {{ config('security.invitation.ttl_hours') }} jam). Peran admin &amp; trainer wajib mengaktifkan MFA saat masuk pertama.</x-slot:subtitle>
 
     <form method="POST" action="{{ route('admin.users.store') }}" class="card max-w-2xl space-y-4 p-6" novalidate>
         @csrf

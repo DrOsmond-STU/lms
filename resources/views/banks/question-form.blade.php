@@ -2,8 +2,8 @@
 @php($type = $question->type)
 @php($optionRows = old('options', $options ?: array_fill(0, 4, ['body' => '', 'correct' => false])))
 <x-layouts.app :title="$editing ? 'Ubah Soal' : 'Tambah Soal'" :workspace="$workspace">
-    <a href="{{ route('banks.show', $bank) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $bank->name }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $editing ? 'Ubah' : 'Tambah' }} Soal — {{ \App\Modules\Assessment\Models\Question::TYPES[$type] }}</h1>
+    <x-slot:back><a href="{{ route('banks.show', $bank) }}" class="hero-back">&larr; {{ $bank->name }}</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Ubah' : 'Tambah' }} Soal — {{ \App\Modules\Assessment\Models\Question::TYPES[$type] }}</x-slot:heading>
 
     <form method="POST" action="{{ $editing ? route('questions.update', $question) : route('questions.store', $bank) }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf

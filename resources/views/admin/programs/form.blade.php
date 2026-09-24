@@ -1,7 +1,7 @@
 @php($editing = $program->exists)
 <x-layouts.app :title="$editing ? 'Ubah Program' : 'Tambah Program'" workspace="admin">
-    <a href="{{ $editing ? route('admin.programs.show', $program) : route('admin.programs.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $editing ? $program->name : 'Program Pelatihan' }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $editing ? 'Ubah Program' : 'Tambah Program' }}</h1>
+    <x-slot:back><a href="{{ $editing ? route('admin.programs.show', $program) : route('admin.programs.index') }}" class="hero-back">&larr; {{ $editing ? $program->name : 'Program Pelatihan' }}</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Ubah Program' : 'Tambah Program' }}</x-slot:heading>
 
     <form method="POST" action="{{ $editing ? route('admin.programs.update', $program) : route('admin.programs.store') }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf

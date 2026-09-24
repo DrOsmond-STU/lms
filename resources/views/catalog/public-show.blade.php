@@ -1,6 +1,6 @@
-<x-layouts.public :title="$program->name">
-    <a href="{{ route('catalog.public') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Semua program</a>
-    <div class="mt-3">
+<x-layouts.public :title="$program->name" heading="Detail Program" subtitle="Silabus, persyaratan, dan jadwal kelas yang membuka pendaftaran.">
+    <a href="{{ route('catalog.public') }}" class="btn-mini mb-4">&larr; Semua program</a>
+    <div>
         @component('catalog._detail', ['program' => $program, 'syllabus' => $syllabus])
             <section class="card p-6">
                 <h2 class="font-bold text-slate-800">Kelas / Batch</h2>

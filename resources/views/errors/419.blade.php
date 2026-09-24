@@ -1,5 +1,5 @@
 <x-layouts.guest title="Sesi Kedaluwarsa">
-    <p class="text-sm font-bold text-brand-700">Kode 419</p>
+    <p class="text-sm font-bold text-link">Kode 419</p>
     <h2 class="mt-1 text-2xl font-extrabold text-slate-800">Sesi Kedaluwarsa</h2>
     <p class="mt-2 text-sm text-slate-600">Halaman terlalu lama dibuka. Muat ulang halaman lalu coba lagi.</p>
     @if ($rid = request()->attributes->get('request_id'))

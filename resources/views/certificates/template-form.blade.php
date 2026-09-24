@@ -1,7 +1,8 @@
 @php($editing = $template->exists)
 <x-layouts.app :title="$editing ? 'Ubah Template' : 'Template Baru'" workspace="admin">
-    <a href="{{ route('admin.templates.index') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Template Sertifikat</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $editing ? 'Ubah Template v'.$template->version : 'Template Baru' }}</h1>
+    <x-slot:back><a href="{{ route('admin.templates.index') }}" class="hero-back">&larr; Template Sertifikat</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Ubah Template v'.$template->version : 'Template Baru' }}</x-slot:heading>
+
     <form method="POST" action="{{ $editing ? route('admin.templates.update', $template) : route('admin.templates.store') }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf
         @if ($editing) @method('PUT') @endif

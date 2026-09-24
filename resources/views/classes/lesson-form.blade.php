@@ -1,9 +1,9 @@
 @php($editing = $lesson->exists)
 @php($type = $lesson->type)
 <x-layouts.app :title="$editing ? 'Ubah Lesson' : 'Tambah Lesson'" :workspace="$workspace">
-    <a href="{{ route('classes.manage', $class) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Kelola {{ $class->batch_name }}</a>
-    <h1 class="mt-2 text-xl font-extrabold text-slate-800">{{ $editing ? 'Ubah' : 'Tambah' }} Lesson {{ \App\Modules\Learning\Models\Lesson::TYPES[$type] }}</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Bab: {{ $chapter->title }}</p>
+    <x-slot:back><a href="{{ route('classes.manage', $class) }}" class="hero-back">&larr; Kelola {{ $class->batch_name }}</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Ubah' : 'Tambah' }} Lesson {{ \App\Modules\Learning\Models\Lesson::TYPES[$type] }}</x-slot:heading>
+    <x-slot:subtitle>Bab: {{ $chapter->title }}</x-slot:subtitle>
 
     <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('content.lessons.update', [$class, $lesson]) : route('content.lessons.store', [$class, $chapter]) }}" class="card max-w-3xl space-y-4 p-6" novalidate>
         @csrf

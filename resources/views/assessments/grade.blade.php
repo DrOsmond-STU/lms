@@ -1,7 +1,8 @@
 <x-layouts.app title="Penilaian Esai" :workspace="$workspace">
-    <a href="{{ route('assessments.attempts', [$class, $attempt->assessment_id]) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Attempt {{ $attempt->assessment->title }}</a>
-    <h1 class="mt-2 text-xl font-extrabold text-slate-800">Penilaian — {{ $attempt->enrollment->user->name }}</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Attempt #{{ $attempt->attempt_no }}. Soal objektif sudah dinilai otomatis; beri poin untuk setiap esai.</p>
+    <x-slot:back><a href="{{ route('assessments.attempts', [$class, $attempt->assessment_id]) }}" class="hero-back">&larr; Attempt {{ $attempt->assessment->title }}</a></x-slot:back>
+    <x-slot:heading>Penilaian — {{ $attempt->enrollment->user->name }}</x-slot:heading>
+    <x-slot:subtitle>Attempt #{{ $attempt->attempt_no }}. Soal objektif sudah dinilai otomatis; beri poin untuk setiap esai.</x-slot:subtitle>
+
     <form method="POST" action="{{ route('assessments.grade.store', [$class, $attempt]) }}" class="space-y-4" novalidate>@csrf
         @foreach ($attempt->question_order as $index => $questionId)
             @php($question = $questions->get($questionId))

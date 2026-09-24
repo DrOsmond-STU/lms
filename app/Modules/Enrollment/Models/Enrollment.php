@@ -49,6 +49,17 @@ final class Enrollment extends Model
         'cancelled' => 'Dibatalkan',
     ];
 
+    /** Nada chip status di UI (critical|high|medium|low|info|neutral). */
+    public const STATUS_TONES = [
+        'awaiting_payment' => 'high',
+        'enrolled' => 'info',
+        'in_progress' => 'info',
+        'pending_approval' => 'medium',
+        'passed' => 'low',
+        'failed' => 'critical',
+        'cancelled' => 'neutral',
+    ];
+
     public const ACTIVE = ['enrolled', 'in_progress'];
 
     /** Transisi yang sah (docs/02 §21.1). */

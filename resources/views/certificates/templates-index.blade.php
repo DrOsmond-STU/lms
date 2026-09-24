@@ -1,11 +1,10 @@
 <x-layouts.app title="Template Sertifikat" workspace="admin">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Template Sertifikat</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Satu template aktif per kategori/program. Template yang sudah dipakai tidak dapat diubah — buat versi baru. Aktivasi memerlukan persetujuan admin kedua.</p>
-        </div>
+    <x-slot:heading>Template Sertifikat</x-slot:heading>
+    <x-slot:subtitle>Satu template aktif per kategori/program. Template yang sudah dipakai tidak dapat diubah — buat versi baru. Aktivasi memerlukan persetujuan admin kedua.</x-slot:subtitle>
+    <x-slot:actions>
         @can('certificate_template.create')<a href="{{ route('admin.templates.create') }}" class="btn-primary w-auto">Template Baru</a>@endcan
-    </div>
+    </x-slot:actions>
+
     <div class="card overflow-x-auto">
         <table class="data-table">
             <thead><tr><th scope="col">Nama</th><th scope="col">Kategori / Program</th><th scope="col">Versi</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Aksi</span></th></tr></thead>
@@ -20,10 +19,10 @@
                             @if ($template->isLocked())<span class="badge bg-slate-100 text-slate-600">Terkunci</span>@endif
                         </td>
                         <td class="text-right text-xs whitespace-nowrap">
-                            <a href="{{ route('admin.templates.preview', $template) }}" target="_blank" rel="noopener" class="font-bold text-brand-700 hover:underline">Pratinjau</a>
-                            · <a href="{{ route('admin.templates.create', ['dari' => $template->id]) }}" class="font-bold text-brand-700 hover:underline">Versi baru</a>
+                            <a href="{{ route('admin.templates.preview', $template) }}" target="_blank" rel="noopener" class="font-bold text-link hover:underline">Pratinjau</a>
+                            · <a href="{{ route('admin.templates.create', ['dari' => $template->id]) }}" class="font-bold text-link hover:underline">Versi baru</a>
                             @if (! $template->isLocked() && ! $template->is_active)
-                                · <a href="{{ route('admin.templates.edit', $template) }}" class="font-bold text-brand-700 hover:underline">Ubah</a>
+                                · <a href="{{ route('admin.templates.edit', $template) }}" class="font-bold text-link hover:underline">Ubah</a>
                             @endif
                             @if (! $template->is_active && ! isset($pending[$template->id]))
                                 @can('certificate_template.activate')

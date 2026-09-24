@@ -10,5 +10,5 @@
             <p>{{ $point }}</p>
         @endforeach
     </div>
-    <p class="mt-6 text-sm"><a href="{{ route('register') }}" class="font-bold text-brand-700 hover:underline">Kembali ke pendaftaran</a></p>
+    <p class="mt-6 text-sm"><a href="{{ route('register') }}" class="font-bold text-link hover:underline">Kembali ke pendaftaran</a></p>
 </x-layouts.guest>

@@ -2,7 +2,7 @@
     <div class="space-y-6 lg:col-span-2">
         <section class="card p-6">
             <div class="mb-3 flex flex-wrap gap-2">
-                <span class="badge bg-brand-50 text-brand-700">{{ \App\Modules\Catalog\Models\Program::CATEGORIES[$program->category] }}</span>
+                <span class="badge bg-brand-50 text-link">{{ \App\Modules\Catalog\Models\Program::CATEGORIES[$program->category] }}</span>
                 @if ($program->scheme_code)<span class="badge bg-slate-100 text-slate-700">Skema {{ $program->scheme_code }}</span>@endif
                 <span class="badge bg-slate-100 text-slate-700">{{ $program->duration_hours }} jam</span>
             </div>

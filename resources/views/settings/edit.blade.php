@@ -1,6 +1,7 @@
 <x-layouts.app title="Pengaturan Sistem" workspace="admin">
-    <h1 class="text-xl font-extrabold text-slate-800">Pengaturan Sistem</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Nilai keamanan hanya dapat diperketat dalam batas aman. Semua perubahan tercatat di jejak audit.</p>
+    <x-slot:heading>Pengaturan Sistem</x-slot:heading>
+    <x-slot:subtitle>Nilai keamanan hanya dapat diperketat dalam batas aman. Semua perubahan tercatat di jejak audit.</x-slot:subtitle>
+
     @can('system_setting.update')
         <form method="POST" action="{{ route('admin.settings.update') }}" class="card max-w-2xl space-y-6 p-6" novalidate>
             @csrf

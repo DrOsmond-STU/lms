@@ -14,7 +14,7 @@
 
     <form method="POST" action="{{ route('register.resend') }}" class="mt-4">
         @csrf
-        <p class="text-sm text-slate-600">Tidak menerima kode? <button type="submit" class="font-bold text-brand-700 hover:underline">Kirim ulang</button> <span class="text-xs text-slate-500">(maks. {{ config('security.registration.otp_resend_per_hour') }} kali per jam)</span></p>
+        <p class="text-sm text-slate-600">Tidak menerima kode? <button type="submit" class="btn-mini">Kirim ulang</button> <span class="text-xs text-slate-500">(maks. {{ config('security.registration.otp_resend_per_hour') }} kali per jam)</span></p>
     </form>
-    <p class="mt-2 text-sm text-slate-600">Salah alamat email? <a href="{{ route('register') }}" class="font-bold text-brand-700 hover:underline">Daftar ulang</a></p>
+    <p class="mt-2 text-sm text-slate-600">Salah alamat email? <a href="{{ route('register') }}" class="font-bold text-link hover:underline">Daftar ulang</a></p>
 </x-layouts.guest>

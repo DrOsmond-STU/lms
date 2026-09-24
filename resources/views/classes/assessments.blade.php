@@ -1,4 +1,8 @@
 <x-layouts.app :title="'Asesmen '.$class->batch_name" :workspace="$workspace">
+    <x-slot:back><a href="{{ $workspace === 'admin' ? route('admin.programs.show', $class->program) : route('trainer.classes') }}" class="hero-back">&larr; {{ $workspace === 'admin' ? $class->program->name : 'Kelas Saya' }}</a></x-slot:back>
+    <x-slot:heading>{{ $class->program->name }} — {{ $class->batch_name }}</x-slot:heading>
+    <x-slot:meta><span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Learning\Models\CourseClass::STATUSES[$class->status] ?? $class->status }}</span></x-slot:meta>
+    <x-slot:subtitle>{{ $class->starts_on->translatedFormat('d M Y') }} – {{ $class->ends_on->translatedFormat('d M Y') }} · {{ \App\Modules\Catalog\Models\Program::MODES[$class->mode] ?? $class->mode }} · {{ $class->enrolled_count }}/{{ $class->quota }} peserta · Trainer: {{ $class->trainers->pluck('name')->implode(', ') ?: 'belum ada' }}</x-slot:subtitle>
     @include('classes._header')
     @if ($pendingGrading > 0)
         <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">{{ $pendingGrading }} attempt menunggu penilaian manual (esai).</div>
@@ -24,9 +28,9 @@
                         <td>{{ rtrim(rtrim($assessment->passing_score, '0'), '.') }}</td>
                         <td class="text-xs">{{ $assessment->opens_at?->timezone('Asia/Jakarta')->format('d/m H:i') ?? 'kapan saja' }} – {{ $assessment->closes_at?->timezone('Asia/Jakarta')->format('d/m H:i') ?? '∞' }}</td>
                         <td class="text-right text-xs whitespace-nowrap">
-                            <a href="{{ route('assessments.attempts', [$class, $assessment]) }}" class="font-bold text-brand-700 hover:underline">Attempt</a>
+                            <a href="{{ route('assessments.attempts', [$class, $assessment]) }}" class="font-bold text-link hover:underline">Attempt</a>
                             @if ($canEditAssessments)
-                                · <a href="{{ route('assessments.edit', [$class, $assessment]) }}" class="font-bold text-brand-700 hover:underline">Ubah</a>
+                                · <a href="{{ route('assessments.edit', [$class, $assessment]) }}" class="font-bold text-link hover:underline">Ubah</a>
                             @endif
                         </td>
                     </tr>

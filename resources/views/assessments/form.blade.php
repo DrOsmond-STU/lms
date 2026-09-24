@@ -1,11 +1,11 @@
 @php($editing = $assessment->exists)
 @php($rules = $assessment->selection_rules ?? [])
 <x-layouts.app :title="$editing ? 'Ubah Asesmen' : 'Tambah Asesmen'" :workspace="$workspace">
-    <a href="{{ route('classes.assessments', $class) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Asesmen {{ $class->batch_name }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $editing ? 'Ubah' : 'Tambah' }} {{ \App\Modules\Assessment\Models\Assessment::KINDS[$assessment->kind] }}</h1>
+    <x-slot:back><a href="{{ route('classes.assessments', $class) }}" class="hero-back">&larr; Asesmen {{ $class->batch_name }}</a></x-slot:back>
+    <x-slot:heading>{{ $editing ? 'Ubah' : 'Tambah' }} {{ \App\Modules\Assessment\Models\Assessment::KINDS[$assessment->kind] }}</x-slot:heading>
 
     @if ($banks->isEmpty())
-        <div class="card p-6 text-sm">Program ini belum memiliki bank soal. <a href="{{ route('banks.index', $class->program) }}" class="font-bold text-brand-700 hover:underline">Buat bank soal</a> terlebih dahulu.</div>
+        <div class="card p-6 text-sm">Program ini belum memiliki bank soal. <a href="{{ route('banks.index', $class->program) }}" class="font-bold text-link hover:underline">Buat bank soal</a> terlebih dahulu.</div>
     @else
         <form method="POST" action="{{ $editing ? route('assessments.update', [$class, $assessment]) : route('assessments.store', $class) }}" class="card max-w-3xl space-y-4 p-6" novalidate>
             @csrf

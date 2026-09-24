@@ -40,17 +40,17 @@
             <legend class="px-1 text-xs font-bold text-slate-600">Persetujuan</legend>
             <label class="flex items-start gap-2 text-sm text-slate-700">
                 <input type="checkbox" name="accept_terms" value="1" @checked(old('accept_terms')) class="mt-0.5">
-                <span>Saya menyetujui <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener" class="font-bold text-brand-700 hover:underline">Syarat &amp; Ketentuan</a>.</span>
+                <span>Saya menyetujui <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener" class="font-bold text-link hover:underline">Syarat &amp; Ketentuan</a>.</span>
             </label>
             <x-form-error field="accept_terms" />
             <label class="flex items-start gap-2 text-sm text-slate-700">
                 <input type="checkbox" name="accept_privacy" value="1" @checked(old('accept_privacy')) class="mt-0.5">
-                <span>Saya telah membaca dan menyetujui <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold text-brand-700 hover:underline">Kebijakan Privasi</a>, termasuk pemrosesan data pribadi saya untuk layanan pelatihan.</span>
+                <span>Saya telah membaca dan menyetujui <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold text-link hover:underline">Kebijakan Privasi</a>, termasuk pemrosesan data pribadi saya untuk layanan pelatihan.</span>
             </label>
             <x-form-error field="accept_privacy" />
         </fieldset>
         <button type="submit" class="btn-primary">Daftar</button>
     </form>
 
-    <p class="mt-6 text-sm text-slate-600">Sudah punya akun? <a href="{{ route('login') }}" class="font-bold text-brand-700 hover:underline">Masuk</a></p>
+    <p class="mt-6 text-sm text-slate-600">Sudah punya akun? <a href="{{ route('login') }}" class="font-bold text-link hover:underline">Masuk</a></p>
 </x-layouts.guest>

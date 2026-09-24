@@ -2,7 +2,7 @@
     @forelse ($programs as $program)
         <a href="{{ route($detailRoute, $program->slug) }}" class="card flex flex-col p-5 transition hover:border-brand-300 hover:shadow">
             <div class="mb-3 flex flex-wrap gap-2">
-                <span @class(['badge', 'bg-brand-50 text-brand-700' => $program->category === 'international', 'bg-accent-50 text-accent-800' => $program->category === 'bnsp'])>{{ \App\Modules\Catalog\Models\Program::CATEGORIES[$program->category] }}</span>
+                <span @class(['badge', 'bg-brand-50 text-link' => $program->category === 'international', 'bg-accent-50 text-accent-800' => $program->category === 'bnsp'])>{{ \App\Modules\Catalog\Models\Program::CATEGORIES[$program->category] }}</span>
                 @if ($program->level)<span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Catalog\Models\Program::LEVELS[$program->level] ?? $program->level }}</span>@endif
             </div>
             <h2 class="font-extrabold text-slate-800">{{ $program->name }}</h2>

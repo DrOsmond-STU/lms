@@ -1,4 +1,8 @@
 <x-layouts.app :title="'Kelola '.$class->batch_name" :workspace="$workspace">
+    <x-slot:back><a href="{{ $workspace === 'admin' ? route('admin.programs.show', $class->program) : route('trainer.classes') }}" class="hero-back">&larr; {{ $workspace === 'admin' ? $class->program->name : 'Kelas Saya' }}</a></x-slot:back>
+    <x-slot:heading>{{ $class->program->name }} — {{ $class->batch_name }}</x-slot:heading>
+    <x-slot:meta><span class="badge bg-slate-100 text-slate-700">{{ \App\Modules\Learning\Models\CourseClass::STATUSES[$class->status] ?? $class->status }}</span></x-slot:meta>
+    <x-slot:subtitle>{{ $class->starts_on->translatedFormat('d M Y') }} – {{ $class->ends_on->translatedFormat('d M Y') }} · {{ \App\Modules\Catalog\Models\Program::MODES[$class->mode] ?? $class->mode }} · {{ $class->enrolled_count }}/{{ $class->quota }} peserta · Trainer: {{ $class->trainers->pluck('name')->implode(', ') ?: 'belum ada' }}</x-slot:subtitle>
     @include('classes._header')
 
     <div class="grid gap-6 xl:grid-cols-3">
@@ -10,13 +14,13 @@
                         @if ($canEditContent)
                             <div class="flex items-center gap-1">
                                 @include('classes._move', ['action' => route('content.modules.move', [$class, $module]), 'label' => 'modul '.$module->title])
-                                <form method="POST" action="{{ route('content.modules.destroy', [$class, $module]) }}">@csrf @method('DELETE')<button type="submit" class="px-2 text-xs font-bold text-rose-700 hover:underline">Hapus</button></form>
+                                <form method="POST" action="{{ route('content.modules.destroy', [$class, $module]) }}">@csrf @method('DELETE')<button type="submit" class="btn-mini-danger">Hapus</button></form>
                             </div>
                         @endif
                     </div>
                     @if ($canEditContent)
                         <details class="mt-2 text-sm">
-                            <summary class="cursor-pointer text-xs font-bold text-brand-700">Ganti nama modul</summary>
+                            <summary class="cursor-pointer text-xs font-bold text-link">Ganti nama modul</summary>
                             <form method="POST" action="{{ route('content.modules.update', [$class, $module]) }}" class="mt-2 flex gap-2">@csrf @method('PUT')
                                 <label for="mt-{{ $module->id }}" class="sr-only">Judul modul</label>
                                 <input id="mt-{{ $module->id }}" name="title" value="{{ $module->title }}" maxlength="200" class="form-input py-1.5">
@@ -32,7 +36,7 @@
                                 @if ($canEditContent)
                                     <div class="flex items-center gap-1">
                                         @include('classes._move', ['action' => route('content.chapters.move', [$class, $chapter]), 'label' => 'bab '.$chapter->title])
-                                        <form method="POST" action="{{ route('content.chapters.destroy', [$class, $chapter]) }}">@csrf @method('DELETE')<button type="submit" class="px-2 text-xs font-bold text-rose-700 hover:underline">Hapus</button></form>
+                                        <form method="POST" action="{{ route('content.chapters.destroy', [$class, $chapter]) }}">@csrf @method('DELETE')<button type="submit" class="btn-mini-danger">Hapus</button></form>
                                     </div>
                                 @endif
                             </div>
@@ -40,7 +44,7 @@
                                 @forelse ($chapter->lessons as $lesson)
                                     <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
                                         <span>
-                                            <span class="badge mr-1 bg-brand-50 text-brand-700">{{ \App\Modules\Learning\Models\Lesson::TYPES[$lesson->type] }}</span>
+                                            <span class="badge mr-1 bg-brand-50 text-link">{{ \App\Modules\Learning\Models\Lesson::TYPES[$lesson->type] }}</span>
                                             <span class="font-semibold">{{ $lesson->title }}</span>
                                             @unless ($lesson->is_required)<span class="text-xs text-slate-500">(opsional)</span>@endunless
                                             @if ($lesson->type === 'quiz' && $lesson->assessment)<span class="text-xs text-slate-500">→ {{ $lesson->assessment->title }}</span>@endif
@@ -49,8 +53,8 @@
                                         @if ($canEditContent)
                                             <span class="flex items-center gap-1">
                                                 @include('classes._move', ['action' => route('content.lessons.move', [$class, $lesson]), 'label' => 'lesson '.$lesson->title])
-                                                <a href="{{ route('content.lessons.edit', [$class, $lesson]) }}" class="px-2 text-xs font-bold text-brand-700 hover:underline">Ubah</a>
-                                                <form method="POST" action="{{ route('content.lessons.destroy', [$class, $lesson]) }}">@csrf @method('DELETE')<button type="submit" class="px-2 text-xs font-bold text-rose-700 hover:underline">Hapus</button></form>
+                                                <a href="{{ route('content.lessons.edit', [$class, $lesson]) }}" class="px-2 text-xs font-bold text-link hover:underline">Ubah</a>
+                                                <form method="POST" action="{{ route('content.lessons.destroy', [$class, $lesson]) }}">@csrf @method('DELETE')<button type="submit" class="btn-mini-danger">Hapus</button></form>
                                             </span>
                                         @endif
                                     </li>
@@ -62,7 +66,7 @@
                                 <div class="flex flex-wrap gap-2 border-t border-slate-100 px-4 py-2 text-xs">
                                     <span class="font-bold text-slate-500">Tambah lesson:</span>
                                     @foreach (\App\Modules\Learning\Models\Lesson::TYPES as $type => $label)
-                                        <a href="{{ route('content.lessons.create', [$class, $chapter, 'tipe' => $type]) }}" class="font-bold text-brand-700 hover:underline">{{ $label }}</a>
+                                        <a href="{{ route('content.lessons.create', [$class, $chapter, 'tipe' => $type]) }}" class="font-bold text-link hover:underline">{{ $label }}</a>
                                     @endforeach
                                 </div>
                             @endif
@@ -110,7 +114,7 @@
                         @forelse ($class->trainers as $trainer)
                             <li class="flex items-center justify-between gap-2">
                                 <span>{{ $trainer->name }} <span class="text-xs text-slate-500">({{ $trainer->pivot->role === 'lead' ? 'utama' : 'asisten' }})</span></span>
-                                <form method="POST" action="{{ route('admin.classes.trainers.destroy', [$class, $trainer]) }}">@csrf @method('DELETE')<button class="text-xs font-bold text-rose-700 hover:underline">Lepas</button></form>
+                                <form method="POST" action="{{ route('admin.classes.trainers.destroy', [$class, $trainer]) }}">@csrf @method('DELETE')<button class="btn-mini-danger">Lepas</button></form>
                             </li>
                         @empty
                             <li class="text-slate-500">Belum ada trainer.</li>

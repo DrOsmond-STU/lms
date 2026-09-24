@@ -1,5 +1,5 @@
 <x-layouts.guest title="Akses Ditolak">
-    <p class="text-sm font-bold text-brand-700">Kode 403</p>
+    <p class="text-sm font-bold text-link">Kode 403</p>
     <h2 class="mt-1 text-2xl font-extrabold text-slate-800">Akses Ditolak</h2>
     <p class="mt-2 text-sm text-slate-600">Anda tidak memiliki izin untuk membuka halaman ini.</p>
     @if ($rid = request()->attributes->get('request_id'))

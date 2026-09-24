@@ -29,6 +29,6 @@
 
     <form method="POST" action="{{ route('logout') }}" class="mt-6 text-center">
         @csrf
-        <button type="submit" class="text-xs font-bold text-slate-500 hover:underline">Keluar</button>
+        <button type="submit" class="btn-mini">Keluar</button>
     </form>
 </x-layouts.guest>

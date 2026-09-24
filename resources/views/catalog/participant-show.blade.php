@@ -1,6 +1,8 @@
 <x-layouts.app :title="$program->name" workspace="participant">
-    <a href="{{ route('catalog.participant') }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Pilih Pelatihan</a>
-    <div class="mt-3">
+    <x-slot:back><a href="{{ route('catalog.participant') }}" class="hero-back">&larr; Pilih Pelatihan</a></x-slot:back>
+    <x-slot:heading>Detail Program</x-slot:heading>
+    <x-slot:subtitle>Pelajari silabus, lalu pilih kelas/batch yang sesuai jadwal Anda.</x-slot:subtitle>
+    <div>
         @component('catalog._detail', ['program' => $program, 'syllabus' => $syllabus])
             <section class="card p-6" aria-labelledby="classes-heading">
                 <h2 id="classes-heading" class="font-bold text-slate-800">Kelas / Batch</h2>

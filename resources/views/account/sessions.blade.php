@@ -1,6 +1,7 @@
 <x-layouts.app title="Sesi & Perangkat" :workspace="$workspace">
-    <h1 class="text-xl font-extrabold text-slate-800">Akun Saya</h1>
-    <p class="mt-0.5 mb-4 text-sm text-slate-600">Perangkat yang sedang masuk ke akun Anda. Tidak mengenali salah satunya? Keluarkan lalu ubah kata sandi.</p>
+    <x-slot:heading>Akun Saya</x-slot:heading>
+    <x-slot:subtitle>Perangkat yang sedang masuk ke akun Anda. Tidak mengenali salah satunya? Keluarkan lalu ubah kata sandi.</x-slot:subtitle>
+
     @include('account._tabs')
     <div class="card divide-y divide-slate-100">
         @forelse ($sessions as $session)

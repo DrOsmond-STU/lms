@@ -1,4 +1,4 @@
-@props(['title' => 'Dashboard', 'workspace'])
+@props(['title' => 'Dashboard', 'workspace', 'hero' => true, 'eyebrow' => null])
 @php
     /** @var \App\Modules\Identity\Models\User $user */
     $user = auth()->user();
@@ -6,25 +6,30 @@
     $workspaceLabels = ['participant' => 'Peserta', 'trainer' => 'Trainer', 'organization' => 'Admin Organisasi', 'admin' => 'Administrator'];
     $initials = collect(preg_split('/\s+/', trim(preg_replace('/[,.].*$/', '', $user->name))))
         ->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('');
+    $unread = \App\Modules\Notification\Services\Notifier::unreadCount($user);
+    $theme = \App\Support\Ui\Theme::current();
 @endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" @if ($theme) data-theme="{{ $theme }}" @endif>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#062b63">
     <title>{{ $title }} — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles(['nonce' => Vite::cspNonce()])
 </head>
-<body class="min-h-screen bg-slate-50 font-sans text-slate-800">
-<aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-gradient-to-b from-brand-900 to-brand-800 text-white lg:flex" aria-label="Navigasi utama">
-    <div class="flex h-16 items-center gap-2.5 border-b border-white/10 px-5">
-        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500 text-sm font-extrabold text-brand-900">STU</span>
-        <span class="leading-tight"><span class="block text-sm font-extrabold tracking-wide">STU LMS</span><span class="block text-[11px] text-white/60">{{ $workspaceLabels[$workspace] ?? '' }}</span></span>
+<body class="min-h-screen font-sans text-slate-700">
+<div class="fixed inset-0 z-40 hidden bg-[var(--overlay-scrim)] lg:hidden" data-sidebar-backdrop></div>
+<aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 flex w-[268px] -translate-x-full flex-col gap-0.5 overflow-y-auto px-3 pt-5 pb-4 transition-transform duration-200 lg:translate-x-0" aria-label="Navigasi utama" data-sidebar>
+    <div class="flex items-center gap-3 px-3 pb-5">
+        <span class="brand-mark"><x-icon name="graduation" class="h-6 w-6" /></span>
+        <span class="min-w-0"><span class="brand-name block">STU LMS</span><span class="brand-tag block">{{ $workspaceLabels[$workspace] ?? '' }}</span></span>
+        <button type="button" class="sidebar-icon-btn ml-auto lg:hidden" data-sidebar-close aria-label="Tutup menu"><x-icon name="close" class="h-4 w-4" /></button>
     </div>
-    <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+    <nav class="space-y-0.5">
         @foreach ($groups as $group)
             @if ($group['group'])
                 <div class="nav-group-label">{{ $group['group'] }}</div>
@@ -34,50 +39,71 @@
                 @if ($item['route'])
                     @php($active = request()->routeIs(str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']))
                     <a href="{{ route($item['route']) }}" @class(['nav-link', 'nav-link-active' => $active]) @if ($active) aria-current="page" @endif>
-                        <x-icon :name="$item['icon']" /><span>{{ $item['label'] }}</span>
+                        <x-icon :name="$item['icon']" class="h-[18px] w-[18px] shrink-0" /><span>{{ $item['label'] }}</span>
+                        @if ($item['route'] === 'notifications.index' && $unread > 0)<span class="nav-count">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
                     </a>
                 @else
                     <span class="nav-link cursor-not-allowed opacity-50" aria-disabled="true" title="Dibangun pada fase berikutnya">
-                        <x-icon :name="$item['icon']" /><span class="flex-1">{{ $item['label'] }}</span><span class="rounded bg-white/10 px-1.5 text-[10px] font-bold">Segera</span>
+                        <x-icon :name="$item['icon']" class="h-[18px] w-[18px] shrink-0" /><span class="flex-1">{{ $item['label'] }}</span><span class="rounded bg-white/10 px-1.5 text-[10px] font-bold">Segera</span>
                     </span>
                 @endif
             @endforeach
         @endforeach
     </nav>
-    <div class="border-t border-white/10 px-3 py-4">
+    <div class="mt-auto flex justify-center px-3 pt-4"><x-theme-switch onbrand /></div>
+    <div class="mt-4 flex items-center gap-3 border-t border-white/15 px-3 pt-4">
+        <span class="sidebar-avatar" aria-hidden="true">{{ $initials }}</span>
+        <a href="{{ route('account.profile') }}" class="min-w-0 flex-1 leading-tight" title="Akun saya">
+            <span class="block truncate text-[13px] font-semibold text-white">{{ $user->name }}</span>
+            <span class="block truncate text-[11px] text-brand-300">{{ $workspaceLabels[$workspace] ?? '' }}</span>
+        </a>
+        <a href="{{ route('notifications.index') }}" class="sidebar-icon-btn relative" aria-label="Notifikasi{{ $unread > 0 ? ', '.$unread.' belum dibaca' : '' }}" title="Notifikasi">
+            <x-icon name="bell" class="h-[17px] w-[17px]" />
+            @if ($unread > 0)<span class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[0.6rem] font-bold text-white">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
+        </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="nav-link w-full text-left"><x-icon name="logout" /><span>Keluar</span></button>
+            <button type="submit" class="sidebar-icon-btn" aria-label="Keluar" title="Keluar"><x-icon name="logout" class="h-[17px] w-[17px]" /></button>
         </form>
     </div>
 </aside>
 
-<header class="fixed top-0 right-0 left-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:left-64 lg:px-6">
-    <span class="font-extrabold text-slate-800 lg:hidden">STU LMS</span>
-    <div class="flex-1"></div>
-    @php($unread = \App\Modules\Notification\Services\Notifier::unreadCount($user))
-    <a href="{{ route('notifications.index') }}" class="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Notifikasi{{ $unread > 0 ? ', '.$unread.' belum dibaca' : '' }}">
-        <x-icon name="bell" />
-        @if ($unread > 0)<span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[0.65rem] font-bold text-white">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
-    </a>
-    <span class="badge bg-brand-50 text-brand-700">{{ $workspaceLabels[$workspace] ?? '' }}</span>
-    <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
-        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-extrabold text-brand-800" aria-hidden="true">{{ $initials }}</span>
-        <a href="{{ route('account.profile') }}" class="hidden text-sm leading-tight hover:underline md:block" title="Akun saya"><span class="block font-bold text-slate-800">{{ $user->name }}</span><span class="block text-xs text-slate-600">{{ $user->email }}</span></a>
+<div class="flex min-h-screen flex-col lg:pl-[268px]">
+    <div class="topbar-mobile sticky top-0 z-30 flex items-center gap-3 px-4 py-3 lg:hidden">
+        <button type="button" class="sidebar-icon-btn" data-sidebar-open aria-controls="sidebar" aria-expanded="false" aria-label="Buka menu"><x-icon name="menu" class="h-[18px] w-[18px]" /></button>
+        <span class="min-w-0 flex-1 truncate font-display text-base font-bold">{{ $title }}</span>
+        <a href="{{ route('notifications.index') }}" class="sidebar-icon-btn relative" aria-label="Notifikasi{{ $unread > 0 ? ', '.$unread.' belum dibaca' : '' }}">
+            <x-icon name="bell" class="h-[17px] w-[17px]" />
+            @if ($unread > 0)<span class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[0.6rem] font-bold text-white">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
+        </a>
     </div>
-    <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
-        @csrf
-        <button type="submit" class="text-sm font-bold text-slate-600">Keluar</button>
-    </form>
-</header>
-
-<main class="px-4 pt-24 pb-10 lg:ml-64 lg:px-8">
     <x-environment-banner />
-    @if (session('status'))
-        <div class="mb-5 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800" role="status">{{ session('status') }}</div>
+
+    @if ($hero)
+        <header class="hero px-4 pt-7 pb-12 sm:px-8">
+            <div class="hero-row">
+                <div class="min-w-0">
+                    @isset($back)<div>{{ $back }}</div>@endisset
+                    <p class="hero-eyebrow">{{ $eyebrow ?? ($workspaceLabels[$workspace] ?? '').' · STU LMS' }}</p>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <h1 class="hero-title">{{ $heading ?? $title }}</h1>
+                        @isset($meta)<div class="flex flex-wrap items-center gap-2">{{ $meta }}</div>@endisset
+                    </div>
+                    @isset($subtitle)<p class="hero-sub">{{ $subtitle }}</p>@endisset
+                </div>
+                @isset($aside)<div class="hero-metric">{{ $aside }}</div>@endisset
+                @isset($actions)<div class="hero-actions">{{ $actions }}</div>@endisset
+            </div>
+        </header>
     @endif
-    {{ $slot }}
-</main>
+
+    <main @class(['flex-1 px-4 pb-16 sm:px-8', 'page-overlap' => $hero, 'pt-6' => ! $hero])>
+        @if (session('status'))
+            <div class="mb-5 rounded-xl border border-brand-200 bg-surface px-4 py-3 text-sm font-medium text-slate-800 shadow-[var(--shadow-float-md)]" role="status">{{ session('status') }}</div>
+        @endif
+        {{ $slot }}
+    </main>
+</div>
 @livewireScripts(['nonce' => Vite::cspNonce()])
 </body>
 </html>

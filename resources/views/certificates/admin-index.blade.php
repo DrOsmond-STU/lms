@@ -1,13 +1,12 @@
 <x-layouts.app title="Basis Data Sertifikat" workspace="admin">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-extrabold text-slate-800">Basis Data Sertifikat</h1>
-            <p class="mt-0.5 text-sm text-slate-600">Ekspor tercatat di jejak audit.</p>
-        </div>
+    <x-slot:heading>Basis Data Sertifikat</x-slot:heading>
+    <x-slot:subtitle>Ekspor tercatat di jejak audit.</x-slot:subtitle>
+    <x-slot:actions>
         @can('report.export')
-            <a href="{{ route('admin.certificates.export', request()->query()) }}" class="btn-secondary">Ekspor CSV</a>
+        <a href="{{ route('admin.certificates.export', request()->query()) }}" class="btn-secondary">Ekspor CSV</a>
         @endcan
-    </div>
+    </x-slot:actions>
+
     <form method="GET" class="card mb-5 flex flex-wrap items-end gap-3 p-4" role="search">
         <div class="min-w-48 flex-1"><label for="q" class="form-label">Nomor / nama / kode</label><input id="q" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" class="form-input"></div>
         <div><label for="status" class="form-label">Status</label>
@@ -28,7 +27,7 @@
             <tbody>
                 @forelse ($certificates as $certificate)
                     <tr>
-                        <td><a href="{{ route('admin.certificates.show', $certificate) }}" class="font-mono text-xs font-bold text-brand-700 hover:underline">{{ $certificate->number }}</a></td>
+                        <td><a href="{{ route('admin.certificates.show', $certificate) }}" class="font-mono text-xs font-bold text-link hover:underline">{{ $certificate->number }}</a></td>
                         <td>{{ $certificate->holder_name }}</td>
                         <td>{{ $certificate->program_name }}</td>
                         <td class="text-xs">{{ $certificate->issued_at->format('d M Y') }}</td>

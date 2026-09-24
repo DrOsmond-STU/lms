@@ -1,6 +1,7 @@
 <x-layouts.app title="Privasi" :workspace="$workspace">
-    <h1 class="text-xl font-extrabold text-slate-800">Akun Saya</h1>
-    <p class="mt-0.5 mb-4 text-sm text-slate-600">Kelola persetujuan opsional. Persetujuan dapat ditarik kapan saja tanpa memengaruhi layanan inti.</p>
+    <x-slot:heading>Akun Saya</x-slot:heading>
+    <x-slot:subtitle>Kelola persetujuan opsional. Persetujuan dapat ditarik kapan saja tanpa memengaruhi layanan inti.</x-slot:subtitle>
+
     @include('account._tabs')
     <div class="grid gap-6 lg:grid-cols-2">
         <form method="POST" action="{{ route('account.privacy.update') }}" class="card space-y-3 p-6">@csrf

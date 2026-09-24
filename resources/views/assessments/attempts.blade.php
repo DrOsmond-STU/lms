@@ -1,6 +1,6 @@
 <x-layouts.app :title="'Attempt '.$assessment->title" :workspace="$workspace">
-    <a href="{{ route('classes.assessments', $class) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; Asesmen {{ $class->batch_name }}</a>
-    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">{{ $assessment->title }} — Attempt</h1>
+    <x-slot:back><a href="{{ route('classes.assessments', $class) }}" class="hero-back">&larr; Asesmen {{ $class->batch_name }}</a></x-slot:back>
+    <x-slot:heading>{{ $assessment->title }} — Attempt</x-slot:heading>
 
     <div class="grid gap-6 xl:grid-cols-3">
         <div class="card overflow-x-auto xl:col-span-2">
@@ -18,7 +18,7 @@
                             </td>
                             <td class="text-right text-xs whitespace-nowrap">
                                 @if (in_array($attempt->status, ['submitted', 'auto_submitted'], true))
-                                    <a href="{{ route('assessments.grade', [$class, $attempt]) }}" class="font-bold text-brand-700 hover:underline">Nilai</a>
+                                    <a href="{{ route('assessments.grade', [$class, $attempt]) }}" class="font-bold text-link hover:underline">Nilai</a>
                                 @endif
                                 @if ($attempt->status !== 'voided')
                                     <details class="inline-block text-left"><summary class="cursor-pointer font-bold text-rose-700">Batalkan</summary>

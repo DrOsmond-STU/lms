@@ -1,6 +1,7 @@
 <x-layouts.app title="Laporan Organisasi" workspace="organization">
-    <h1 class="text-xl font-extrabold text-slate-800">Progres Pelatihan Anggota</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Enrollment yang dilakukan saat peserta tercatat sebagai anggota organisasi Anda.</p>
+    <x-slot:heading>Progres Pelatihan Anggota</x-slot:heading>
+    <x-slot:subtitle>Enrollment yang dilakukan saat peserta tercatat sebagai anggota organisasi Anda.</x-slot:subtitle>
+
     <div class="card overflow-x-auto">
         <table class="data-table">
             <thead><tr><th scope="col">Peserta</th><th scope="col">Program / Kelas</th><th scope="col">Status</th><th scope="col">Progres</th><th scope="col">Skor</th></tr></thead>

@@ -184,6 +184,17 @@ Semgrep kustom, gitleaks; uji browser end-to-end Playwright tanpa pelanggaran CS
 | Worker antrian & penjadwal | Cron berjeda ≥ 6 menit: email mendesak (OTP, atur ulang sandi) dikirim `deferred` setelah respons; email lain tertunda ≤ ±9 menit; auto-submit ujian ≤ 8 menit (attempt kedaluwarsa tetap ditolak/dikumpulkan saat dibuka) | Worker permanen (Supervisor/Horizon) + scheduler tiap menit |
 | Pembayaran program berbayar | Pendaftaran mandiri hanya program gratis; admin dapat mendaftarkan peserta | Fase 2 (EP-15, Midtrans) |
 
+### Tema antarmuka
+
+Gaya visual mengikuti purwarupa KG SafeGuard (khongguan.semestateknologiutama.com): sidebar &
+hero biru gradasi, kartu & tombol **melayang berbayang** (tekan = turun), ubin KPI berangka mono,
+grafik SVG sisi server, dan tema **terang/gelap/ikuti sistem**. Semua warna lewat token CSS di
+`resources/css/app.css` (palet utilitas Tailwind dipetakan ke token), sehingga tema gelap berlaku
+di seluruh halaman. Preferensi tema disimpan di cookie `stu_theme` (allowlist `light|dark`) dan
+dirender server — tanpa skrip inline (CSP tetap ketat). Font di-host sendiri (Plus Jakarta Sans,
+IBM Plex Sans/Mono). Judul halaman memakai slot hero di `x-layouts.app`
+(`heading`, `subtitle`, `back`, `meta`, `actions`, `aside`).
+
 ### Belum termasuk (sesuai roadmap)
 
 Fase 2: pembayaran & kupon, tugas & pengumpulan, presensi QR, live class, diskusi,
