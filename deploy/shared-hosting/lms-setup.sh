@@ -67,6 +67,7 @@ $PHP artisan stu:access-sync
 $PHP artisan stu:certificate-defaults
 $PHP artisan stu:signing-key            # sertifikat penandatangan UJI (staging); produksi memakai PSrE/KMS
 $PHP artisan stu:demo-content           # konten contoh sintetis untuk UAT (ditolak di produksi)
+$PHP artisan stu:demo-landing           # program, testimoni & mitra contoh untuk beranda (ditolak di produksi)
 $PHP artisan config:cache && $PHP artisan route:cache && $PHP artisan view:cache && $PHP artisan event:cache
 
 # --- 5. Super Admin pertama (sekali) ----------------------------------------

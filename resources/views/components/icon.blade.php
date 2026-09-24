@@ -98,5 +98,38 @@
     @case('graduation')
         <path d="M2.5 9 12 4.5 21.5 9 12 13.5 2.5 9Z" stroke-linejoin="round"/><path d="M6.5 11v4.5c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3V11M21.5 9v5" stroke-linecap="round" stroke-linejoin="round"/>
         @break
+    @case('image')
+        <rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 16-4.5-4.5L6 19.5" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('star')
+        <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.5Z" stroke-linejoin="round"/>
+        @break
+    @case('mail')
+        <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('phone')
+        <path d="M5 4h3.5l1.5 4-2 1.5a11 11 0 0 0 6.5 6.5l1.5-2 4 1.5V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" stroke-linejoin="round"/>
+        @break
+    @case('pin')
+        <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3"/>
+        @break
+    @case('clock')
+        <circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('globe')
+        <circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5Z" stroke-linejoin="round"/>
+        @break
+    @case('chat-bubble')
+        <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5v-9Z" stroke-linejoin="round"/>
+        @break
+    @case('arrow-right')
+        <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('chevron-left')
+        <path d="m15 5-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
+    @case('chevron-right')
+        <path d="m9 5 7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        @break
 @endswitch
 </svg>

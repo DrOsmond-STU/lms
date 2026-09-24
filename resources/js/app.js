@@ -3,6 +3,7 @@
 import { initExam } from './exam';
 import { initVideoProgress } from './video';
 import { initConfirmations } from './confirm';
+import { initProgramFilter, initSlider } from './landing';
 import { initSidebar } from './sidebar';
 import { initThemeSwitch } from './theme';
 
@@ -10,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initConfirmations();
     initSidebar();
     initThemeSwitch();
+    initSlider();
+    initProgramFilter();
     initExam();
     initVideoProgress();
 });

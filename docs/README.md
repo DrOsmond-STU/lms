@@ -195,6 +195,19 @@ dirender server — tanpa skrip inline (CSP tetap ketat). Font di-host sendiri (
 IBM Plex Sans/Mono). Judul halaman memakai slot hero di `x-layouts.app`
 (`heading`, `subtitle`, `back`, `meta`, `actions`, `aside`).
 
+### Beranda & konten beranda (CMS ringan)
+
+Beranda publik (`/`): slide bergambar di bawah lapisan biru gradasi (3 slide bawaan bila belum
+ada slide aktif), daftar pelatihan yang dapat difilter (jenis kompetensi Internasional/BNSP,
+topik, harga, waktu mulai, durasi — di server & instan di klien) dengan tombol **Ikut
+Pelatihan** (tamu → masuk/daftar → kembali ke halaman program), alur bergabung, testimoni,
+logo mitra berjalan, dan informasi pemilik situs. Dikelola di **Admin → Konten Beranda**
+(izin `cms.view`/`cms.update`): slide, testimoni, mitra, profil situs; semua perubahan diaudit.
+Gambar diperiksa magic bytes lalu **digambar ulang** (GD → WebP, metadata dibuang, SVG ditolak),
+disimpan di disk privat dan disajikan lewat rute publik. Testimoni hanya bisa terbit bila
+persetujuan publikasi dikonfirmasi (dijaga juga CHECK basis data). `stu:demo-landing` mengisi
+program, testimoni berlabel **Contoh**, dan mitra fiktif untuk UAT (ditolak di produksi).
+
 ### Belum termasuk (sesuai roadmap)
 
 Fase 2: pembayaran & kupon, tugas & pengumpulan, presensi QR, live class, diskusi,

@@ -17,6 +17,7 @@
         'admin.templates.index' => 'Desain & versi sertifikat',
         'admin.certificates.index' => 'Cari, cabut & ekspor CSV',
         'admin.audit.index' => 'Rekam jejak berantai hash',
+        'admin.landing.slides.index' => 'Slide, testimoni, mitra & profil',
         'admin.settings.edit' => 'Batas keamanan sistem',
     ];
     $shortcuts = collect(config("navigation.{$workspace}", []))->flatMap(fn ($group) => $group['items'])

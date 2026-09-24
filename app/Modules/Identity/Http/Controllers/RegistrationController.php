@@ -109,7 +109,8 @@ final class RegistrationController
             $message .= ' Keanggotaan organisasi Anda menunggu persetujuan Admin Organisasi.';
         }
 
-        return redirect()->route('participant.dashboard')->with('status', $message);
+        // Kembali ke halaman yang dituju sebelum mendaftar (mis. "Ikut Pelatihan" di beranda).
+        return redirect()->intended(route('participant.dashboard'))->with('status', $message);
     }
 
     public function resend(Request $request): RedirectResponse

@@ -46,6 +46,7 @@ final class AppServiceProvider extends ServiceProvider
         Route::patterns(array_fill_keys([
             'organization', 'user', 'domain', 'assignment', 'program', 'class', 'module', 'chapter', 'lesson', 'enrollment',
             'assessment', 'attempt', 'bank', 'question', 'certificate', 'template', 'approval', 'member', 'media', 'notification', 'session',
+            'slide', 'testimonial', 'partner',
         ], $uuid) + ['token' => '[A-Za-z0-9_-]{16,128}']);
 
         // Verifikasi publik: 10/menit & 100/hari per IP (keamanan/07 SEC-CERT-12).

@@ -37,7 +37,7 @@
             @foreach ($group['items'] as $item)
                 @continue($item['permission'] !== null && ! $user->can($item['permission']))
                 @if ($item['route'])
-                    @php($active = request()->routeIs(str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']))
+                    @php($active = request()->routeIs($item['active'] ?? (str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route'])))
                     <a href="{{ route($item['route']) }}" @class(['nav-link', 'nav-link-active' => $active]) @if ($active) aria-current="page" @endif>
                         <x-icon :name="$item['icon']" class="h-[18px] w-[18px] shrink-0" /><span>{{ $item['label'] }}</span>
                         @if ($item['route'] === 'notifications.index' && $unread > 0)<span class="nav-count">{{ $unread > 99 ? '99+' : $unread }}</span>@endif

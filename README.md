@@ -110,6 +110,7 @@ Setiap PR wajib lulus CI dan checklist keamanan.
 | `php artisan stu:certificate-defaults` | Template sertifikat default bila belum ada yang aktif |
 | `php artisan stu:signing-key` | Sertifikat penandatangan **uji** (non-produksi) |
 | `php artisan stu:demo-content` | Konten contoh sintetis untuk lokal/UAT (ditolak di produksi) |
+| `php artisan stu:demo-landing` | Program, testimoni (berlabel Contoh) & mitra fiktif untuk beranda UAT (ditolak di produksi) |
 | `php artisan stu:exams-auto-submit` | Auto-submit attempt kedaluwarsa (terjadwal tiap menit) |
 | `php artisan stu:certificates-expiry-reminders` | Pengingat sertifikat 60 hari sebelum kedaluwarsa (harian) |
 | `php artisan stu:prune-unverified` | Hapus registrasi tak terverifikasi & token kedaluwarsa (harian) |

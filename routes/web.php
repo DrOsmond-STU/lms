@@ -16,6 +16,12 @@ use App\Modules\Certification\Http\Controllers\CertificateApprovalController;
 use App\Modules\Certification\Http\Controllers\CertificateTemplateController;
 use App\Modules\Certification\Http\Controllers\MyCertificatesController;
 use App\Modules\Certification\Http\Controllers\VerificationController;
+use App\Modules\Cms\Http\Controllers\LandingController;
+use App\Modules\Cms\Http\Controllers\LandingImageController;
+use App\Modules\Cms\Http\Controllers\LandingPartnerController;
+use App\Modules\Cms\Http\Controllers\LandingSlideController;
+use App\Modules\Cms\Http\Controllers\LandingTestimonialController;
+use App\Modules\Cms\Http\Controllers\SiteProfileController;
 use App\Modules\Enrollment\Http\Controllers\LearningController;
 use App\Modules\Identity\Http\Controllers\AccountController;
 use App\Modules\Identity\Http\Controllers\AccountSecurityController;
@@ -45,7 +51,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::view('/', 'welcome')->name('home');
+Route::get('/', [LandingController::class, 'show'])->name('home');
+Route::get('/beranda/gambar/slide/{slide}', [LandingImageController::class, 'slide'])->middleware('throttle:240,1,landing-image')->name('landing.image.slide');
+Route::get('/beranda/gambar/mitra/{partner}', [LandingImageController::class, 'partner'])->middleware('throttle:240,1,landing-image')->name('landing.image.partner');
 Route::get('/syarat-ketentuan', [LegalController::class, 'terms'])->name('legal.terms');
 Route::get('/kebijakan-privasi', [LegalController::class, 'privacy'])->name('legal.privacy');
 
@@ -209,6 +217,26 @@ Route::middleware('auth')->group(function (): void {
 
             Route::get('/audit', [AuditLogController::class, 'index'])->middleware('can:audit_log.view')->name('audit.index');
             Route::get('/audit/ekspor', [AuditLogController::class, 'export'])->middleware(['can:audit_log.export', 'throttle:5,1,audit-export'])->name('audit.export');
+
+            // Konten beranda publik (CMS ringan).
+            Route::prefix('beranda')->name('landing.')->group(function (): void {
+                foreach ([
+                    ['slide', 'slides', 'slide', LandingSlideController::class],
+                    ['testimoni', 'testimonials', 'testimonial', LandingTestimonialController::class],
+                    ['mitra', 'partners', 'partner', LandingPartnerController::class],
+                ] as [$path, $name, $param, $controller]) {
+                    Route::controller($controller)->prefix($path)->name($name.'.')->group(function () use ($param, $name): void {
+                        Route::get('/', 'index')->middleware('can:cms.view')->name('index');
+                        Route::get('/baru', 'create')->middleware('can:cms.update')->name('create');
+                        Route::post('/', 'store')->middleware(['can:cms.update', 'throttle:30,1,cms-'.$name.'-store'])->name('store');
+                        Route::get('/{'.$param.'}/ubah', 'edit')->middleware('can:cms.update')->name('edit');
+                        Route::put('/{'.$param.'}', 'update')->middleware(['can:cms.update', 'throttle:30,1,cms-'.$name.'-update'])->name('update');
+                        Route::delete('/{'.$param.'}', 'destroy')->middleware('can:cms.update')->name('destroy');
+                    });
+                }
+                Route::get('/profil', [SiteProfileController::class, 'edit'])->middleware('can:cms.view')->name('profile.edit');
+                Route::put('/profil', [SiteProfileController::class, 'update'])->middleware(['can:cms.update', 'throttle:30,1,cms-profile-update'])->name('profile.update');
+            });
 
             Route::get('/pengaturan', [SettingsController::class, 'edit'])->middleware('can:system_setting.view')->name('settings.edit');
             Route::put('/pengaturan', [SettingsController::class, 'update'])->middleware(['can:system_setting.update', 'reauth'])->name('settings.update');
