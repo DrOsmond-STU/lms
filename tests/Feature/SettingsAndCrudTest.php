@@ -217,3 +217,17 @@ it('shows validation messages in Indonesian instead of raw translation keys', fu
 
     expect($message)->toContain('wajib diisi')->not->toContain('validation.');
 })->group('CRUD', 'UX');
+
+it('leaves the simulation admin account unable to log in after the run', function () {
+    Storage::fake('local');
+    $this->artisan('stu:certificate-defaults')->assertSuccessful();
+    $this->artisan('stu:demo-content')->assertSuccessful();
+    $this->artisan('stu:simulate')->assertSuccessful();
+
+    $admin = User::query()->where('email', 'admin@'.SimulateJourneyCommand::EMAIL_DOMAIN)->firstOrFail();
+    expect($admin->status)->toBe('deactivated');
+
+    // Dijalankan ulang: diaktifkan sementara untuk menyetujui, lalu dinonaktifkan lagi.
+    $this->artisan('stu:simulate')->assertSuccessful();
+    expect($admin->fresh()->status)->toBe('deactivated');
+})->group('SIMULASI', 'SEC-AUTH');

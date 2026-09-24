@@ -170,6 +170,9 @@ final class SimulateJourneyCommand extends Command
                 $this->error("GAGAL — {$label}: {$detail}");
             }
 
+            // Akun admin simulasi tidak boleh bisa masuk di luar simulasi (tanpa MFA, kata sandi acak).
+            $admin->forceFill(['status' => 'deactivated'])->save();
+
             return $failed === [] ? self::SUCCESS : self::FAILURE;
         });
     }
@@ -186,6 +189,9 @@ final class SimulateJourneyCommand extends Command
             ])->save();
             $roles->assign($user, $role, null, null);
             $consents->record($user, 'registration', Request::create('/', 'POST', server: ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_USER_AGENT' => 'stu:simulate']));
+        } elseif (! $user->isActive()) {
+            // Akun admin simulasi dinonaktifkan di akhir run; aktifkan lagi selama simulasi berjalan.
+            $user->forceFill(['status' => 'active'])->save();
         }
 
         return $user->refresh();
