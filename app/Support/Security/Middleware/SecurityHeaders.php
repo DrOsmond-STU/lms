@@ -30,7 +30,7 @@ final class SecurityHeaders
         $headers->set('Content-Security-Policy', $this->contentSecurityPolicy($nonce));
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('X-Frame-Options', 'DENY');
-        $headers->set('Referrer-Policy', $request->routeIs('password.reset', 'password.request', 'invitation.*')
+        $headers->set('Referrer-Policy', $request->routeIs('password.reset', 'password.request', 'invitation.*', 'verification.*', 'api.certificates.verify')
             ? 'no-referrer'
             : 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');

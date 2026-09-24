@@ -178,6 +178,16 @@ final class UserAdminController
         return redirect()->route('admin.users.show', $user)->with('status', 'Peran dicabut. Sesi pengguna diperbarui.');
     }
 
+    public function requestSuperAdmin(Request $request, User $user): RedirectResponse
+    {
+        /** @var User $actor */
+        $actor = $request->user();
+        $data = $request->validate(['reason' => ['required', 'string', 'min:10', 'max:500']]);
+        $this->admin->requestSuperAdmin($actor, $user, $data['reason']);
+
+        return redirect()->route('admin.users.show', $user)->with('status', 'Permintaan penetapan Super Admin diajukan. Menunggu persetujuan Super Admin kedua.');
+    }
+
     public function resetMfa(Request $request, User $user): RedirectResponse
     {
         /** @var User $actor */

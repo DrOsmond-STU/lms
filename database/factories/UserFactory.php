@@ -6,6 +6,8 @@ namespace Database\Factories;
 
 use App\Modules\Identity\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Data sintetis saja — tidak pernah data produksi (docs/10 §4).
@@ -31,6 +33,19 @@ final class UserFactory extends Factory
             'status' => 'active',
             'session_version' => 1,
         ];
+    }
+
+    /** Pengguna uji dianggap sudah menyetujui dokumen hukum versi berlaku (BARU-10). */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            foreach (['terms' => 'legal.terms_version', 'privacy' => 'legal.privacy_version'] as $document => $key) {
+                DB::table('consents')->insert([
+                    'id' => (string) Str::uuid7(), 'user_id' => $user->id, 'document' => $document,
+                    'version' => (string) config($key), 'accepted_at' => now(), 'channel' => 'registration',
+                ]);
+            }
+        });
     }
 
     public function inactive(): static

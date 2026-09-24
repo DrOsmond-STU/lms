@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Modules\Identity\Models\User;
+use App\Modules\Reporting\Services\DashboardStats;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Dashboard sementara per area (Fase 0). Konten penuh dibangun di Fase 1.
+ * Dashboard per area/peran (FR-RPT-001..003).
  */
 final class DashboardController
 {
@@ -28,8 +29,17 @@ final class DashboardController
         };
     }
 
-    public function show(Request $request, string $workspace): View
+    public function show(Request $request, string $workspace, DashboardStats $stats): View
     {
-        return view('dashboard', ['workspace' => $workspace, 'user' => $request->user()]);
+        /** @var User $user */
+        $user = $request->user();
+        [$view, $data] = match ($workspace) {
+            'participant' => ['dashboards.participant', $stats->participant($user)],
+            'trainer' => ['dashboards.trainer', $stats->trainer($user)],
+            'organization' => ['dashboards.organization', $stats->organization($user)],
+            default => ['dashboards.admin', $stats->admin($user)],
+        };
+
+        return view($view, $data + ['workspace' => $workspace, 'user' => $user]);
     }
 }

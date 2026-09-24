@@ -1,6 +1,7 @@
 <x-layouts.app title="Keamanan Akun" :workspace="$workspace">
     <h1 class="text-xl font-extrabold text-slate-800">Keamanan Akun</h1>
-    <p class="mt-0.5 mb-6 text-sm text-slate-600">Kelola kata sandi, autentikasi dua faktor, dan pantau aktivitas masuk akun Anda.</p>
+    <p class="mt-0.5 mb-4 text-sm text-slate-600">Kelola kata sandi, autentikasi dua faktor, dan pantau aktivitas masuk akun Anda.</p>
+    @include('account._tabs')
 
     <div class="grid gap-6 lg:grid-cols-2">
         <section class="card p-6" aria-labelledby="password-heading">

@@ -62,8 +62,11 @@ fi
 $PHP artisan config:clear
 $PHP artisan migrate --database=pgsql_migrator --force || { echo "GAGAL: migrate"; exit 1; }
 
-# --- 4. Peran/izin & cache produksi ----------------------------------------
+# --- 4. Peran/izin, data awal & cache produksi -----------------------------
 $PHP artisan stu:access-sync
+$PHP artisan stu:certificate-defaults
+$PHP artisan stu:signing-key            # sertifikat penandatangan UJI (staging); produksi memakai PSrE/KMS
+$PHP artisan stu:demo-content           # konten contoh sintetis untuk UAT (ditolak di produksi)
 $PHP artisan config:cache && $PHP artisan route:cache && $PHP artisan view:cache && $PHP artisan event:cache
 
 # --- 5. Super Admin pertama (sekali) ----------------------------------------
@@ -75,6 +78,7 @@ if [ ! -f "$HOME_DIR/.lms-admin.done" ] && [ -f "$HOME_DIR/.lms-admin-email" ]; 
 fi
 
 echo "--- verifikasi ---"
+$PHP -m | grep -iE '^(fileinfo|openssl|gd|pdo_pgsql|mbstring)$' | tr '\n' ' '; echo
 $PHP artisan about --only=environment 2>&1 | head -20
 $PHP artisan migrate:status --database=pgsql_migrator 2>&1 | tail -8
 $PHP artisan stu:audit-verify

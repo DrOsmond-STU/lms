@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Http\Controllers;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Audit\Services\SecurityEventLogger;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Services\DeviceSessions;
 use App\Support\Security\TokenHasher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +83,7 @@ final class PasswordResetController
                         'session_version' => $user->session_version + 1, // cabut semua sesi (SEC-AUTH-19)
                     ])->save();
                     $audit->record('user.password_reset', $user, 'user', $user->id);
+                    app(DeviceSessions::class)->revokeOthers($user, null, 'password_reset');
                 });
                 $securityEvents->log('authn_password_changed', 'info', $user->id, ['via' => 'reset']);
             },

@@ -37,6 +37,10 @@ final class ProductionGuard
         if (strlen((string) base64_decode((string) config('security.pepper'), true)) < 32) {
             $violations[] = 'SECURITY_PEPPER wajib diisi (≥ 32 byte, base64).';
         }
+        // Staging shared hosting tanpa ClamAV diizinkan memakai `none` (tercatat di data media).
+        if (app()->isProduction() && config('media.scanner') !== 'clamd') {
+            $violations[] = 'MEDIA_SCANNER harus clamd di produksi.';
+        }
         if (class_exists('Laravel\\Telescope\\TelescopeServiceProvider')) {
             $violations[] = 'Laravel Telescope tidak boleh terpasang di produksi.';
         }

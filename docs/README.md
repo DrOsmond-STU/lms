@@ -149,21 +149,45 @@ FR-* / NFR-* (dok. 02, 03)
 | IaC (OpenTofu), staging cloud, deploy CD, image signing | ⏳ Fase 0 lanjutan | dok. 11 |
 | WebAuthn/Passkey | ⏳ Fase 3 | FR-AUTH-006 |
 
-## Status Implementasi — Fase 1 (MVP Inti), inkremen Sprint 1–2
+## Status Implementasi — Fase 1 (MVP Inti)
 
-| Komponen | Status | Lokasi kode / uji |
+Seluruh alur inti berjalan end-to-end di staging: **program → kelas → materi → kuis/ujian →
+enrollment → kelulusan → approval → sertifikat PDF bertanda tangan → verifikasi publik**.
+
+| Epic | Komponen | Status | Uji |
+|---|---|---|---|
+| EP-02 | Registrasi + OTP email, login, MFA TOTP + kode pemulihan, lupa/ubah kata sandi, re-auth, **sesi & perangkat** (cabut satu/semua), **notifikasi login perangkat baru** | ✅ | `RegistrationTest`, `AccountSecurityTest`, `PlatformFeaturesTest` |
+| EP-03 | Master pengguna: undangan 72 jam, peran sesuai hierarki, nonaktif, reset MFA terverifikasi, **Super Admin via persetujuan kedua (maks. 3)**, profil peserta | ✅ | `UserAdministrationTest`, `PlatformFeaturesTest` |
+| EP-04 | Master organisasi + domain terverifikasi; **portal Admin Organisasi** (setujui anggota, progres anggota, audit organisasi) | ✅ | `OrganizationAdminTest`, `PlatformFeaturesTest` |
+| EP-05 | Program: CRUD, deskripsi Markdown tersanitasi, tag, **review oleh admin berbeda** (dijaga DB), arsip; katalog publik & peserta dengan filter | ✅ | `CatalogAndClassTest` |
+| EP-06 | Kelas/batch: periode, jendela daftar, **kuota atomik** (UPDATE bersyarat + CHECK DB), trainer utama/asisten, kelas khusus organisasi, syarat kelulusan, status | ✅ | `CatalogAndClassTest`, `EnrollmentAndLearningTest` |
+| EP-07 | Modul → Bab → Lesson (video, PDF, teks, tautan allowlist, kuis), urutan naik/turun; unggahan **magic bytes**, hash SHA-256, disk privat, **URL bertanda tangan 10 menit terikat pengguna**; progres video tervalidasi kewajaran (SEC-EXAM-17) | ✅ (lihat deviasi) | `EnrollmentAndLearningTest` |
+| EP-08 | Bank soal (5 tipe, kunci isian terenkripsi, versi soal, akses diaudit); kuis & ujian akhir; **alias ID per attempt**, timer server + grace 30 dtk, auto-submit terjadwal, satu attempt aktif (indeks unik parsial), penilaian server, esai manual, kesempatan tambahan beralasan, void attempt, indikator integritas | ✅ | `ExamIntegrityTest` |
+| EP-09 | Enrollment mandiri (gratis) & oleh admin, mesin status + riwayat, satu enrollment aktif per program, evaluasi kelulusan otomatis → antrean approval, "Pembelajaran Saya" | ✅ | `EnrollmentAndLearningTest`, `ExamIntegrityTest` |
+| EP-10 | Template berversi (immutable setelah dipakai, aktivasi maker–checker), approval dengan **SoD** (trainer kelas tidak boleh menyetujui), nomor `{KAT}/{KODE}/{ORG}/{TAHUN}/{URUT5}` atomik, kode verifikasi Crockford 12 karakter, **PDF ditandatangani digital (PKCS#7 tertanam) + QR**, hash disimpan, unduhan URL 5 menit, verifikasi publik web + `GET /api/v1/certificates/verify/{code}` (nama tersamar via nomor, rate limit 10/menit & 100/hari, log IP ter-hash), pencabutan maker–checker, basis data + ekspor CSV, pengingat kedaluwarsa | ✅ (lihat deviasi) | `CertificationTest` |
+| EP-11 | Pusat notifikasi in-app + email minimal (tautan internal saja) | ✅ | `PlatformFeaturesTest` |
+| EP-12 | Dashboard peserta, trainer, Admin Organisasi, admin platform | ✅ | `PlatformFeaturesTest` |
+| EP-13 | Tampilan jejak audit berfilter sesuai lingkup + ekspor diaudit; pengaturan sistem dalam batas aman (diaudit) | ✅ | `PlatformFeaturesTest` |
+| EP-14 | Persetujuan berversi, persetujuan ulang saat versi berubah, persetujuan opsional dapat ditarik | ✅ (teks hukum final dari tim legal) | `PlatformFeaturesTest` |
+
+**Uji otomatis:** 169 uji (Pest, PostgreSQL nyata dengan RLS), PHPStan level 8 bersih, Pint,
+Semgrep kustom, gitleaks; uji browser end-to-end Playwright tanpa pelanggaran CSP.
+
+### Deviasi staging yang tercatat (bukan target produksi)
+
+| Kebutuhan | Staging (shared hosting) | Produksi (rencana) |
 |---|---|---|
-| Registrasi mandiri peserta + OTP email (10 menit, maks. 5 percobaan, kirim ulang 3/jam), anti-enumerasi, persetujuan S&K/Privasi berversi | ✅ | `RegistrationService`, `tests/Security/RegistrationTest.php` (FR-AUTH-001, 002) |
-| Keanggotaan organisasi saat registrasi: aktif hanya bila domain email terverifikasi, selain itu *pending* | ✅ | FR-AUTH-003 |
-| Token sekali pakai ter-hash (`one_time_tokens`) untuk OTP & undangan; payload antrian berisi rahasia dienkripsi | ✅ | `OneTimeTokens` |
-| Halaman Keamanan Akun: ubah kata sandi (wajib sandi lama, cabut sesi lain, notifikasi email), buat ulang kode pemulihan (re-auth), riwayat masuk | ✅ | `tests/Security/AccountSecurityTest.php` (FR-AUTH-008, 010 sebagian) |
-| Re-autentikasi `reauth` untuk aksi sensitif (kembali ke halaman asal, POST tidak diputar ulang) | ✅ | `RequireRecentAuth` (FR-AUTH-014) |
-| Master Organisasi: CRUD, kode immutable, arsip dengan alasan, domain email terverifikasi (domain email publik ditolak) | ✅ | `tests/Security/OrganizationAdminTest.php` (FR-ORG-001) |
-| Master Pengguna: daftar (email disamarkan), undangan 72 jam, tetapkan/cabut peran sesuai hierarki, nonaktif/aktifkan (cabut sesi), reset MFA terverifikasi | ✅ | `tests/Security/UserAdministrationTest.php` (FR-USER-001, 002, 003, 006) |
-| Penetapan `super_admin` via UI | ⛔ Ditolak sampai alur persetujuan kedua (maker–checker) tersedia | FR-USER-002 |
-| Pembersihan registrasi tak terverifikasi (7 hari) & token kedaluwarsa | ✅ terjadwal harian | `stu:prune-unverified` |
-| Persetujuan anggota oleh Admin Organisasi, sesi & perangkat, notifikasi login perangkat baru, CAPTCHA adaptif, profil peserta | ⏳ Sprint berikutnya | FR-AUTH-009, 010, FR-USER-005, ORG-02 |
-| Katalog program, kelas, konten, asesmen, enrollment, sertifikat | ⏳ Sprint 3–9 | EP-05…EP-10 |
+| Transcoding video HLS (FR-CNT-002) | Video disajikan langsung (MP4/WebM) lewat URL bertanda tangan + Range | Pipeline transcoding HLS + kunci AES di worker media |
+| Pemindaian malware (FR-CNT-003) | `MEDIA_SCANNER=none` — berkas ditandai "belum dipindai antivirus" di UI | ClamAV (`clamd`) wajib; ProductionGuard menolak `none` |
+| Tanda tangan PDF PAdES B-LT + timestamp RFC 3161 (FR-CERT-005) | PKCS#7 tertanam dengan **sertifikat uji** self-signed (`stu:signing-key`) | Sertifikat PSrE/AATL di KMS/HSM + TSA |
+| Unggahan video ≤ 2 GB | Dibatasi `upload_max_filesize` hosting (512 MB) | Unggahan langsung ke object storage |
+| Pembayaran program berbayar | Pendaftaran mandiri hanya program gratis; admin dapat mendaftarkan peserta | Fase 2 (EP-15, Midtrans) |
+
+### Belum termasuk (sesuai roadmap)
+
+Fase 2: pembayaran & kupon, tugas & pengumpulan, presensi QR, live class, diskusi,
+notifikasi WhatsApp, laporan & ekspor lanjutan, hak subjek data (UU PDP) mandiri, CMS beranda,
+impor massal, ubah email terverifikasi. Fase 3: API key mitra, SSO OIDC, WebAuthn, gamifikasi.
 
 ## Hal yang Masih Perlu Ditetapkan (di Fase 0)
 

@@ -99,3 +99,18 @@ tests/                Unit, Security, Arch
 
 Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md) dan [`docs/09-standar-pengembangan.md`](docs/09-standar-pengembangan.md).
 Setiap PR wajib lulus CI dan checklist keamanan.
+
+
+## Perintah operasional
+
+| Perintah | Fungsi |
+|---|---|
+| `php artisan stu:access-sync` | Menyelaraskan peran & izin dari kode |
+| `php artisan stu:bootstrap-admin --email= --name=` | Super Admin pertama (undangan 72 jam) |
+| `php artisan stu:certificate-defaults` | Template sertifikat default bila belum ada yang aktif |
+| `php artisan stu:signing-key` | Sertifikat penandatangan **uji** (non-produksi) |
+| `php artisan stu:demo-content` | Konten contoh sintetis untuk lokal/UAT (ditolak di produksi) |
+| `php artisan stu:exams-auto-submit` | Auto-submit attempt kedaluwarsa (terjadwal tiap menit) |
+| `php artisan stu:certificates-expiry-reminders` | Pengingat sertifikat 60 hari sebelum kedaluwarsa (harian) |
+| `php artisan stu:prune-unverified` | Hapus registrasi tak terverifikasi & token kedaluwarsa (harian) |
+| `php artisan stu:audit-verify` | Verifikasi rantai hash jejak audit (harian) |

@@ -13,6 +13,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} — {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles(['nonce' => Vite::cspNonce()])
@@ -54,10 +55,15 @@
 <header class="fixed top-0 right-0 left-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:left-64 lg:px-6">
     <span class="font-extrabold text-slate-800 lg:hidden">STU LMS</span>
     <div class="flex-1"></div>
+    @php($unread = \App\Modules\Notification\Services\Notifier::unreadCount($user))
+    <a href="{{ route('notifications.index') }}" class="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Notifikasi{{ $unread > 0 ? ', '.$unread.' belum dibaca' : '' }}">
+        <x-icon name="bell" />
+        @if ($unread > 0)<span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[0.65rem] font-bold text-white">{{ $unread > 99 ? '99+' : $unread }}</span>@endif
+    </a>
     <span class="badge bg-brand-50 text-brand-700">{{ $workspaceLabels[$workspace] ?? '' }}</span>
     <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
         <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-extrabold text-brand-800" aria-hidden="true">{{ $initials }}</span>
-        <a href="{{ route('account.security') }}" class="hidden text-sm leading-tight hover:underline md:block" title="Keamanan akun"><span class="block font-bold text-slate-800">{{ $user->name }}</span><span class="block text-xs text-slate-600">{{ $user->email }}</span></a>
+        <a href="{{ route('account.profile') }}" class="hidden text-sm leading-tight hover:underline md:block" title="Akun saya"><span class="block font-bold text-slate-800">{{ $user->name }}</span><span class="block text-xs text-slate-600">{{ $user->email }}</span></a>
     </div>
     <form method="POST" action="{{ route('logout') }}" class="lg:hidden">
         @csrf

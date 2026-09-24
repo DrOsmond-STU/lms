@@ -1,0 +1,48 @@
+<x-layouts.app title="Hasil Asesmen" workspace="participant">
+    <a href="{{ route('exams.show', [$attempt->enrollment_id, $attempt->assessment_id]) }}" class="text-sm font-bold text-brand-700 hover:underline">&larr; {{ $attempt->assessment->title }}</a>
+    <h1 class="mt-2 mb-6 text-xl font-extrabold text-slate-800">Hasil — Attempt #{{ $attempt->attempt_no }}</h1>
+
+    <section class="card p-6">
+        @if ($attempt->status === 'graded')
+            <p class="text-sm text-slate-500">Skor</p>
+            <p @class(['text-4xl font-extrabold', 'text-emerald-700' => $attempt->passed, 'text-rose-700' => ! $attempt->passed])>{{ rtrim(rtrim($attempt->score, '0'), '.') }}</p>
+            <p class="mt-1 text-sm">{{ $attempt->passed ? 'Lulus — skor mencapai minimal '.rtrim(rtrim($attempt->assessment->passing_score, '0'), '.').'.' : 'Belum mencapai skor minimal '.rtrim(rtrim($attempt->assessment->passing_score, '0'), '.').'.' }}</p>
+        @elseif ($attempt->status === 'voided')
+            <p class="text-sm text-rose-700">Attempt ini dibatalkan. Alasan: {{ $attempt->voided_reason }}</p>
+        @else
+            <p class="text-sm text-slate-600">Jawaban Anda sedang menunggu penilaian trainer (ada soal esai). Anda akan menerima notifikasi setelah dinilai.</p>
+        @endif
+        <p class="mt-3 text-xs text-slate-500">Dikumpulkan {{ $attempt->submitted_at?->timezone('Asia/Jakarta')->format('d M Y H:i') }} WIB{{ $attempt->status === 'auto_submitted' ? ' (otomatis saat waktu habis)' : '' }}.</p>
+    </section>
+
+    @if ($review)
+        <h2 class="mt-8 mb-3 font-bold text-slate-800">Pembahasan</h2>
+        <div class="space-y-4">
+            @foreach ($attempt->question_order as $index => $questionId)
+                @php($question = $questions->get($questionId))
+                @continue($question === null)
+                @php($answer = $answers->get($questionId))
+                <article class="card p-5">
+                    <p class="text-xs font-bold {{ $answer?->is_correct ? 'text-emerald-700' : 'text-rose-700' }}">Soal {{ $index + 1 }} · {{ $answer?->is_correct ? 'Benar' : 'Salah' }}</p>
+                    <div class="prose-content mt-1 text-sm">@include('components.safe-html', ['html' => $question->stem_html])</div>
+                    @if ($question->options->isNotEmpty())
+                        <ul class="mt-2 space-y-1 text-sm">
+                            @foreach ($question->options as $option)
+                                <li @class(['font-bold text-emerald-700' => $option->is_correct, 'text-rose-700' => ! $option->is_correct && in_array($option->id, $answer?->selected_option_ids ?? [], true)])>
+                                    {{ $option->is_correct ? '✓' : (in_array($option->id, $answer?->selected_option_ids ?? [], true) ? '✗' : '○') }} @include('components.safe-html', ['html' => $option->body_html])
+                                </li>
+                            @endforeach
+                        </ul>
+                    @elseif ($question->type === 'short_answer')
+                        <p class="mt-2 text-sm">Jawaban Anda: {{ $answer?->text_answer ?: '—' }}</p>
+                    @endif
+                    @if ($question->explanation_html)
+                        <div class="prose-content mt-3 rounded-lg bg-slate-50 p-3 text-sm">@include('components.safe-html', ['html' => $question->explanation_html])</div>
+                    @endif
+                </article>
+            @endforeach
+        </div>
+    @elseif ($attempt->status === 'graded' && $attempt->assessment->review_policy !== 'never')
+        <p class="mt-6 text-sm text-slate-500">Pembahasan tersedia setelah jendela asesmen ditutup untuk semua peserta.</p>
+    @endif
+</x-layouts.app>

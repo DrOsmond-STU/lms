@@ -6,11 +6,18 @@ namespace App\Providers;
 
 use App\Modules\Access\Permissions;
 use App\Modules\Identity\Models\User;
+use App\Modules\Settings\Services\SystemSettings;
+use App\Support\Media\ClamdScanner;
+use App\Support\Media\MalwareScanner;
+use App\Support\Media\UnscannedScanner;
 use App\Support\Security\ProductionGuard;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +29,10 @@ final class AppServiceProvider extends ServiceProvider
     {
         // Satu konteks tenant per request/job.
         $this->app->scoped(TenantContext::class);
+
+        $this->app->singleton(MalwareScanner::class, fn () => config('media.scanner') === 'clamd'
+            ? new ClamdScanner((string) config('media.clamd_address'))
+            : new UnscannedScanner);
     }
 
     public function boot(): void
@@ -29,7 +40,19 @@ final class AppServiceProvider extends ServiceProvider
         // Parameter rute berformat UUID divalidasi sebelum menyentuh basis data (ID tidak
         // valid → 404, bukan galat SQL). Token tautan: 43 karakter base64url.
         $uuid = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
-        Route::patterns(['organization' => $uuid, 'user' => $uuid, 'domain' => $uuid, 'assignment' => $uuid, 'token' => '[A-Za-z0-9_-]{16,128}']);
+        // Pengaturan UI (dalam batas aman) menimpa konfigurasi baseline.
+        SystemSettings::applyToConfig();
+
+        Route::patterns(array_fill_keys([
+            'organization', 'user', 'domain', 'assignment', 'program', 'class', 'module', 'chapter', 'lesson', 'enrollment',
+            'assessment', 'attempt', 'bank', 'question', 'certificate', 'template', 'approval', 'member', 'media', 'notification', 'session',
+        ], $uuid) + ['token' => '[A-Za-z0-9_-]{16,128}']);
+
+        // Verifikasi publik: 10/menit & 100/hari per IP (keamanan/07 SEC-CERT-12).
+        RateLimiter::for('verification', fn (Request $request) => [
+            Limit::perMinute(10)->by('verify-m:'.$request->ip()),
+            Limit::perDay(100)->by('verify-d:'.$request->ip()),
+        ]);
 
         // Staging diperlakukan seketat produksi (keamanan/13 SEC-INFRA-34).
         if ($this->app->environment('production', 'staging')) {

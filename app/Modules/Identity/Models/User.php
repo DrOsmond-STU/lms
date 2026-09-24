@@ -163,27 +163,38 @@ final class User extends Authenticatable implements CanResetPasswordContract
     }
 
     /**
-     * Organisasi yang boleh diakses dalam konteks tenant: organisasi tempat pengguna
-     * memegang peran (org_admin/trainer/participant) atau menjadi anggota aktif.
+     * Organisasi dalam lingkup administrasi tenant pengguna: organisasi tempat ia memegang
+     * peran Admin Organisasi. Baris milik pengguna sendiri tetap terlihat lewat
+     * `user_id = app_user_id()` pada kebijakan RLS, sehingga peserta/trainer tidak melihat
+     * data anggota lain dari organisasi yang sama.
      *
      * @return list<string>
      */
     public function tenantOrganizationIds(): array
     {
-        $fromRoles = $this->roles
+        /** @var list<string> */
+        return array_values($this->roles
+            ->filter(fn (Role $role): bool => $role->code === RoleCode::OrgAdmin->value)
             ->map(fn (Role $role) => $role->getRelationValue('pivot')?->getAttribute('organization_id'))
             ->filter()
+            ->unique()
             ->values()
-            ->all();
+            ->all());
+    }
 
-        $fromMembership = DB::table('organization_members')
-            ->where('user_id', $this->id)
-            ->where('status', 'active')
-            ->pluck('organization_id')
-            ->all();
+    /**
+     * Kelas yang diampu pengguna sebagai trainer (lingkup RLS `app.trainer_class_ids`).
+     *
+     * @return list<string>
+     */
+    public function trainerClassIds(): array
+    {
+        if (! $this->hasRole(RoleCode::Trainer)) {
+            return [];
+        }
 
         /** @var list<string> */
-        return array_values(array_unique(array_merge($fromRoles, $fromMembership)));
+        return DB::table('class_trainers')->where('user_id', $this->id)->pluck('course_class_id')->all();
     }
 
     /**

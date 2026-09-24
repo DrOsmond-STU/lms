@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http\Middleware;
 
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Services\DeviceSessions;
 use App\Modules\Identity\Services\SessionAuthenticator;
 use Closure;
 use Illuminate\Http\Request;
@@ -17,7 +18,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class ValidateSessionState
 {
-    public function __construct(private readonly SessionAuthenticator $authenticator) {}
+    public function __construct(
+        private readonly SessionAuthenticator $authenticator,
+        private readonly DeviceSessions $devices,
+    ) {}
 
     /**
      * @param  Closure(Request): Response  $next
@@ -36,6 +40,8 @@ final class ValidateSessionState
             $reason = 'account_inactive';
         } elseif ((int) $session->get(SessionAuthenticator::KEY_VERSION) !== $user->session_version) {
             $reason = 'session_revoked';
+        } elseif (! $this->devices->validate($request, $user)) {
+            $reason = 'device_session_revoked';
         } else {
             $privileged = $user->requiresMfa() ? 'privileged' : 'participant';
             $now = now()->getTimestamp();

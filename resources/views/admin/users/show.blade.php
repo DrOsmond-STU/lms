@@ -107,6 +107,18 @@
                 @endcan
             @endif
 
+            @if ($canManage && auth()->user()->hasRole(\App\Modules\Access\RoleCode::SuperAdmin) && ! $user->hasRole(\App\Modules\Access\RoleCode::SuperAdmin) && $user->status === 'active')
+                <section class="card p-6" aria-labelledby="sa-heading">
+                    <h2 id="sa-heading" class="font-bold text-slate-800">Jadikan Super Admin</h2>
+                    <p class="mt-1 text-xs text-slate-500">Maks. 3 akun. Dieksekusi setelah disetujui Super Admin kedua.</p>
+                    <form method="POST" action="{{ route('admin.users.super-admin', $user) }}" class="mt-3 space-y-2" novalidate>@csrf
+                        <label for="sa_reason" class="form-label">Alasan</label>
+                        <input id="sa_reason" name="reason" minlength="10" maxlength="500" class="form-input">
+                        <button class="btn-secondary">Ajukan</button>
+                    </form>
+                </section>
+            @endif
+
             @if ($canManage && $hasMfa)
                 @can('user.reset_mfa')
                     <section class="card p-6" aria-labelledby="mfa-heading">

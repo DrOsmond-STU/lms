@@ -72,3 +72,11 @@ it('forbids caching and proxy rewriting of HTML pages, including guest pages', f
 it('sends no-referrer on invitation links so the token never leaks', function () {
     expect($this->get('/undangan/'.str_repeat('a', 43))->headers->get('Referrer-Policy'))->toBe('no-referrer');
 })->group('SEC-AUTH-22');
+
+it('keeps separate rate-limit counters per throttled route', function () {
+    $routes = collect(app('router')->getRoutes()->getRoutes())
+        ->flatMap(fn ($route) => collect($route->gatherMiddleware())->filter(fn ($m) => is_string($m) && preg_match('/^throttle:\d+,\d+$/', $m) === 1)->map(fn () => $route->uri()))
+        ->reject(fn (string $uri) => str_starts_with($uri, 'livewire'));
+
+    expect($routes->all())->toBe([]);
+})->group('SEC-API');

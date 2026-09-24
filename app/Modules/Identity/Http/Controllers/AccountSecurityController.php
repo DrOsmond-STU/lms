@@ -8,6 +8,7 @@ use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Audit\Services\SecurityEventLogger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Notifications\PasswordChangedNotification;
+use App\Modules\Identity\Services\DeviceSessions;
 use App\Modules\Identity\Services\SessionAuthenticator;
 use App\Support\Privacy\Mask;
 use Illuminate\Contracts\Hashing\Hasher;
@@ -53,7 +54,7 @@ final class AccountSecurityController
         ]);
     }
 
-    public function updatePassword(Request $request, Hasher $hasher, AuditLogger $audit, SecurityEventLogger $securityEvents): RedirectResponse
+    public function updatePassword(Request $request, Hasher $hasher, AuditLogger $audit, SecurityEventLogger $securityEvents, DeviceSessions $devices): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -85,6 +86,8 @@ final class AccountSecurityController
         // Sesi ini tetap berlaku: versinya diperbarui & ID sesi diregenerasi.
         $request->session()->regenerate(true);
         $request->session()->put(SessionAuthenticator::KEY_VERSION, $user->session_version);
+        $current = $request->session()->get(DeviceSessions::SESSION_KEY);
+        $devices->revokeOthers($user, is_string($current) ? $current : null, 'password_changed');
 
         $securityEvents->log('authn_password_changed', 'info', $user->id, ['via' => 'account']);
         $user->notify(new PasswordChangedNotification);

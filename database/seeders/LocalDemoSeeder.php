@@ -50,6 +50,12 @@ final class LocalDemoSeeder extends Seeder
             ])->save();
 
             $roles->assign($user, $role, $organizationId, null);
+            foreach (['terms' => 'legal.terms_version', 'privacy' => 'legal.privacy_version'] as $document => $key) {
+                DB::table('consents')->insertOrIgnore([
+                    'id' => (string) Str::uuid7(), 'user_id' => $user->id, 'document' => $document,
+                    'version' => (string) config($key), 'accepted_at' => now(), 'channel' => 'registration',
+                ]);
+            }
 
             if ($organizationId !== null) {
                 DB::table('organization_members')->insertOrIgnore([

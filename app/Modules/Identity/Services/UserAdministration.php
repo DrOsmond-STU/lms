@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Services;
 
 use App\Modules\Access\RoleCode;
+use App\Modules\Access\Services\ApprovalWorkflow;
 use App\Modules\Access\Services\RoleAssigner;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Audit\Services\SecurityEventLogger;
@@ -34,6 +35,8 @@ final class UserAdministration
         private readonly OneTimeTokens $tokens,
         private readonly AuditLogger $audit,
         private readonly SecurityEventLogger $securityEvents,
+        private readonly DeviceSessions $devices,
+        private readonly ApprovalWorkflow $approvals,
     ) {}
 
     /** @return list<RoleCode> */
@@ -120,6 +123,7 @@ final class UserAdministration
                 'remember_token' => Str::random(60),
             ])->save();
             $this->tokens->revokeAll($target);
+            $this->devices->revokeOthers($target, null, 'account_deactivated');
             $this->audit->record('user.deactivated', $actor, 'user', $target->id, null, $reason);
         });
 
@@ -176,6 +180,26 @@ final class UserAdministration
         $this->roles->revoke($target, $role, $assignment->organization_id, $actor, $reason);
     }
 
+    /**
+     * Penetapan Super Admin hanya lewat persetujuan Super Admin kedua (docs/07 §3).
+     *
+     * @throws AuthorizationException|ValidationException
+     */
+    public function requestSuperAdmin(User $actor, User $target, string $reason): void
+    {
+        if (! $actor->hasRole(RoleCode::SuperAdmin) || $actor->id === $target->id) {
+            throw new AuthorizationException;
+        }
+        if ($target->hasRole(RoleCode::SuperAdmin) || ! $target->isActive()) {
+            throw ValidationException::withMessages(['reason' => 'Pengguna sudah Super Admin atau belum aktif.']);
+        }
+        if (RoleAssigner::conflictsWith($target, RoleCode::SuperAdmin)) {
+            throw ValidationException::withMessages(['reason' => 'Akun peserta tidak dapat menjadi Super Admin — gunakan akun terpisah.']);
+        }
+
+        $this->approvals->request('role.assign_super_admin', 'user', $target->id, ['email' => $target->email], $reason, $actor);
+    }
+
     /** @throws AuthorizationException */
     public function resetMfa(User $actor, User $target, string $ticket, string $method, ?string $note): void
     {
@@ -189,6 +213,7 @@ final class UserAdministration
             DB::table('user_mfa_methods')->where('user_id', $target->id)->delete();
             DB::table('mfa_recovery_codes')->where('user_id', $target->id)->delete();
             $target->forceFill(['session_version' => $target->session_version + 1])->save();
+            $this->devices->revokeOthers($target, null, 'mfa_reset');
             $this->audit->record('user.mfa_reset', $actor, 'user', $target->id, ['ticket' => $ticket, 'verification' => $method], $reason);
         });
 

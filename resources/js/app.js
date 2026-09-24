@@ -1,2 +1,11 @@
-// Livewire 4 (mode CSP-safe) sudah memuat Alpine.js lewat @livewireScripts.
-// Tidak ada eval/innerHTML dengan data pengguna (keamanan/04 SEC-INPUT-03).
+// STU LMS — perilaku klien progresif. Tanpa skrip inline (CSP nonce + strict-dynamic);
+// semua fitur tetap berfungsi tanpa JavaScript melalui formulir biasa.
+import { initExam } from './exam';
+import { initVideoProgress } from './video';
+import { initConfirmations } from './confirm';
+
+document.addEventListener('DOMContentLoaded', () => {
+    initConfirmations();
+    initExam();
+    initVideoProgress();
+});

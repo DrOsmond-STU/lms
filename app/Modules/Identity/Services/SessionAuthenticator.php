@@ -26,6 +26,7 @@ final class SessionAuthenticator
     public function __construct(
         private readonly AuthFactory $auth,
         private readonly SecurityEventLogger $securityEvents,
+        private readonly DeviceSessions $devices,
     ) {}
 
     public function complete(Request $request, User $user, bool $mfaVerified): void
@@ -48,6 +49,7 @@ final class SessionAuthenticator
         ]);
 
         $user->forceFill(['last_login_at' => now(), 'last_login_ip' => $request->ip()])->saveQuietly();
+        $this->devices->start($request, $user);
 
         $this->securityEvents->log('authn_login_success', 'info', $user->id, ['mfa' => $mfaVerified]);
     }
@@ -61,6 +63,9 @@ final class SessionAuthenticator
     public function logout(Request $request, string $reason = 'user_logout'): void
     {
         $userId = $this->guard()->id();
+        if ($request->hasSession()) {
+            $this->devices->end($request, $reason);
+        }
         $this->guard()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

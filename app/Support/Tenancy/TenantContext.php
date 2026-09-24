@@ -25,6 +25,9 @@ final class TenantContext
     /** @var list<string> */
     private array $organizationIds = [];
 
+    /** @var list<string> */
+    private array $trainerClassIds = [];
+
     private bool $platformStaff = false;
 
     public function __construct(private readonly DatabaseManager $db) {}
@@ -33,6 +36,7 @@ final class TenantContext
     {
         $this->userId = $user->id;
         $this->organizationIds = $user->tenantOrganizationIds();
+        $this->trainerClassIds = $user->trainerClassIds();
         $this->platformStaff = $user->isPlatformStaff();
         $this->push();
     }
@@ -42,6 +46,7 @@ final class TenantContext
     {
         $this->userId = null;
         $this->organizationIds = [];
+        $this->trainerClassIds = [];
         $this->platformStaff = true;
         $this->push();
     }
@@ -57,13 +62,13 @@ final class TenantContext
      */
     public function runAsSystem(Closure $callback): mixed
     {
-        $previous = [$this->userId, $this->organizationIds, $this->platformStaff];
+        $previous = [$this->userId, $this->organizationIds, $this->trainerClassIds, $this->platformStaff];
         $this->applySystem();
 
         try {
             return $callback();
         } finally {
-            [$this->userId, $this->organizationIds, $this->platformStaff] = $previous;
+            [$this->userId, $this->organizationIds, $this->trainerClassIds, $this->platformStaff] = $previous;
             $this->push();
         }
     }
@@ -72,6 +77,7 @@ final class TenantContext
     {
         $this->userId = null;
         $this->organizationIds = [];
+        $this->trainerClassIds = [];
         $this->platformStaff = false;
         $this->push();
     }
@@ -102,7 +108,7 @@ final class TenantContext
         $connection->select(
             'select set_config(\'app.user_id\', ?, false), set_config(\'app.org_ids\', ?, false), '
             .'set_config(\'app.trainer_class_ids\', ?, false), set_config(\'app.is_platform_staff\', ?, false)',
-            [$this->userId ?? '', implode(',', $this->organizationIds), '', $this->platformStaff ? 'on' : ''],
+            [$this->userId ?? '', implode(',', $this->organizationIds), implode(',', $this->trainerClassIds), $this->platformStaff ? 'on' : ''],
         );
     }
 }
