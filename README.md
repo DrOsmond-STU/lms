@@ -107,6 +107,7 @@ Setiap PR wajib lulus CI dan checklist keamanan.
 |---|---|
 | `php artisan stu:access-sync` | Menyelaraskan peran & izin dari kode |
 | `php artisan stu:bootstrap-admin --email= --name=` | Super Admin pertama (undangan 72 jam) |
+| `php artisan stu:resend-invitation <email>` | Kirim ulang undangan atur kata sandi untuk akun yang belum punya kata sandi (mis. undangan Super Admin kedaluwarsa) |
 | `php artisan stu:certificate-defaults` | Template sertifikat default bila belum ada yang aktif |
 | `php artisan stu:signing-key` | Sertifikat penandatangan **uji** (non-produksi) |
 | `php artisan stu:demo-content` | Konten contoh sintetis untuk lokal/UAT (ditolak di produksi) |

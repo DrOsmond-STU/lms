@@ -13,8 +13,11 @@ use App\Modules\Certification\Models\CertificateTemplate;
 use App\Modules\Enrollment\Console\SimulateJourneyCommand;
 use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Notifications\InvitationNotification;
+use App\Modules\Identity\Services\OneTimeTokens;
 use App\Modules\Settings\Services\SystemSettings;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 // ---------------------------------------------------------------------------------- Pengaturan
@@ -231,3 +234,25 @@ it('leaves the simulation admin account unable to log in after the run', functio
     $this->artisan('stu:simulate')->assertSuccessful();
     expect($admin->fresh()->status)->toBe('deactivated');
 })->group('SIMULASI', 'SEC-AUTH');
+
+// ------------------------------------------------------------------------- Undangan via CLI
+
+it('resends the invitation from the CLI only for accounts without a password', function () {
+    Notification::fake();
+    $this->artisan('stu:bootstrap-admin', ['--email' => 'admin.baru@contoh.test', '--name' => 'Admin Baru'])->assertSuccessful();
+    $admin = User::query()->where('email', 'admin.baru@contoh.test')->firstOrFail();
+    // Skenario staging: akun sempat berstatus active tanpa kata sandi.
+    asSystem(fn () => $admin->forceFill(['status' => 'active'])->save());
+
+    $this->artisan('stu:resend-invitation', ['email' => 'admin.baru@contoh.test'])->assertSuccessful();
+
+    Notification::assertSentToTimes($admin, InvitationNotification::class, 2);
+    expect($admin->fresh()->status)->toBe('pending_verification')
+        ->and(DB::table('one_time_tokens')->where('user_id', $admin->id)->where('purpose', OneTimeTokens::PURPOSE_INVITATION)->whereNull('consumed_at')->count())->toBeGreaterThanOrEqual(1)
+        ->and(DB::table('audit_logs')->where('action', 'user.invitation_resent')->count())->toBe(1);
+
+    // Akun yang sudah punya kata sandi ditolak.
+    $withPassword = makeUser(RoleCode::Participant);
+    $this->artisan('stu:resend-invitation', ['email' => $withPassword->email])->assertFailed();
+    $this->artisan('stu:resend-invitation', ['email' => 'tidak.ada@contoh.test'])->assertFailed();
+})->group('SEC-AUTH', 'CLI');
