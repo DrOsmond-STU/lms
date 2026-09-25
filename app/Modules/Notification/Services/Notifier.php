@@ -24,6 +24,7 @@ final class Notifier
         'grading' => 'Hasil Penilaian',
         'certificate' => 'Sertifikat',
         'payment' => 'Pembayaran',
+        'referral' => 'Referral',
         'security' => 'Keamanan Akun',
         'system' => 'Sistem',
     ];

@@ -18,4 +18,8 @@ return [
     'certificate_expiry_reminder_days' => 60,
     'payment_deadline_hours' => 72,
     'payment_manual_settle_threshold' => 1_000_000,
+    'referral_enabled' => true,
+    'referral_commission_percent' => 10,
+    'referral_max_commission' => 0,
+    'referral_validity_months' => 12,
 ];

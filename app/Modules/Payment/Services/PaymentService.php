@@ -16,6 +16,7 @@ use App\Modules\Learning\Services\MediaStorage;
 use App\Modules\Notification\Services\Notifier;
 use App\Modules\Payment\Models\PaymentEvent;
 use App\Modules\Payment\Models\PaymentTransaction;
+use App\Modules\Referral\Services\ReferralService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,7 @@ final class PaymentService
         private readonly AuditLogger $audit,
         private readonly Notifier $notifier,
         private readonly ApprovalWorkflow $approvals,
+        private readonly ReferralService $referrals,
     ) {}
 
     /** Rekening tujuan sudah diisi di Pengaturan Sistem → Pembayaran. */
@@ -224,6 +226,7 @@ final class PaymentService
             ], self::blank($note), $transaction->organization_id);
         });
         $transaction->refresh();
+        $this->referrals->onPaymentSettled($transaction);
 
         $this->notifier->send($transaction->user, 'payment', 'Pembayaran dikonfirmasi', 'Pembayaran '.$transaction->amountLabel().' untuk '.$transaction->program->name
             .' telah diterima (invoice '.$transaction->invoice_number.'). Selamat belajar!', '/peserta/kelas/'.$transaction->enrollment_id, true);

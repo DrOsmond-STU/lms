@@ -6,6 +6,7 @@ use App\Modules\Access\Http\Middleware\RequireWorkspace;
 use App\Modules\Identity\Http\Middleware\EnsureConsentIsCurrent;
 use App\Modules\Identity\Http\Middleware\EnsureMfaVerified;
 use App\Modules\Identity\Http\Middleware\ValidateSessionState;
+use App\Modules\Referral\Http\Middleware\CaptureReferral;
 use App\Support\Security\Middleware\AssignRequestId;
 use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\Middleware\SecurityHeaders;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             ValidateSessionState::class,
             ApplyTenantContext::class,
+            CaptureReferral::class,
         ]);
         // Konteks tenant (RLS) harus aktif SEBELUM route model binding, agar objek ber-tenant
         // milik pengguna dapat di-resolve dan milik orang lain tetap 404.

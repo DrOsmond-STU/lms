@@ -8,6 +8,7 @@ use App\Modules\Access\Models\Role;
 use App\Modules\Access\RoleCode;
 use App\Modules\Identity\Notifications\ResetPasswordNotification;
 use App\Modules\Organization\Models\Organization;
+use App\Modules\Referral\Models\ReferralProfile;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -30,6 +32,8 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $password
  * @property string $status
  * @property string|null $primary_organization_id
+ * @property string|null $referred_by
+ * @property Carbon|null $referred_at
  * @property int $session_version
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $password_changed_at
@@ -64,6 +68,7 @@ final class User extends Authenticatable implements CanResetPasswordContract
     {
         return [
             'email_verified_at' => 'datetime',
+            'referred_at' => 'datetime',
             'password_changed_at' => 'datetime',
             'last_login_at' => 'datetime',
             'deactivated_at' => 'datetime',
@@ -100,6 +105,18 @@ final class User extends Authenticatable implements CanResetPasswordContract
     public function primaryOrganization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'primary_organization_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    /** @return HasOne<ReferralProfile, $this> */
+    public function referralProfile(): HasOne
+    {
+        return $this->hasOne(ReferralProfile::class);
     }
 
     /** @return HasMany<MfaMethod, $this> */

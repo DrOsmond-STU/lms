@@ -27,6 +27,12 @@
             <x-form-error field="organization_code" />
         </div>
         <div>
+            <label for="referral_code" class="form-label">Kode Referral <span class="font-normal text-slate-500">(opsional)</span></label>
+            <input id="referral_code" name="referral_code" type="text" value="{{ old('referral_code', strtoupper((string) (request()->query('ref') ?: request()->cookie(\App\Modules\Referral\Services\ReferralService::COOKIE)))) }}" maxlength="12" autocomplete="off" class="form-input uppercase" aria-describedby="referral_code_help">
+            <p id="referral_code_help" class="mt-1 text-xs text-slate-500">Kode dari teman yang merekomendasikan platform ini; terisi otomatis bila Anda datang lewat tautan referral.</p>
+            <x-form-error field="referral_code" />
+        </div>
+        <div>
             <label for="password" class="form-label">Kata Sandi</label>
             <input id="password" name="password" type="password" required autocomplete="new-password" minlength="{{ config('security.password.min_participant') }}" maxlength="{{ config('security.password.max') }}" class="form-input" aria-describedby="password_help">
             <p id="password_help" class="mt-1 text-xs text-slate-500">Minimal {{ config('security.password.min_participant') }} karakter. Frasa sandi panjang lebih aman daripada kata acak pendek.</p>

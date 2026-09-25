@@ -12,6 +12,7 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Notifications\AccountAlreadyExistsNotification;
 use App\Modules\Identity\Notifications\RegistrationCodeNotification;
 use App\Modules\Organization\Models\Organization;
+use App\Modules\Referral\Services\ReferralService;
 use App\Support\Security\TokenHasher;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\Hashing\Hasher;
@@ -38,10 +39,11 @@ final class RegistrationService
         private readonly RoleAssigner $roles,
         private readonly AuditLogger $audit,
         private readonly SecurityEventLogger $securityEvents,
+        private readonly ReferralService $referrals,
     ) {}
 
     /**
-     * @param  array{name: string, email: string, phone?: string|null, organization_code?: string|null, password: string}  $data
+     * @param  array{name: string, email: string, phone?: string|null, organization_code?: string|null, referral_code?: string|null, password: string}  $data
      *
      * @throws ValidationException
      */
@@ -65,6 +67,8 @@ final class RegistrationService
                 return $user;
             });
 
+            $cookie = $request->cookie(ReferralService::COOKIE);
+            $this->referrals->attribute($user, $data['referral_code'] ?? (is_string($cookie) ? $cookie : null));
             $this->sendCode($user, $metadata);
             $this->securityEvents->log('authn_registration_started', 'info', $user->id);
 

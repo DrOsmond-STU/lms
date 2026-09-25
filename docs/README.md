@@ -266,6 +266,28 @@ dijaga trigger) dan `audit_logs`. Skema `payment_transactions` mengikuti docs/05
 gateway online (Midtrans) tinggal ditambahkan; tabel `invoices`/`payment_events` gateway, kupon, dan
 refund belum dibuat.
 
+### Program referral & laporan
+
+**Referral.** Setiap peserta memiliki kode 8 karakter (tanpa huruf/angka ambigu) dan tautan
+`/daftar?ref=KODE` di menu **Referral**; tautan halaman mana pun dengan `?ref=` juga berlaku
+(kode disimpan di cookie terenkripsi 30 hari dan terisi otomatis di formulir pendaftaran, atau
+diketik manual). Akun baru dikaitkan **sekali saat registrasi** (first-touch, tidak dapat dipindah;
+referral diri sendiri/email sama ditolak). Komisi (persentase dari Pengaturan → Pembayaran →
+Program referral, dengan batas per transaksi dan masa berlaku sejak registrasi) lahir **hanya saat
+pembayaran akun tersebut dikonfirmasi lunas**, satu komisi per transaksi (unik di basis data).
+Peserta melihat kunjungan tautan, akun terdaftar, komisi tertunda/dibayar, dan mengisi rekening
+pencairan (nomor terenkripsi). Admin Keuangan (`referral.pay`) mencairkan semua komisi tertunda
+seorang referrer sebagai satu **payout** dengan referensi transfer (re-autentikasi; pengaju ≠
+penerima, dijaga CHECK basis data) atau membatalkan komisi dengan alasan; semuanya diaudit dan
+diberitahukan ke referrer. RLS: referrer hanya melihat komisinya sendiri.
+
+**Laporan (Admin → Laporan).** *Per Organisasi*: anggota aktif, enrollment (aktif/lulus/tidak
+lulus/batal), tingkat kelulusan, sertifikat terbit, pembayaran lunas & pendapatan untuk periode
+yang dipilih, dengan halaman detail enrollment per organisasi. *Referral*: kunjungan, akun
+terdaftar, transaksi berkomisi, komisi tertunda/dibayar/dibatalkan per referrer, detail dengan
+riwayat pencairan. Keduanya dapat diekspor CSV (`report.export`; nilai diamankan dari injeksi
+formula; ekspor diaudit).
+
 ### Belum termasuk (sesuai roadmap)
 
 Fase 2: gateway pembayaran online (Midtrans) & kupon & refund, tugas & pengumpulan, presensi QR, live class, diskusi,

@@ -43,6 +43,8 @@ use App\Modules\Organization\Http\Controllers\OrganizationAdminController;
 use App\Modules\Organization\Http\Controllers\OrgPortalController;
 use App\Modules\Payment\Http\Controllers\PaymentAdminController;
 use App\Modules\Payment\Http\Controllers\PaymentController;
+use App\Modules\Referral\Http\Controllers\ReferralController;
+use App\Modules\Reporting\Http\Controllers\ReportController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -197,6 +199,17 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('/{enrollment}/tolak', 'reject')->middleware(['can:certificate.reject', 'reauth'])->name('reject');
             });
 
+            Route::controller(ReportController::class)->prefix('laporan')->name('reports.')->group(function (): void {
+                Route::get('/organisasi', 'organizations')->middleware('can:report.view_platform')->name('organizations');
+                Route::get('/organisasi/ekspor', 'organizationsExport')->middleware(['can:report.view_platform', 'can:report.export', 'throttle:5,1,report-org-export'])->name('organizations.export');
+                Route::get('/organisasi/{organization}', 'organizationShow')->middleware('can:report.view_platform')->name('organizations.show');
+                Route::get('/referral', 'referral')->middleware('can:referral.view_any')->name('referral');
+                Route::get('/referral/ekspor', 'referralExport')->middleware(['can:referral.view_any', 'can:report.export', 'throttle:5,1,report-ref-export'])->name('referral.export');
+                Route::get('/referral/{user}', 'referralShow')->middleware('can:referral.view_any')->name('referral.show');
+                Route::post('/referral/{user}/bayar', 'payout')->middleware(['can:referral.pay', 'reauth', 'throttle:20,1,referral-payout'])->name('referral.payout');
+                Route::post('/referral/komisi/{commission}/batal', 'voidCommission')->middleware(['can:referral.pay', 'reauth', 'throttle:20,1,referral-void'])->name('referral.void');
+            });
+
             Route::controller(PaymentAdminController::class)->prefix('pembayaran')->name('payments.')->group(function (): void {
                 Route::get('/', 'index')->middleware('can:payment.view_any')->name('index');
                 Route::get('/{transaction}', 'show')->middleware('can:payment.view_any')->name('show');
@@ -289,6 +302,10 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/pembayaran/{transaction}/bukti', [PaymentController::class, 'submitProof'])->middleware(['can:payment.view', 'throttle:10,1,payment-proof'])->name('payments.proof');
             Route::get('/pembayaran/{transaction}/bukti', [PaymentController::class, 'proof'])->middleware('can:payment.view')->name('payments.proof.view');
             Route::get('/pembayaran/{transaction}/invoice', [PaymentController::class, 'invoice'])->middleware(['can:payment.view', 'throttle:20,1,payment-invoice'])->name('payments.invoice');
+
+            // Program referral
+            Route::get('/referral', [ReferralController::class, 'show'])->middleware('can:referral.view')->name('referral.mine');
+            Route::post('/referral/rekening', [ReferralController::class, 'updateAccount'])->middleware(['can:referral.view', 'throttle:10,1,referral-account'])->name('referral.account');
         });
 
         Route::get('/trainer/kelas', [ClassListController::class, 'trainer'])->middleware('workspace:trainer')->name('trainer.classes');

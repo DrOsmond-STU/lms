@@ -53,6 +53,7 @@ final class RegistrationController
             'email' => ['required', 'string', 'email:rfc', 'max:254'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s().]{8,20}$/'],
             'organization_code' => ['nullable', 'string', 'regex:/^[A-Za-z]{2,8}$/'],
+            'referral_code' => ['nullable', 'string', 'regex:/^[A-Za-z2-9]{6,12}$/'],
             'password' => ['required', 'string', 'confirmed', PasswordRule::defaults()],
             'accept_terms' => ['accepted'],
             'accept_privacy' => ['accepted'],
@@ -60,6 +61,7 @@ final class RegistrationController
             'name.regex' => 'Nama hanya boleh berisi huruf, spasi, titik, koma, apostrof, dan tanda hubung.',
             'phone.regex' => 'Format nomor HP tidak valid.',
             'organization_code.regex' => 'Kode organisasi terdiri dari 2–8 huruf.',
+            'referral_code.regex' => 'Kode referral terdiri dari 6–12 huruf/angka.',
             'accept_terms.accepted' => 'Anda perlu menyetujui Syarat & Ketentuan.',
             'accept_privacy.accepted' => 'Anda perlu menyetujui Kebijakan Privasi.',
         ]);

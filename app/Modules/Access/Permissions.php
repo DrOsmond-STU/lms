@@ -35,6 +35,7 @@ final class Permissions
         'gamification' => ['view_leaderboard', 'manage'],
         'notification_setting' => ['view', 'update'],
         'report' => ['view_platform', 'view_organization', 'view_class', 'export'],
+        'referral' => ['view', 'view_any', 'pay'],
         'cms' => ['view', 'update', 'publish'],
         'privacy_request' => ['view_any', 'process', 'create'],
         'api_key' => ['view_any', 'create', 'revoke'],
@@ -60,7 +61,7 @@ final class Permissions
             'certificate_template.*', 'payment.*', 'coupon.*', 'discussion.view', 'discussion.moderate',
             'gamification.*', 'notification_setting.*', 'report.*', 'cms.*',
             'privacy_request.view_any', 'privacy_request.process', 'api_key.*', 'integration.*',
-            'system_setting.*', 'audit_log.*',
+            'system_setting.*', 'audit_log.*', 'referral.*',
         ],
         'academic_admin' => [
             'user.view_any', 'user.view', 'user.create', 'user.update', 'user.deactivate', 'user.assign_role', 'user.export',
@@ -72,11 +73,11 @@ final class Permissions
             'certificate.view_any', 'certificate.view', 'certificate.approve', 'certificate.reject',
             'certificate.revoke', 'certificate.reissue', 'certificate.download', 'certificate_template.*',
             'payment.view_any', 'payment.view', 'discussion.view', 'discussion.moderate', 'gamification.*',
-            'report.view_platform', 'report.export', 'cms.*',
+            'report.view_platform', 'report.export', 'cms.*', 'referral.view_any',
             'privacy_request.view_any', 'privacy_request.process', 'audit_log.view',
         ],
         'finance_admin' => [
-            'program.view_any', 'program.view', 'payment.*', 'coupon.*', 'report.view_platform', 'report.export', 'audit_log.view',
+            'program.view_any', 'program.view', 'payment.*', 'coupon.*', 'report.view_platform', 'report.export', 'audit_log.view', 'referral.*',
         ],
         'support_admin' => [
             'user.view_any', 'user.view', 'user.reset_mfa', 'enrollment.view_any', 'enrollment.view', 'payment.view',
@@ -105,7 +106,7 @@ final class Permissions
             'attendance.check_in', 'live_session.view', 'certificate.view', 'certificate.download',
             'payment.view', 'payment.refund_request', 'discussion.view', 'discussion.post', 'discussion.report',
             'gamification.view_leaderboard', 'notification_setting.view', 'notification_setting.update',
-            'privacy_request.create',
+            'privacy_request.create', 'referral.view',
         ],
     ];
 

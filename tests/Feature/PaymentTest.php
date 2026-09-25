@@ -225,6 +225,7 @@ it('exposes the payment settings tab with validation', function () {
         'payment__bank_name' => 'Bank Uji', 'payment__bank_account_number' => '1234567890', 'payment__bank_account_name' => 'PT Uji',
         'payment__instructions' => 'Transfer tepat.', 'payment__deadline_hours' => 48, 'payment__manual_settle_threshold' => 750000,
         'invoice__tax_id' => '', 'invoice__footer_note' => 'Catatan.',
+        'referral__enabled' => '1', 'referral__commission_percent' => 10, 'referral__max_commission' => 0, 'referral__validity_months' => 12, 'referral__terms' => 'Ketentuan.',
     ])->assertSessionHasNoErrors();
     expect(config('lms.payment_deadline_hours'))->toBe(48)->and(PaymentService::isConfigured())->toBeTrue();
 })->group('FR-PAY', 'FR-SET-001');

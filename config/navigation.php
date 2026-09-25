@@ -17,6 +17,7 @@ return [
             ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => null, 'permission' => null],
             ['label' => 'Sertifikat Saya', 'icon' => 'shield', 'route' => 'certificates.mine', 'permission' => 'certificate.view'],
             ['label' => 'Transaksi', 'icon' => 'card', 'route' => 'payments.mine', 'permission' => 'payment.view'],
+            ['label' => 'Referral', 'icon' => 'star', 'route' => 'referral.mine', 'permission' => 'referral.view'],
             ['label' => 'Pencapaian', 'icon' => 'trophy', 'route' => null, 'permission' => 'gamification.view_leaderboard'],
             ['label' => 'Notifikasi', 'icon' => 'bell', 'route' => 'notifications.index', 'permission' => null],
             ['label' => 'Akun Saya', 'icon' => 'user', 'route' => 'account.profile', 'permission' => null],
@@ -61,6 +62,8 @@ return [
             ['label' => 'Basis Data Sertifikat', 'icon' => 'doc', 'route' => 'admin.certificates.index', 'permission' => 'certificate.view_any'],
         ]],
         ['group' => 'Laporan', 'items' => [
+            ['label' => 'Per Organisasi', 'icon' => 'building', 'route' => 'admin.reports.organizations', 'permission' => 'report.view_platform'],
+            ['label' => 'Referral', 'icon' => 'star', 'route' => 'admin.reports.referral', 'permission' => 'referral.view_any'],
             ['label' => 'Jejak Audit', 'icon' => 'history', 'route' => 'admin.audit.index', 'permission' => 'audit_log.view'],
         ]],
         ['group' => 'Pengaturan', 'items' => [
