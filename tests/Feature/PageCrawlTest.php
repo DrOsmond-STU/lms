@@ -83,7 +83,7 @@ it('opens every page reachable by a super admin without errors', function () {
     signIn(RoleCode::SuperAdmin);
     confirmAccess();
 
-    $result = crawl(['/admin', '/admin/pengaturan', '/admin/kelas', '/akun/keamanan', '/notifikasi']);
+    $result = crawl(['/admin', '/admin/pengaturan', '/admin/kelas', '/admin/pembayaran', '/akun/keamanan', '/notifikasi']);
 
     expect($result['failures'])->toBe([])->and($result['visited'])->toBeGreaterThan(60);
 })->group('CRUD', 'SMOKE');
@@ -92,7 +92,7 @@ it('opens every page reachable by a certified participant without errors', funct
     $participant = User::query()->where('email', 'rina.kartika@'.SimulateJourneyCommand::EMAIL_DOMAIN)->firstOrFail();
     $this->actingAs($participant);
 
-    $result = crawl(['/peserta', '/peserta/program', '/peserta/pembelajaran', '/peserta/sertifikat', '/notifikasi', '/akun/profil']);
+    $result = crawl(['/peserta', '/peserta/program', '/peserta/pembelajaran', '/peserta/sertifikat', '/peserta/transaksi', '/notifikasi', '/akun/profil']);
 
     expect($result['failures'])->toBe([])->and($result['visited'])->toBeGreaterThan(15);
 })->group('CRUD', 'SMOKE');

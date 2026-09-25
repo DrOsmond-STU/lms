@@ -21,7 +21,10 @@
                     <span>Skor akhir: {{ $enrollment->final_score !== null ? fmt_score($enrollment->final_score) : '—' }}</span>
                     @if ($enrollment->rejection_reason && $enrollment->isActive())<span class="text-rose-700">Approval ditolak: {{ $enrollment->rejection_reason }}</span>@endif
                 </div>
-                @if ($enrollment->status !== 'cancelled')
+                @if ($enrollment->status === 'awaiting_payment' && $enrollment->payment)
+                    <a href="{{ route('payments.show', $enrollment->payment) }}" class="btn-primary mt-4">Selesaikan Pembayaran</a>
+                    <p class="mt-1 text-xs text-amber-700">Batas waktu: {{ $enrollment->payment->expires_at->timezone(display_tz())->translatedFormat('d M Y H:i') }} {{ tz_label() }}</p>
+                @elseif ($enrollment->status !== 'cancelled')
                     <a href="{{ route('learning.classroom', $enrollment) }}" class="btn-primary mt-4">{{ $enrollment->isActive() ? 'Lanjutkan Belajar' : 'Lihat Kelas' }}</a>
                 @endif
                 @if (in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true))

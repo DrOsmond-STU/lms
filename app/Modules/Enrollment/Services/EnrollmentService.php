@@ -41,11 +41,32 @@ final class EnrollmentService
             throw ValidationException::withMessages(['class' => 'Pendaftaran kelas ini sedang tidak dibuka.']);
         }
         if (! $program->isFree()) {
-            throw ValidationException::withMessages(['class' => 'Program berbayar memerlukan pembayaran online yang belum tersedia. Hubungi admin atau organisasi Anda untuk didaftarkan.']);
+            throw ValidationException::withMessages(['class' => 'Program berbayar didaftarkan lewat halaman pembayaran.']);
         }
         $this->assertOrganizationAllowed($user, $class);
 
         return $this->create($user, $class, 'self', null, null);
+    }
+
+    /**
+     * Pendaftaran mandiri ke program berbayar: kursi dipesan, enrollment menunggu pembayaran.
+     * Hanya dipanggil PaymentService (yang membuat tagihannya dalam transaksi yang sama).
+     */
+    public function enrollAwaitingPayment(User $user, CourseClass $class): Enrollment
+    {
+        $program = $class->program;
+        if (! $user->hasRole(RoleCode::Participant)) {
+            throw ValidationException::withMessages(['class' => 'Hanya akun peserta yang dapat mendaftar pelatihan.']);
+        }
+        if (! $program->isPublished() || ! $class->isEnrollmentOpen()) {
+            throw ValidationException::withMessages(['class' => 'Pendaftaran kelas ini sedang tidak dibuka.']);
+        }
+        if ($program->isFree()) {
+            throw ValidationException::withMessages(['class' => 'Program ini gratis; gunakan pendaftaran biasa.']);
+        }
+        $this->assertOrganizationAllowed($user, $class);
+
+        return $this->create($user, $class, 'payment', null, null, 'awaiting_payment');
     }
 
     /** Pendaftaran oleh admin (mis. program ditanggung organisasi). */
@@ -93,17 +114,18 @@ final class EnrollmentService
     public function cancel(Enrollment $enrollment, User $actor, string $reason): void
     {
         $this->transition($enrollment, 'cancelled', $actor, $reason);
+        $this->failPendingPayment($enrollment, $actor, $reason);
         $this->audit->record('enrollment.cancelled', $actor, 'enrollment', $enrollment->id, ['status' => 'cancelled'], $reason, $enrollment->organization_id);
         $by = $actor->id === $enrollment->user_id ? 'atas permintaan Anda' : 'oleh admin';
         $this->notifier->send($enrollment->user, 'enrollment', 'Enrollment dibatalkan', 'Pendaftaran Anda pada '.$enrollment->program->name.' dibatalkan '.$by.'.', '/peserta/pembelajaran', email: true);
     }
 
-    private function create(User $user, CourseClass $class, string $source, ?User $actor, ?string $reason): Enrollment
+    private function create(User $user, CourseClass $class, string $source, ?User $actor, ?string $reason, string $status = 'enrolled'): Enrollment
     {
         $organizationId = $this->activeOrganizationId($user);
 
         try {
-            $enrollment = DB::transaction(function () use ($user, $class, $source, $actor, $reason, $organizationId): Enrollment {
+            $enrollment = DB::transaction(function () use ($user, $class, $source, $actor, $reason, $organizationId, $status): Enrollment {
                 // Kursi diambil atomik; gagal bila kuota penuh (FR-CLS-002).
                 $seat = CourseClass::query()->whereKey($class->id)
                     ->whereColumn('enrolled_count', '<', 'quota')
@@ -119,11 +141,11 @@ final class EnrollmentService
                     'user_id' => $user->id,
                     'course_class_id' => $class->id,
                     'program_id' => $class->program_id,
-                    'status' => 'enrolled',
+                    'status' => $status,
                     'source' => $source,
-                    'enrolled_at' => now(),
+                    'enrolled_at' => $status === 'enrolled' ? now() : null,
                 ])->save();
-                $this->history($enrollment->id, null, 'enrolled', $actor ?? $user, $reason);
+                $this->history($enrollment->id, null, $status, $actor ?? $user, $reason);
                 $this->audit->record('enrollment.created', $actor ?? $user, 'enrollment', $enrollment->id, [
                     'course_class_id' => $class->id, 'source' => $source, 'participant_id' => $user->id,
                 ], $reason, $organizationId);
@@ -132,6 +154,10 @@ final class EnrollmentService
             });
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['class' => 'Anda sudah memiliki enrollment aktif untuk program ini.']);
+        }
+
+        if ($status !== 'enrolled') {
+            return $enrollment; // pemberitahuan tagihan dikirim PaymentService
         }
 
         $this->notifier->send($user, 'enrollment', 'Pendaftaran berhasil', 'Anda terdaftar di '.$class->program->name.' ('.$class->batch_name.'). Selamat belajar!', '/peserta/kelas/'.$enrollment->id, email: true);
@@ -160,6 +186,23 @@ final class EnrollmentService
             ->exists());
 
         return $active ? $user->primary_organization_id : null;
+    }
+
+    /** Enrollment dibatalkan saat tagihan transfer manual masih menunggu → tagihan ditutup (failed). */
+    private function failPendingPayment(Enrollment $enrollment, User $actor, string $reason): void
+    {
+        $transactionId = DB::table('payment_transactions')->where('enrollment_id', $enrollment->id)->where('status', 'pending')->value('id');
+        if (! is_string($transactionId)) {
+            return;
+        }
+        DB::table('payment_transactions')->where('id', $transactionId)->where('status', 'pending')->update([
+            'status' => 'failed', 'needs_review' => false, 'review_note' => 'Pendaftaran dibatalkan: '.$reason, 'reviewed_by' => $actor->id, 'reviewed_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('payment_events')->insert([
+            'id' => (string) Str::uuid7(), 'payment_transaction_id' => $transactionId, 'source' => $actor->id === $enrollment->user_id ? 'participant' : 'admin',
+            'event' => 'failed', 'payload' => json_encode(['reason' => 'Pendaftaran dibatalkan: '.$reason]), 'actor_id' => $actor->id, 'created_at' => now(),
+        ]);
+        $this->audit->record('payment.failed', $actor, 'payment_transaction', $transactionId, ['cause' => 'enrollment_cancelled'], $reason, $enrollment->organization_id);
     }
 
     private function history(string $enrollmentId, ?string $from, string $to, ?User $actor, ?string $reason): void

@@ -12,6 +12,8 @@ use App\Modules\Certification\Models\CertificateTemplate;
 use App\Modules\Certification\Services\CertificateIssuer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Notification\Services\Notifier;
+use App\Modules\Payment\Models\PaymentTransaction;
+use App\Modules\Payment\Services\PaymentService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -77,6 +79,7 @@ final class ApprovalWorkflow
             'certificate.revoke' => $user->hasPermission('certificate.revoke'),
             'role.assign_super_admin' => $user->hasRole(RoleCode::SuperAdmin),
             'certificate_template.activate' => $user->hasPermission('certificate_template.activate'),
+            'payment.settle_manual' => $user->hasPermission('payment.mark_paid_manual'),
             default => false,
         };
     }
@@ -111,7 +114,11 @@ final class ApprovalWorkflow
     /** @return list<User> */
     private function eligibleDeciders(string $action, User $requester): array
     {
-        $roles = $action === 'role.assign_super_admin' ? [RoleCode::SuperAdmin->value] : [RoleCode::SuperAdmin->value, RoleCode::AcademicAdmin->value];
+        $roles = match ($action) {
+            'role.assign_super_admin' => [RoleCode::SuperAdmin->value],
+            'payment.settle_manual' => [RoleCode::SuperAdmin->value, RoleCode::FinanceAdmin->value],
+            default => [RoleCode::SuperAdmin->value, RoleCode::AcademicAdmin->value],
+        };
 
         return array_values(User::query()->where('status', 'active')->whereKeyNot($requester->id)
             ->whereHas('roles', fn ($query) => $query->whereIn('code', $roles))
@@ -132,6 +139,7 @@ final class ApprovalWorkflow
             ),
             'role.assign_super_admin' => $this->assignSuperAdmin(User::query()->findOrFail($request->subject_id), $decider),
             'certificate_template.activate' => $this->activateTemplate(CertificateTemplate::query()->findOrFail($request->subject_id), $decider),
+            'payment.settle_manual' => app(PaymentService::class)->finalizeSettlement(PaymentTransaction::query()->findOrFail($request->subject_id), $decider, $request->reason, $requester),
             default => throw ValidationException::withMessages(['decision' => 'Aksi tidak dikenal.']),
         };
     }

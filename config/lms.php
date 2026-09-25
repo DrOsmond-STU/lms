@@ -16,4 +16,6 @@ return [
     'default_certificate_validity_months' => 36,
     'certificate_issuer_code' => 'STU',
     'certificate_expiry_reminder_days' => 60,
+    'payment_deadline_hours' => 72,
+    'payment_manual_settle_threshold' => 1_000_000,
 ];

@@ -37,6 +37,7 @@ final class ApprovalRequest extends Model
         'certificate.revoke' => 'Pencabutan sertifikat',
         'role.assign_super_admin' => 'Penetapan Super Admin',
         'certificate_template.activate' => 'Aktivasi template sertifikat',
+        'payment.settle_manual' => 'Konfirmasi pembayaran manual (nilai besar)',
     ];
 
     /** @var list<string> */

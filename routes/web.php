@@ -41,6 +41,8 @@ use App\Modules\Learning\Http\Controllers\MediaStreamController;
 use App\Modules\Notification\Http\Controllers\NotificationController;
 use App\Modules\Organization\Http\Controllers\OrganizationAdminController;
 use App\Modules\Organization\Http\Controllers\OrgPortalController;
+use App\Modules\Payment\Http\Controllers\PaymentAdminController;
+use App\Modules\Payment\Http\Controllers\PaymentController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -195,6 +197,16 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('/{enrollment}/tolak', 'reject')->middleware(['can:certificate.reject', 'reauth'])->name('reject');
             });
 
+            Route::controller(PaymentAdminController::class)->prefix('pembayaran')->name('payments.')->group(function (): void {
+                Route::get('/', 'index')->middleware('can:payment.view_any')->name('index');
+                Route::get('/{transaction}', 'show')->middleware('can:payment.view_any')->name('show');
+                Route::get('/{transaction}/bukti', 'proof')->middleware('can:payment.view_any')->name('proof');
+                Route::get('/{transaction}/invoice', 'invoice')->middleware(['can:payment.view_any', 'throttle:20,1,payment-invoice-admin'])->name('invoice');
+                Route::post('/{transaction}/lunas', 'settle')->middleware(['can:payment.mark_paid_manual', 'reauth', 'throttle:30,1,payment-settle'])->name('settle');
+                Route::post('/{transaction}/tolak-bukti', 'rejectProof')->middleware(['can:payment.mark_paid_manual', 'reauth', 'throttle:30,1,payment-reject'])->name('reject-proof');
+                Route::post('/{transaction}/batalkan', 'fail')->middleware(['can:payment.mark_paid_manual', 'reauth', 'throttle:30,1,payment-fail'])->name('fail');
+            });
+
             Route::controller(CertificateAdminController::class)->prefix('sertifikat')->name('certificates.')->group(function (): void {
                 Route::get('/', 'index')->middleware('can:certificate.view_any')->name('index');
                 Route::get('/ekspor', 'export')->middleware(['can:certificate.view_any', 'can:report.export', 'throttle:5,1,export'])->name('export');
@@ -242,9 +254,9 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/pengaturan', [SettingsController::class, 'index'])->name('settings.edit');
             Route::get('/pengaturan/pemilik', [SiteProfileController::class, 'edit'])->middleware('can:cms.view')->name('settings.owner');
             Route::put('/pengaturan/pemilik', [SiteProfileController::class, 'update'])->middleware(['can:cms.update', 'throttle:30,1,cms-profile-update'])->name('settings.owner.update');
-            Route::get('/pengaturan/{tab}', [SettingsController::class, 'show'])->whereIn('tab', ['umum', 'beranda', 'pendaftaran', 'pembelajaran', 'sertifikat', 'legal', 'keamanan'])->name('settings.tab');
+            Route::get('/pengaturan/{tab}', [SettingsController::class, 'show'])->whereIn('tab', ['umum', 'beranda', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan'])->name('settings.tab');
             Route::put('/pengaturan/beranda', [SettingsController::class, 'update'])->defaults('tab', 'beranda')->middleware(['can:cms.update', 'throttle:30,1,settings-landing'])->name('settings.landing.update');
-            Route::put('/pengaturan/{tab}', [SettingsController::class, 'update'])->whereIn('tab', ['umum', 'pendaftaran', 'pembelajaran', 'sertifikat', 'legal', 'keamanan'])->middleware(['can:system_setting.update', 'reauth', 'throttle:30,1,settings-update'])->name('settings.update');
+            Route::put('/pengaturan/{tab}', [SettingsController::class, 'update'])->whereIn('tab', ['umum', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan'])->middleware(['can:system_setting.update', 'reauth', 'throttle:30,1,settings-update'])->name('settings.update');
         });
 
         // Area peserta (docs/08 PST-*).
@@ -269,6 +281,14 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/ujian/{attempt}/hasil', [ExamController::class, 'result'])->name('exams.result');
 
             Route::get('/sertifikat', [MyCertificatesController::class, 'index'])->name('certificates.mine');
+
+            // Pembayaran transfer manual (FR-PAY tahap A)
+            Route::post('/kelas/{class}/bayar', [PaymentController::class, 'checkout'])->middleware(['can:payment.view', 'throttle:10,1,payment-checkout'])->name('payments.checkout');
+            Route::get('/transaksi', [PaymentController::class, 'index'])->middleware('can:payment.view')->name('payments.mine');
+            Route::get('/pembayaran/{transaction}', [PaymentController::class, 'show'])->middleware('can:payment.view')->name('payments.show');
+            Route::post('/pembayaran/{transaction}/bukti', [PaymentController::class, 'submitProof'])->middleware(['can:payment.view', 'throttle:10,1,payment-proof'])->name('payments.proof');
+            Route::get('/pembayaran/{transaction}/bukti', [PaymentController::class, 'proof'])->middleware('can:payment.view')->name('payments.proof.view');
+            Route::get('/pembayaran/{transaction}/invoice', [PaymentController::class, 'invoice'])->middleware(['can:payment.view', 'throttle:20,1,payment-invoice'])->name('payments.invoice');
         });
 
         Route::get('/trainer/kelas', [ClassListController::class, 'trainer'])->middleware('workspace:trainer')->name('trainer.classes');

@@ -7,9 +7,11 @@ namespace App\Modules\Enrollment\Models;
 use App\Modules\Catalog\Models\Program;
 use App\Modules\Identity\Models\User;
 use App\Modules\Learning\Models\CourseClass;
+use App\Modules\Payment\Models\PaymentTransaction;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -34,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $user
  * @property-read CourseClass $courseClass
  * @property-read Program $program
+ * @property-read PaymentTransaction|null $payment
  */
 final class Enrollment extends Model
 {
@@ -102,6 +105,13 @@ final class Enrollment extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    /** Tagihan transfer manual (hanya enrollment berbayar). */
+    /** @return HasOne<PaymentTransaction, $this> */
+    public function payment(): HasOne
+    {
+        return $this->hasOne(PaymentTransaction::class);
     }
 
     public function isActive(): bool

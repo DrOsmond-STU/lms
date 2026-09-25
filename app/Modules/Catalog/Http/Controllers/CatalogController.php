@@ -10,6 +10,7 @@ use App\Modules\Enrollment\Services\EnrollmentService;
 use App\Modules\Identity\Models\User;
 use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Learning\Models\Module;
+use App\Modules\Payment\Services\PaymentService;
 use App\Support\Database\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
@@ -47,7 +48,11 @@ final class CatalogController
         $active = Enrollment::query()->where('user_id', $user->id)->where('program_id', $detail['program']->id)
             ->whereNotIn('status', ['failed', 'cancelled'])->first();
 
-        return view('catalog.participant-show', $detail + ['activeEnrollment' => $active]);
+        return view('catalog.participant-show', $detail + [
+            'activeEnrollment' => $active,
+            'pendingPayment' => $active?->status === 'awaiting_payment' ? $active->payment : null,
+            'paymentOpen' => PaymentService::isConfigured(),
+        ]);
     }
 
     public function enroll(Request $request, CourseClass $class, EnrollmentService $enrollments): RedirectResponse

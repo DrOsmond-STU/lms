@@ -37,7 +37,7 @@ final class LearningController
     {
         /** @var User $user */
         $user = $request->user();
-        $enrollments = Enrollment::query()->with(['program:id,name,category,slug', 'courseClass:id,batch_name,starts_on,ends_on'])
+        $enrollments = Enrollment::query()->with(['program:id,name,category,slug', 'courseClass:id,batch_name,starts_on,ends_on', 'payment:id,enrollment_id,status,expires_at'])
             ->where('user_id', $user->id)->orderByRaw("CASE WHEN status IN ('enrolled','in_progress') THEN 0 WHEN status = 'pending_approval' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')->get();
 

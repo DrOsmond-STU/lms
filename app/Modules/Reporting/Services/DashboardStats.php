@@ -83,6 +83,7 @@ final class DashboardStats
             'passRate' => $passed + $failed === 0 ? null : round($passed * 100 / ($passed + $failed), 1),
             'certificates' => DB::table('certificates')->where('status', 'active')->count(),
             'approvalQueue' => $user->hasPermission('certificate.approve') ? DB::table('enrollments')->where('status', 'pending_approval')->count() : null,
+            'paymentsToReview' => $user->hasPermission('payment.view_any') ? DB::table('payment_transactions')->where('status', 'pending')->where('needs_review', true)->count() : null,
             'secondApprovals' => DB::table('approval_requests')->whereNull('decision')->where('expires_at', '>', now())->where('requested_by', '<>', $user->id)->count(),
             'programsInReview' => $user->hasPermission('program.publish') ? DB::table('programs')->where('status', 'in_review')->count() : null,
             'recentEnrollments' => Enrollment::query()->with('user:id,name', 'program:id,name')

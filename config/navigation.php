@@ -16,6 +16,7 @@ return [
             ['label' => 'Pembelajaran Saya', 'icon' => 'book', 'route' => 'learning.index', 'permission' => 'enrollment.view'],
             ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => null, 'permission' => null],
             ['label' => 'Sertifikat Saya', 'icon' => 'shield', 'route' => 'certificates.mine', 'permission' => 'certificate.view'],
+            ['label' => 'Transaksi', 'icon' => 'card', 'route' => 'payments.mine', 'permission' => 'payment.view'],
             ['label' => 'Pencapaian', 'icon' => 'trophy', 'route' => null, 'permission' => 'gamification.view_leaderboard'],
             ['label' => 'Notifikasi', 'icon' => 'bell', 'route' => 'notifications.index', 'permission' => null],
             ['label' => 'Akun Saya', 'icon' => 'user', 'route' => 'account.profile', 'permission' => null],
@@ -56,7 +57,7 @@ return [
             ['label' => 'Template Sertifikat', 'icon' => 'doc', 'route' => 'admin.templates.index', 'permission' => 'certificate_template.view_any'],
         ]],
         ['group' => 'Operasional', 'items' => [
-            ['label' => 'Pembayaran', 'icon' => 'card', 'route' => null, 'permission' => 'payment.view_any'],
+            ['label' => 'Pembayaran', 'icon' => 'card', 'route' => 'admin.payments.index', 'permission' => 'payment.view_any'],
             ['label' => 'Basis Data Sertifikat', 'icon' => 'doc', 'route' => 'admin.certificates.index', 'permission' => 'certificate.view_any'],
         ]],
         ['group' => 'Laporan', 'items' => [

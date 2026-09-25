@@ -15,3 +15,6 @@ Schedule::command('stu:exams-auto-submit')->everyMinute()->withoutOverlapping()-
 
 // Pengingat sertifikat yang akan kedaluwarsa (FR-CERT-012).
 Schedule::command('stu:certificates-expiry-reminders')->dailyAt('08:00')->timezone(display_tz())->onOneServer();
+
+// Tagihan transfer manual yang melewati batas waktu tanpa bukti (FR-PAY, tahap A).
+Schedule::command('stu:payments-expire')->hourly()->withoutOverlapping()->onOneServer();

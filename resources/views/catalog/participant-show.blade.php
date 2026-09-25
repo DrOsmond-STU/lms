@@ -7,7 +7,10 @@
             <section class="card p-6" aria-labelledby="classes-heading">
                 <h2 id="classes-heading" class="font-bold text-slate-800">Kelas / Batch</h2>
                 <x-form-error field="class" />
-                @if ($activeEnrollment)
+                @if ($activeEnrollment && $activeEnrollment->status === 'awaiting_payment')
+                    <p class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Kursi Anda sudah dipesan. Selesaikan pembayaran agar dapat mulai belajar.</p>
+                    @if ($pendingPayment)<a href="{{ route('payments.show', $pendingPayment) }}" class="btn-primary mt-3">Selesaikan Pembayaran</a>@endif
+                @elseif ($activeEnrollment)
                     <p class="mt-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">Anda sudah terdaftar pada program ini.</p>
                     <a href="{{ route('learning.classroom', $activeEnrollment) }}" class="btn-primary mt-3">Lanjutkan Belajar</a>
                 @else
@@ -20,8 +23,11 @@
                                 @if ($class->isEnrollmentOpen() && $class->seatsLeft() > 0)
                                     @if ($program->isFree())
                                         <form method="POST" action="{{ route('catalog.enroll', $class) }}" class="mt-2">@csrf<button class="btn-primary">Daftar</button></form>
+                                    @elseif ($paymentOpen)
+                                        <form method="POST" action="{{ route('payments.checkout', $class) }}" class="mt-2">@csrf<button class="btn-primary">Daftar &amp; Bayar {{ $program->priceLabel() }}</button></form>
+                                        <p class="mt-1 text-xs text-slate-500">Transfer bank, verifikasi oleh Admin Keuangan.</p>
                                     @else
-                                        <p class="mt-2 text-xs text-amber-700">Pembayaran online belum tersedia. Hubungi admin atau organisasi Anda untuk didaftarkan.</p>
+                                        <p class="mt-2 text-xs text-amber-700">Pembayaran belum dibuka. Hubungi admin atau organisasi Anda untuk didaftarkan.</p>
                                     @endif
                                 @else
                                     <p class="mt-2 text-xs text-slate-500">Pendaftaran tidak dibuka.</p>

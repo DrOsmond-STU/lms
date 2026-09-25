@@ -26,5 +26,7 @@ return [
         'pdf' => ['mimes' => ['application/pdf' => 'pdf'], 'max_mb' => 50],
         'video' => ['mimes' => ['video/mp4' => 'mp4', 'video/quicktime' => 'mov', 'video/webm' => 'webm'], 'max_mb' => (int) env('MEDIA_MAX_VIDEO_MB', 2048)],
         'image' => ['mimes' => ['image/png' => 'png', 'image/jpeg' => 'jpg'], 'max_mb' => 5],
+        // Lampiran (mis. bukti transfer): gambar atau PDF, kecil.
+        'attachment' => ['mimes' => ['image/png' => 'png', 'image/jpeg' => 'jpg', 'application/pdf' => 'pdf'], 'max_mb' => 5],
     ],
 ];

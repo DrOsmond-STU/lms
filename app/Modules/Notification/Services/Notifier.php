@@ -23,6 +23,7 @@ final class Notifier
         'assessment' => 'Ujian & Kuis',
         'grading' => 'Hasil Penilaian',
         'certificate' => 'Sertifikat',
+        'payment' => 'Pembayaran',
         'security' => 'Keamanan Akun',
         'system' => 'Sistem',
     ];

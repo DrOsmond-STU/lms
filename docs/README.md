@@ -182,7 +182,7 @@ Semgrep kustom, gitleaks; uji browser end-to-end Playwright tanpa pelanggaran CS
 | Tanda tangan PDF PAdES B-LT + timestamp RFC 3161 (FR-CERT-005) | PKCS#7 tertanam dengan **sertifikat uji** self-signed (`stu:signing-key`) | Sertifikat PSrE/AATL di KMS/HSM + TSA |
 | Unggahan video ≤ 2 GB | Dibatasi `upload_max_filesize` hosting (512 MB) | Unggahan langsung ke object storage |
 | Worker antrian & penjadwal | Cron berjeda ≥ 6 menit: email mendesak (OTP, atur ulang sandi) dikirim `deferred` setelah respons; email lain tertunda ≤ ±9 menit; auto-submit ujian ≤ 8 menit (attempt kedaluwarsa tetap ditolak/dikumpulkan saat dibuka) | Worker permanen (Supervisor/Horizon) + scheduler tiap menit |
-| Pembayaran program berbayar | Pendaftaran mandiri hanya program gratis; admin dapat mendaftarkan peserta | Fase 2 (EP-15, Midtrans) |
+| Pembayaran program berbayar | **Transfer manual tercatat** (tahap A): tagihan + bukti transfer + verifikasi Admin Keuangan (maker–checker di atas ambang) + invoice PDF; belum ada gateway online | Fase 2 (EP-15, Midtrans Snap) |
 
 ### Tema antarmuka
 
@@ -247,9 +247,28 @@ Skenario mencakup lulus bersertifikat (5), menunggu approval, gagal ujian, masih
 dibatalkan. Idempoten; mencetak tabel status beserta URL verifikasi dan keluar dengan kode gagal
 bila ada pemeriksaan yang tidak sesuai. Di staging dijalankan otomatis oleh `lms-setup.sh`.
 
+### Pembayaran transfer manual tercatat (FR-PAY tahap A)
+
+Peserta memilih **Daftar & Bayar** pada program berbayar → kursi dipesan, enrollment
+`awaiting_payment`, tagihan `pending` (`STU-{ULID}`) dengan batas waktu (Pengaturan → Pembayaran,
+bawaan 72 jam). Halaman tagihan menampilkan rekening tujuan (dari Pengaturan Sistem), jumlah, dan
+formulir unggah **bukti transfer** (JPG/PNG/PDF ≤ 5 MB; diperiksa magic bytes, dipindai, disimpan di
+disk privat, hanya bisa dilihat pemilik & Admin Keuangan) beserta data invoice opsional (NPWP &
+alamat terenkripsi). Admin Keuangan (`payment.mark_paid_manual`) memverifikasi di **Admin →
+Pembayaran**: *Konfirmasi lunas* (dengan re-autentikasi) → nomor invoice `INV/TAHUN/BULAN/URUT5`
+atomik, enrollment `enrolled`, notifikasi + email ke peserta, invoice PDF (TCPDF, dirender saat
+diminta); di atas ambang (bawaan Rp1.000.000) konfirmasi menjadi **permintaan persetujuan kedua**
+yang harus diputus admin lain (`payment.settle_manual`, pengaju tidak boleh memutus). *Tolak bukti*
+meminta unggah ulang; *Batalkan* menutup tagihan dan melepas kursi. `stu:payments-expire` (tiap
+jam) mengedaluwarsakan tagihan tanpa bukti yang melewati batas waktu; peserta yang membatalkan
+pendaftarannya menutup tagihan otomatis. Semua langkah tercatat di `payment_events` (append-only,
+dijaga trigger) dan `audit_logs`. Skema `payment_transactions` mengikuti docs/05 §4.8 sehingga
+gateway online (Midtrans) tinggal ditambahkan; tabel `invoices`/`payment_events` gateway, kupon, dan
+refund belum dibuat.
+
 ### Belum termasuk (sesuai roadmap)
 
-Fase 2: pembayaran & kupon, tugas & pengumpulan, presensi QR, live class, diskusi,
+Fase 2: gateway pembayaran online (Midtrans) & kupon & refund, tugas & pengumpulan, presensi QR, live class, diskusi,
 notifikasi WhatsApp, laporan & ekspor lanjutan, hak subjek data (UU PDP) mandiri, CMS beranda,
 impor massal, ubah email terverifikasi. Fase 3: API key mitra, SSO OIDC, WebAuthn, gamifikasi.
 

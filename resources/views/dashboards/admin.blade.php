@@ -5,6 +5,7 @@
     $diff = $thisMonth - $lastMonth;
     $actions = array_filter([
         ($approvalQueue ?? 0) > 0 ? ['critical', 'Approval sertifikat', $approvalQueue.' peserta lulus menunggu penerbitan sertifikat', route('admin.approvals.index')] : null,
+        ($paymentsToReview ?? 0) > 0 ? ['high', 'Verifikasi pembayaran', $paymentsToReview.' bukti transfer menunggu verifikasi', route('admin.payments.index', ['tinjau' => 1])] : null,
         $secondApprovals > 0 ? ['high', 'Persetujuan kedua', $secondApprovals.' aksi berdampak tinggi menunggu admin kedua', route('admin.second-approvals.index')] : null,
         ($programsInReview ?? 0) > 0 ? ['medium', 'Review program', $programsInReview.' program menunggu diterbitkan', route('admin.programs.index', ['status' => 'in_review'])] : null,
     ]);
