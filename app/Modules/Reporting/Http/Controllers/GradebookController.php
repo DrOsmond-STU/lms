@@ -11,8 +11,8 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Learning\Services\ClassAccess;
 use App\Modules\Reporting\Services\GradebookService;
+use App\Support\Export\TableExport;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -38,31 +38,26 @@ final class GradebookController
     {
         $user = $this->authorize($request, $class, 'gradebook.export');
         $class->load('program');
+        $format = TableExport::format($request->query('format'));
         $data = $this->gradebook->build($class);
-        $this->audit->record('gradebook.exported', $user, 'course_class', $class->id);
-        $file = 'nilai-'.Str::slug($class->program->name.'-'.$class->batch_name).'.csv';
+        $this->audit->record('gradebook.exported', $user, 'course_class', $class->id, ['format' => $format]);
 
-        return response()->streamDownload(function () use ($data): void {
-            $out = fopen('php://output', 'w');
-            if ($out === false) {
-                return;
-            }
-            fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, array_merge(['Peserta', 'Email', 'Kelompok', 'Status', 'Progres (%)'],
-                $data['assessments']->map(fn (Assessment $a) => $a->title.' ('.Assessment::KINDS[$a->kind].')')->all(),
-                $data['assignments']->map(fn (Assignment $a) => 'Tugas: '.$a->title.' (maks '.fmt_score($a->max_score).')')->all(),
-                ['Skor Akhir']), ';');
-            foreach ($data['rows'] as $row) {
-                $enrollment = $row['enrollment'];
-                fputcsv($out, array_merge(
-                    [$enrollment->user->name, $enrollment->user->email, $enrollment->group !== null ? $enrollment->group->name : '', $enrollment->statusLabel(), (string) $enrollment->progress_percent],
-                    array_map(fn (?float $v) => $v === null ? '' : fmt_score($v), array_values($row['scores'])),
-                    array_map(fn (?float $v) => $v === null ? '' : fmt_score($v), array_values($row['tasks'])),
-                    [$enrollment->final_score !== null ? fmt_score($enrollment->final_score) : ''],
-                ), ';');
-            }
-            fclose($out);
-        }, $file, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        $header = array_merge(['Peserta', 'Email', 'Kelompok', 'Status', 'Progres (%)'],
+            $data['assessments']->map(fn (Assessment $a) => $a->title.' ('.Assessment::KINDS[$a->kind].')')->all(),
+            $data['assignments']->map(fn (Assignment $a) => 'Tugas: '.$a->title.' (maks '.fmt_score($a->max_score).')')->all(),
+            ['Skor Akhir']);
+        $rows = $data['rows']->map(function (array $row): array {
+            $enrollment = $row['enrollment'];
+
+            return array_merge(
+                [$enrollment->user->name, $enrollment->user->email, $enrollment->group !== null ? $enrollment->group->name : '', $enrollment->statusLabel(), $enrollment->progress_percent],
+                array_map(fn (?float $v) => $v ?? '', array_values($row['scores'])),
+                array_map(fn (?float $v) => $v ?? '', array_values($row['tasks'])),
+                [$enrollment->final_score !== null ? (float) $enrollment->final_score : ''],
+            );
+        });
+
+        return TableExport::download($format, 'nilai-'.$class->program->name.'-'.$class->batch_name, 'Buku Nilai '.$class->batch_name, $header, $rows, $class->program->name);
     }
 
     private function authorize(Request $request, CourseClass $class, string $permission): User

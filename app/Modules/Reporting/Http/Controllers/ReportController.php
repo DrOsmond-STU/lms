@@ -11,6 +11,7 @@ use App\Modules\Payment\Models\PaymentTransaction;
 use App\Modules\Referral\Models\ReferralCommission;
 use App\Modules\Referral\Services\ReferralService;
 use App\Modules\Reporting\Services\ReportService;
+use App\Support\Export\TableExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,9 +53,10 @@ final class ReportController
         $rows = $this->reports->organizations($period['from'], $period['to'], trim((string) $request->query('q', '')));
         $this->audit->record('report.exported', $request->user(), 'report', null, ['report' => 'organizations', 'from' => $period['from']->toDateString(), 'to' => $period['to']->toDateString()]);
 
-        return $this->csv('laporan-organisasi-'.$period['from']->format('Ymd').'-'.$period['to']->format('Ymd').'.csv',
+        return TableExport::download(TableExport::format($request->query('format')), 'laporan-organisasi-'.$period['from']->format('Ymd').'-'.$period['to']->format('Ymd'), 'Laporan per Organisasi',
             ['Organisasi', 'Kode', 'Jenis', 'Kota', 'Status', 'Anggota Aktif', 'Enrollment', 'Aktif', 'Lulus', 'Tidak Lulus', 'Dibatalkan', 'Tingkat Kelulusan (%)', 'Sertifikat', 'Pembayaran Lunas', 'Pendapatan (Rp)'],
             $rows->map(fn (array $r): array => [$r['name'], $r['code'], $r['type'], $r['city'] ?? '', $r['status'], $r['members'], $r['enrollments'], $r['active'], $r['passed'], $r['failed'], $r['cancelled'], $r['pass_rate'] ?? '', $r['certificates'], $r['payments'], $r['revenue']]),
+            'periode '.$period['from']->translatedFormat('d M Y').' – '.$period['to']->translatedFormat('d M Y'),
         );
     }
 

@@ -53,6 +53,7 @@ use App\Modules\Organization\Http\Controllers\OrgPortalController;
 use App\Modules\Payment\Http\Controllers\PaymentAdminController;
 use App\Modules\Payment\Http\Controllers\PaymentController;
 use App\Modules\Referral\Http\Controllers\ReferralController;
+use App\Modules\Reporting\Http\Controllers\ClassReportController;
 use App\Modules\Reporting\Http\Controllers\GradebookController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
@@ -303,6 +304,7 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/kelas/{class}/daftar', [CatalogController::class, 'enroll'])->middleware('throttle:10,1,catalog-enroll')->name('catalog.enroll');
 
             Route::get('/pembelajaran', [LearningController::class, 'index'])->name('learning.index');
+            Route::get('/nilai', [LearningController::class, 'grades'])->name('learning.grades');
             Route::get('/kelas/{enrollment}', [LearningController::class, 'classroom'])->name('learning.classroom');
             Route::post('/kelas/{enrollment}/batal', [LearningController::class, 'cancel'])->middleware('throttle:10,1,learning-cancel')->name('learning.cancel');
             Route::get('/kelas/{enrollment}/materi/{lesson}', [LearningController::class, 'lesson'])->name('learning.lesson');
@@ -362,6 +364,7 @@ Route::middleware('auth')->group(function (): void {
         });
 
         Route::get('/trainer/kelas', [ClassListController::class, 'trainer'])->middleware('workspace:trainer')->name('trainer.classes');
+        Route::get('/trainer/laporan', [ClassReportController::class, 'trainerIndex'])->middleware(['workspace:trainer', 'can:report.view_class'])->name('trainer.reports');
         Route::get('/trainer/jadwal', [ScheduleController::class, 'trainer'])->middleware('workspace:trainer')->name('schedule.trainer');
 
         // Portal Admin Organisasi (docs/08 ORG-*).
@@ -395,6 +398,8 @@ Route::middleware('auth')->group(function (): void {
             });
             Route::get('/kelas/{class}/nilai', [GradebookController::class, 'index'])->name('classes.gradebook');
             Route::get('/kelas/{class}/nilai/ekspor', [GradebookController::class, 'export'])->middleware('throttle:10,1,gradebook-export')->name('classes.gradebook.export');
+            Route::get('/kelas/{class}/laporan', [ClassReportController::class, 'show'])->name('classes.report');
+            Route::get('/kelas/{class}/laporan/ekspor', [ClassReportController::class, 'export'])->middleware('throttle:10,1,class-report-export')->name('classes.report.export');
             Route::controller(AnnouncementController::class)->name('classes.announcements.')->group(function (): void {
                 Route::get('/kelas/{class}/pengumuman', 'classIndex')->name('index');
                 Route::post('/kelas/{class}/pengumuman', 'store')->middleware('throttle:30,1,class-announcements-store')->name('store');

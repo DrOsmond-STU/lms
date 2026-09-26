@@ -8,7 +8,7 @@
     <div class="card overflow-x-auto">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-4">
             <h2 class="card-title">Buku Nilai</h2>
-            @if ($canExport)<a href="{{ route('classes.gradebook.export', $class) }}" class="btn-secondary">Ekspor CSV</a>@endif
+            @if ($canExport)<div class="flex gap-2">@foreach (\App\Support\Export\TableExport::FORMATS as $format => $label)<a href="{{ route('classes.gradebook.export', [$class, 'format' => $format]) }}" class="btn-secondary">{{ $label }}</a>@endforeach</div>@endif
         </div>
         <table class="data-table text-xs">
             <thead>

@@ -21,6 +21,7 @@ use App\Modules\Learning\Models\Lesson;
 use App\Modules\Learning\Models\Module;
 use App\Modules\Learning\Services\LessonAvailability;
 use App\Modules\Learning\Services\MediaStorage;
+use App\Modules\Reporting\Services\GradebookService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,24 @@ final class LearningController
             ->orderByDesc('created_at')->get();
 
         return view('learning.index', ['enrollments' => $enrollments]);
+    }
+
+    /** Nilai & riwayat belajar peserta: skor tiap asesmen (semua attempt), tugas, durasi, riwayat status. */
+    public function grades(Request $request, GradebookService $gradebook): View
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $enrollments = Enrollment::query()->with(['program:id,name', 'courseClass:id,batch_name,starts_on,ends_on', 'group:id,name'])
+            ->where('user_id', $user->id)->whereNotIn('status', ['applied', 'awaiting_payment'])->orderByDesc('created_at')->get();
+        $ids = $enrollments->pluck('id')->all();
+        $attempts = ExamAttempt::query()->with('assessment:id,title,kind,passing_score')->whereIn('enrollment_id', $ids)->where('status', '<>', 'in_progress')
+            ->orderBy('started_at')->get()->groupBy('enrollment_id');
+        $time = DB::table('lesson_progress')->whereIn('enrollment_id', $ids)->selectRaw('enrollment_id, sum(time_spent_seconds) as seconds, count(*) filter (where status = \'completed\') as done')
+            ->groupBy('enrollment_id')->get()->keyBy('enrollment_id');
+        $history = DB::table('enrollment_status_histories')->whereIn('enrollment_id', $ids)->orderBy('created_at')->get()->groupBy('enrollment_id');
+        $books = $enrollments->mapWithKeys(fn (Enrollment $e) => [$e->id => $gradebook->build($e->courseClass, $e->id)]);
+
+        return view('learning.grades', ['enrollments' => $enrollments, 'attempts' => $attempts, 'time' => $time, 'history' => $history, 'books' => $books]);
     }
 
     public function classroom(Request $request, Enrollment $enrollment): View
