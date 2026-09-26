@@ -38,8 +38,11 @@ Akun shared hosting ini menjalankan banyak aplikasi; interval cron dijaga ≥ 6 
   paling lambat tiap 8 menit. Integritas tetap terjaga: jawaban setelah deadline + grace
   ditolak (409) dan attempt kedaluwarsa langsung dikumpulkan saat dibuka kembali.
 
-Tugas terjadwal (`routes/console.php`): verifikasi rantai audit 02:30 WIB, pembersihan
-registrasi tak terverifikasi & token kedaluwarsa 03:00 WIB.
+Tugas terjadwal (`routes/console.php`): auto-submit ujian & pengingat/pemindaian keamanan tiap
+jam, backup basis data 01:30 WIB (`storage/app/backups`, isi `BACKUP_ENCRYPTION_KEY` di `.env`
+untuk enkripsi), verifikasi rantai audit 02:30, pembersihan registrasi tak terverifikasi 03:00,
+retensi data 03:30, pengingat sertifikat 08:00. Push/WhatsApp/AI dikonfigurasi di Pengaturan
+Sistem → Integrasi (kunci disimpan terenkripsi di basis data).
 
 `lms-verify.sh` (di `$HOME`, di luar repo) memeriksa situs dari server sendiri — status
 halaman, header keamanan, akses berkas sensitif (`/.env`, `/.git`), antrean, dan log galat —

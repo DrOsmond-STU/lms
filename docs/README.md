@@ -80,6 +80,12 @@ Indeks & kebijakan umum: **[`keamanan/README.md`](keamanan/README.md)**
 | 16 | [Temuan Keamanan Purwarupa](keamanan/16-temuan-keamanan-purwarupa.md) | 30 celah purwarupa yang tidak boleh terbawa ke produksi |
 | 17 | [Checklist Keamanan](keamanan/17-checklist-keamanan.md) | Checklist PR, desain fitur, go-live (wajib 100%), operasional berkala |
 
+### D2. Matriks Fitur
+
+| Dokumen | Isi |
+|---|---|
+| [`13-matriks-fitur.md`](13-matriks-fitur.md) | Pemetaan 10 kategori fitur LMS → implementasi, halaman, perintah terjadwal, uji (Fase 2) |
+
 ### E. Berkas Pendukung di Root
 
 | Berkas | Isi |
@@ -287,6 +293,17 @@ yang dipilih, dengan halaman detail enrollment per organisasi. *Referral*: kunju
 terdaftar, transaksi berkomisi, komisi tertunda/dibayar/dibatalkan per referrer, detail dengan
 riwayat pencairan. Keduanya dapat diekspor CSV (`report.export`; nilai diamankan dari injeksi
 formula; ekspor diaudit).
+
+## Status Implementasi — Fase 2 (fitur lengkap LMS)
+
+Delapan gelombang fitur di atas MVP: konten & jadwal (audio/dokumen, drip & prasyarat, sesi/live
+class, presensi, kalender), asesmen (menjodohkan, rubrik, pre/post-test, tugas), kelas interaktif
+(forum, tanya jawab, komentar, polling, chat), administrasi (pengumuman, kelompok, buku nilai,
+approval pendaftaran, peran supervisor), analitik (laporan kelas, nilai peserta, ekspor
+XLSX/PDF/CSV), notifikasi (preferensi, Web Push, WhatsApp gateway, pengingat), AI (tutor,
+generator soal, rangkuman, rekomendasi, jalur belajar, saran esai, analisis kelas, kurikulum),
+dan keamanan operasional (backup, pemantauan, retensi, hak subjek data). Rincian per fitur:
+[`13-matriks-fitur.md`](13-matriks-fitur.md). Uji otomatis: 240 uji Pest, PHPStan level 8 bersih.
 
 ### Belum termasuk (sesuai roadmap)
 

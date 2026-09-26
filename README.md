@@ -10,9 +10,11 @@ prioritas utama.
 
 ## Status
 
-**Fase 0 — Fondasi** sudah berjalan: autentikasi + MFA, RBAC, isolasi tenant dengan Row-Level
-Security, jejak audit berantai hash, header keamanan/CSP, shell UI, uji keamanan otomatis, dan CI.
-Rincian: [`docs/README.md` → Status Implementasi](docs/README.md#status-implementasi--fase-0-fondasi).
+**Fase 0 (fondasi), Fase 1 (MVP inti), dan Fase 2 (fitur lengkap LMS)** berjalan di staging:
+pembelajaran → asesmen → kelulusan → sertifikat, kelas interaktif, administrasi, analitik & ekspor,
+notifikasi multikanal, asisten AI, dan keamanan operasional. Matriks fitur per kategori:
+[`docs/13-matriks-fitur.md`](docs/13-matriks-fitur.md); status rinci:
+[`docs/README.md` → Status Implementasi](docs/README.md#status-implementasi--fase-0-fondasi).
 
 ## Menjalankan Secara Lokal
 
@@ -119,3 +121,7 @@ Setiap PR wajib lulus CI dan checklist keamanan.
 | `php artisan stu:certificates-expiry-reminders` | Pengingat sertifikat sebelum kedaluwarsa (hari diatur di Pengaturan Sistem; harian) |
 | `php artisan stu:prune-unverified` | Hapus registrasi tak terverifikasi & token kedaluwarsa (harian) |
 | `php artisan stu:audit-verify` | Verifikasi rantai hash jejak audit (harian) |
+| `php artisan stu:reminders` | Pengingat tenggat tugas/sesi, peserta tidak aktif, program baru — kanal sesuai preferensi (tiap jam) |
+| `php artisan stu:backup [--media] [--force]` | Backup basis data (pg_dump/fallback JSONL) dan media ke `storage/app/backups`; enkripsi bila `BACKUP_ENCRYPTION_KEY` diisi (harian 01.30) |
+| `php artisan stu:security-scan` | Deteksi brute force, akun ditarget, anomali sesi, ekspor massal → peringatan & notifikasi Super Admin (tiap jam) |
+| `php artisan stu:retention-prune` | Pangkas notifikasi, sesi, log AI/pesan keluar, event keamanan sesuai Pengaturan → Keamanan → Retensi (harian) |
