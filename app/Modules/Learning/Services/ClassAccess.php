@@ -47,6 +47,13 @@ final class ClassAccess
         return $user->isPlatformStaff() || $this->teaches($user, $class);
     }
 
+    /** Approval pendaftaran kelas: staf platform dengan izin enrollment, atau trainer pengampu. */
+    public function canApproveEnrollment(User $user, CourseClass $class): bool
+    {
+        return ($user->isPlatformStaff() && $user->hasPermission('enrollment.create'))
+            || ($user->hasPermission('enrollment.view_any') && $this->teaches($user, $class));
+    }
+
     /** Pengaturan kelas, trainer, status — hanya staf platform. */
     public function canManageSettings(User $user): bool
     {

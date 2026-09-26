@@ -37,5 +37,6 @@
         </div>
     </section>
 
+    @include('dashboards._announcements')
     @include('dashboards._shortcuts', ['workspace' => 'trainer'])
 </x-layouts.app>

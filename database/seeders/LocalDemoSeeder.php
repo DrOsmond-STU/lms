@@ -35,6 +35,7 @@ final class LocalDemoSeeder extends Seeder
             ['Admin Akademik', 'akademik@stu-lms.test', RoleCode::AcademicAdmin, null],
             ['Admin Keuangan', 'keuangan@stu-lms.test', RoleCode::FinanceAdmin, null],
             ['Hendra Saputra', 'hr@stu-lms.test', RoleCode::OrgAdmin, $corporate->id],
+            ['Sari Wulandari', 'supervisor@stu-lms.test', RoleCode::Supervisor, $corporate->id],
             ['Andi Wijaya', 'trainer@stu-lms.test', RoleCode::Trainer, $institution->id],
             ['Raka Prasetya', 'peserta@stu-lms.test', RoleCode::Participant, $institution->id],
             ['Wahyu Saputra', 'karyawan@stu-lms.test', RoleCode::Participant, $corporate->id],

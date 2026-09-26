@@ -39,10 +39,31 @@ final class ClassManageController
     {
         $user = $this->authorize($request, $class);
         $class->load('program', 'trainers');
-        $enrollments = Enrollment::query()->with('user:id,name,email')->where('course_class_id', $class->id)
-            ->orderBy('status')->orderByDesc('progress_percent')->paginate(50);
+        $enrollments = Enrollment::query()->with('user:id,name,email', 'group:id,name')->where('course_class_id', $class->id)
+            ->orderByRaw("CASE WHEN status = 'applied' THEN 0 ELSE 1 END")->orderBy('status')->orderByDesc('progress_percent')->paginate(50);
 
-        return view('classes.participants', $this->common($user, $class) + ['tab' => 'participants', 'enrollments' => $enrollments]);
+        return view('classes.participants', $this->common($user, $class) + [
+            'tab' => 'participants', 'enrollments' => $enrollments,
+            'canApprove' => $this->access->canApproveEnrollment($user, $class),
+        ]);
+    }
+
+    /** Trainer pengampu/admin menyetujui atau menolak pendaftaran yang menunggu (kelas dengan approval). */
+    public function decideEnrollment(Request $request, CourseClass $class, Enrollment $enrollment, EnrollmentService $enrollments): RedirectResponse
+    {
+        $user = $this->authorize($request, $class);
+        abort_unless($this->access->canApproveEnrollment($user, $class) && $enrollment->course_class_id === $class->id, 404);
+        $data = $request->validate(['decision' => ['required', 'in:approve,reject'], 'reason' => ['required_if:decision,reject', 'nullable', 'string', 'min:5', 'max:300']]);
+        $enrollment->load('program', 'user');
+        if ($data['decision'] === 'approve') {
+            $enrollments->approve($enrollment, $user);
+            $message = 'Pendaftaran '.$enrollment->user->name.' disetujui.';
+        } else {
+            $enrollments->reject($enrollment, $user, (string) $data['reason']);
+            $message = 'Pendaftaran '.$enrollment->user->name.' ditolak.';
+        }
+
+        return redirect()->route('classes.participants', $class)->with('status', $message);
     }
 
     /** Admin membatalkan enrollment peserta (dengan alasan); kuota kelas kembali. */
@@ -50,7 +71,7 @@ final class ClassManageController
     {
         $user = $this->authorize($request, $class);
         abort_unless($user->can('enrollment.cancel') && $enrollment->course_class_id === $class->id, 404);
-        if (! in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true)) {
+        if (! in_array($enrollment->status, Enrollment::CANCELLABLE, true)) {
             throw ValidationException::withMessages(['enrollment' => 'Pendaftaran dengan status '.$enrollment->statusLabel().' tidak dapat dibatalkan.']);
         }
         $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:300']]);

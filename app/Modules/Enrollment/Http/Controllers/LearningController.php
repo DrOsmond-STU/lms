@@ -44,8 +44,8 @@ final class LearningController
     {
         /** @var User $user */
         $user = $request->user();
-        $enrollments = Enrollment::query()->with(['program:id,name,category,slug', 'courseClass:id,batch_name,starts_on,ends_on', 'payment:id,enrollment_id,status,expires_at'])
-            ->where('user_id', $user->id)->orderByRaw("CASE WHEN status IN ('enrolled','in_progress') THEN 0 WHEN status = 'pending_approval' THEN 1 ELSE 2 END")
+        $enrollments = Enrollment::query()->with(['program:id,name,category,slug', 'courseClass:id,batch_name,starts_on,ends_on', 'payment:id,enrollment_id,status,expires_at', 'group:id,name'])
+            ->where('user_id', $user->id)->orderByRaw("CASE WHEN status IN ('enrolled','in_progress') THEN 0 WHEN status IN ('pending_approval','applied') THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')->get();
 
         return view('learning.index', ['enrollments' => $enrollments]);
@@ -159,7 +159,7 @@ final class LearningController
     {
         $user = $this->own($request, $enrollment);
         abort_unless($user->can('enrollment.cancel'), 403);
-        if (! in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true)) {
+        if (! in_array($enrollment->status, Enrollment::CANCELLABLE, true)) {
             throw ValidationException::withMessages(['enrollment' => 'Pendaftaran dengan status '.$enrollment->statusLabel().' tidak dapat dibatalkan.']);
         }
         $data = $request->validate(['reason' => ['nullable', 'string', 'max:300']]);

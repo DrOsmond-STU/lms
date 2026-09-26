@@ -14,6 +14,7 @@ enum RoleCode: string
     case FinanceAdmin = 'finance_admin';
     case SupportAdmin = 'support_admin';
     case OrgAdmin = 'org_admin';
+    case Supervisor = 'supervisor';
     case Trainer = 'trainer';
     case Participant = 'participant';
 
@@ -25,6 +26,7 @@ enum RoleCode: string
             self::FinanceAdmin => 'Admin Keuangan',
             self::SupportAdmin => 'Admin Layanan',
             self::OrgAdmin => 'Admin Organisasi',
+            self::Supervisor => 'Supervisor',
             self::Trainer => 'Trainer',
             self::Participant => 'Peserta',
         };
@@ -39,10 +41,11 @@ enum RoleCode: string
     /**
      * Peran yang wajib terikat organisasi. Trainer & peserta boleh tanpa organisasi
      * (trainer internal STU, peserta umum yang mendaftar mandiri) — docs/07 §2.
+     * Supervisor = pemantau organisasi (hanya baca: progres, nilai, presensi, laporan).
      */
     public function requiresOrganization(): bool
     {
-        return $this === self::OrgAdmin;
+        return in_array($this, [self::OrgAdmin, self::Supervisor], true);
     }
 
     public function requiresMfa(): bool
@@ -56,7 +59,7 @@ enum RoleCode: string
         return match ($this) {
             self::Participant => 'participant',
             self::Trainer => 'trainer',
-            self::OrgAdmin => 'organization',
+            self::OrgAdmin, self::Supervisor => 'organization',
             default => 'admin',
         };
     }

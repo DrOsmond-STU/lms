@@ -10,6 +10,9 @@
                 @if ($activeEnrollment && $activeEnrollment->status === 'awaiting_payment')
                     <p class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Kursi Anda sudah dipesan. Selesaikan pembayaran agar dapat mulai belajar.</p>
                     @if ($pendingPayment)<a href="{{ route('payments.show', $pendingPayment) }}" class="btn-primary mt-3">Selesaikan Pembayaran</a>@endif
+                @elseif ($activeEnrollment && $activeEnrollment->status === 'applied')
+                    <p class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Pendaftaran Anda pada kelas {{ $activeEnrollment->courseClass->batch_name }} menunggu persetujuan trainer/admin. Anda akan diberi tahu setelah diputuskan.</p>
+                    <a href="{{ route('learning.index') }}" class="btn-secondary mt-3">Lihat Pembelajaran Saya</a>
                 @elseif ($activeEnrollment)
                     <p class="mt-3 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">Anda sudah terdaftar pada program ini.</p>
                     <a href="{{ route('learning.classroom', $activeEnrollment) }}" class="btn-primary mt-3">Lanjutkan Belajar</a>
@@ -22,7 +25,8 @@
                                 @if ($class->trainers->isNotEmpty())<span class="block text-xs text-slate-500">Trainer: {{ $class->trainers->pluck('name')->implode(', ') }}</span>@endif
                                 @if ($class->isEnrollmentOpen() && $class->seatsLeft() > 0)
                                     @if ($program->isFree())
-                                        <form method="POST" action="{{ route('catalog.enroll', $class) }}" class="mt-2">@csrf<button class="btn-primary">Daftar</button></form>
+                                        <form method="POST" action="{{ route('catalog.enroll', $class) }}" class="mt-2">@csrf<button class="btn-primary">{{ $class->requires_approval ? 'Ajukan Pendaftaran' : 'Daftar' }}</button></form>
+                                        @if ($class->requires_approval)<p class="mt-1 text-xs text-slate-500">Pendaftaran perlu persetujuan trainer/admin sebelum materi dapat diakses.</p>@endif
                                     @elseif ($paymentOpen)
                                         <form method="POST" action="{{ route('payments.checkout', $class) }}" class="mt-2">@csrf<button class="btn-primary">Daftar &amp; Bayar {{ $program->priceLabel() }}</button></form>
                                         <p class="mt-1 text-xs text-slate-500">Transfer bank, verifikasi oleh Admin Keuangan.</p>

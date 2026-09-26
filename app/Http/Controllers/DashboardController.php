@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Modules\Communication\Services\AnnouncementFeed;
 use App\Modules\Identity\Models\User;
 use App\Modules\Reporting\Services\DashboardStats;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,7 @@ final class DashboardController
         };
     }
 
-    public function show(Request $request, string $workspace, DashboardStats $stats): View
+    public function show(Request $request, string $workspace, DashboardStats $stats, AnnouncementFeed $feed): View
     {
         /** @var User $user */
         $user = $request->user();
@@ -40,6 +41,6 @@ final class DashboardController
             default => ['dashboards.admin', $stats->admin($user)],
         };
 
-        return view($view, $data + ['workspace' => $workspace, 'user' => $user]);
+        return view($view, $data + ['workspace' => $workspace, 'user' => $user, 'announcements' => $feed->for($user, 4)]);
     }
 }

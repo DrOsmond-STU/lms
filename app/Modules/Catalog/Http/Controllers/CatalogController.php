@@ -45,7 +45,7 @@ final class CatalogController
         /** @var User $user */
         $user = $request->user();
         $detail = $this->detail($slug);
-        $active = Enrollment::query()->where('user_id', $user->id)->where('program_id', $detail['program']->id)
+        $active = Enrollment::query()->with('courseClass:id,batch_name')->where('user_id', $user->id)->where('program_id', $detail['program']->id)
             ->whereNotIn('status', ['failed', 'cancelled'])->first();
 
         return view('catalog.participant-show', $detail + [
@@ -60,6 +60,9 @@ final class CatalogController
         /** @var User $user */
         $user = $request->user();
         $enrollment = $enrollments->enrollSelf($user, $class->load('program'));
+        if ($enrollment->status === 'applied') {
+            return redirect()->route('learning.index')->with('status', 'Pendaftaran diajukan. Anda akan diberi tahu setelah disetujui trainer/admin.');
+        }
 
         return redirect()->route('learning.classroom', $enrollment)->with('status', 'Pendaftaran berhasil. Selamat belajar!');
     }

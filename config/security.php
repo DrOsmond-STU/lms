@@ -17,7 +17,7 @@ return [
 
     // Peran yang wajib MFA (keamanan/02 SEC-AUTH-10).
     'mfa_required_roles' => [
-        'super_admin', 'academic_admin', 'finance_admin', 'support_admin', 'org_admin', 'trainer',
+        'super_admin', 'academic_admin', 'finance_admin', 'support_admin', 'org_admin', 'supervisor', 'trainer',
     ],
 
     // Batas waktu sesi dalam menit (keamanan/02 SEC-AUTH-18).

@@ -45,7 +45,30 @@ final class EnrollmentService
         }
         $this->assertOrganizationAllowed($user, $class);
 
-        return $this->create($user, $class, 'self', null, null);
+        // Kelas dengan approval: kursi dipesan, status `applied` sampai disetujui trainer/admin.
+        return $this->create($user, $class, 'self', null, null, $class->requires_approval ? 'applied' : 'enrolled');
+    }
+
+    /** Trainer/admin menyetujui pendaftaran yang menunggu (`applied` → `enrolled`). */
+    public function approve(Enrollment $enrollment, User $actor): void
+    {
+        if ($enrollment->status !== 'applied') {
+            throw ValidationException::withMessages(['enrollment' => 'Pendaftaran ini tidak sedang menunggu persetujuan.']);
+        }
+        $this->transition($enrollment, 'enrolled', $actor, 'Pendaftaran disetujui', ['enrolled_at' => now(), 'approved_by' => $actor->id, 'approved_at' => now(), 'rejection_reason' => null]);
+        $this->audit->record('enrollment.approved', $actor, 'enrollment', $enrollment->id, ['participant_id' => $enrollment->user_id], null, $enrollment->organization_id);
+        $this->notifier->send($enrollment->user, 'enrollment', 'Pendaftaran disetujui', 'Pendaftaran Anda pada '.$enrollment->program->name.' disetujui. Selamat belajar!', '/peserta/kelas/'.$enrollment->id, email: true);
+    }
+
+    /** Trainer/admin menolak pendaftaran yang menunggu; kuota kembali dan peserta boleh mendaftar lagi. */
+    public function reject(Enrollment $enrollment, User $actor, string $reason): void
+    {
+        if ($enrollment->status !== 'applied') {
+            throw ValidationException::withMessages(['enrollment' => 'Pendaftaran ini tidak sedang menunggu persetujuan.']);
+        }
+        $this->transition($enrollment, 'cancelled', $actor, $reason, ['rejection_reason' => $reason]);
+        $this->audit->record('enrollment.rejected', $actor, 'enrollment', $enrollment->id, ['participant_id' => $enrollment->user_id], $reason, $enrollment->organization_id);
+        $this->notifier->send($enrollment->user, 'enrollment', 'Pendaftaran tidak disetujui', 'Pendaftaran Anda pada '.$enrollment->program->name.' tidak disetujui: '.$reason, '/peserta/pembelajaran', email: true);
     }
 
     /**
@@ -156,6 +179,12 @@ final class EnrollmentService
             throw ValidationException::withMessages(['class' => 'Anda sudah memiliki enrollment aktif untuk program ini.']);
         }
 
+        if ($status === 'applied') {
+            $this->notifier->send($user, 'enrollment', 'Pendaftaran menunggu persetujuan', 'Pendaftaran Anda pada '.$class->program->name.' ('.$class->batch_name.') menunggu persetujuan trainer/admin.', '/peserta/pembelajaran');
+            $class->trainers()->get()->each(fn (User $trainer) => $this->notifier->send($trainer, 'enrollment', 'Pendaftaran baru menunggu persetujuan', $user->name.' mengajukan pendaftaran ke '.$class->program->name.' ('.$class->batch_name.').', '/kelola/kelas/'.$class->id.'/peserta'));
+
+            return $enrollment;
+        }
         if ($status !== 'enrolled') {
             return $enrollment; // pemberitahuan tagihan dikirim PaymentService
         }

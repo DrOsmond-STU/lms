@@ -11,7 +11,7 @@
                         <h2 class="font-extrabold text-slate-800">{{ $enrollment->program->name }}</h2>
                         <p class="text-xs text-slate-500">{{ $enrollment->courseClass->batch_name }} · {{ $enrollment->courseClass->starts_on->translatedFormat('d M Y') }} – {{ $enrollment->courseClass->ends_on->translatedFormat('d M Y') }}</p>
                     </div>
-                    <span @class(['badge', 'bg-emerald-50 text-emerald-700' => $enrollment->status === 'passed', 'bg-amber-50 text-amber-700' => $enrollment->status === 'pending_approval', 'bg-rose-50 text-rose-700' => in_array($enrollment->status, ['failed', 'cancelled'], true), 'bg-brand-50 text-link' => $enrollment->isActive()])>{{ $enrollment->statusLabel() }}</span>
+                    <span @class(['badge', 'bg-emerald-50 text-emerald-700' => $enrollment->status === 'passed', 'bg-amber-50 text-amber-700' => in_array($enrollment->status, ['pending_approval', 'applied'], true), 'bg-rose-50 text-rose-700' => in_array($enrollment->status, ['failed', 'cancelled'], true), 'bg-brand-50 text-link' => $enrollment->isActive()])>{{ $enrollment->statusLabel() }}</span>
                 </div>
                 <div class="mt-4 flex items-center gap-3">
                     <div class="h-2 flex-1 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-accent-500 progress-{{ (int) (floor($enrollment->progress_percent / 5) * 5) }}"></div></div>
@@ -21,13 +21,16 @@
                     <span>Skor akhir: {{ $enrollment->final_score !== null ? fmt_score($enrollment->final_score) : '—' }}</span>
                     @if ($enrollment->rejection_reason && $enrollment->isActive())<span class="text-rose-700">Approval ditolak: {{ $enrollment->rejection_reason }}</span>@endif
                 </div>
-                @if ($enrollment->status === 'awaiting_payment' && $enrollment->payment)
+                @if ($enrollment->group)<p class="mt-2 text-xs text-slate-500">Kelompok: <span class="font-bold text-slate-700">{{ $enrollment->group->name }}</span></p>@endif
+                @if ($enrollment->status === 'applied')
+                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">Menunggu persetujuan trainer/admin. Materi terbuka setelah pendaftaran disetujui.</p>
+                @elseif ($enrollment->status === 'awaiting_payment' && $enrollment->payment)
                     <a href="{{ route('payments.show', $enrollment->payment) }}" class="btn-primary mt-4">Selesaikan Pembayaran</a>
                     <p class="mt-1 text-xs text-amber-700">Batas waktu: {{ $enrollment->payment->expires_at->timezone(display_tz())->translatedFormat('d M Y H:i') }} {{ tz_label() }}</p>
                 @elseif ($enrollment->status !== 'cancelled')
                     <a href="{{ route('learning.classroom', $enrollment) }}" class="btn-primary mt-4">{{ $enrollment->isActive() ? 'Lanjutkan Belajar' : 'Lihat Kelas' }}</a>
                 @endif
-                @if (in_array($enrollment->status, ['enrolled', 'in_progress', 'awaiting_payment'], true))
+                @if (in_array($enrollment->status, \App\Modules\Enrollment\Models\Enrollment::CANCELLABLE, true))
                     <form method="POST" action="{{ route('learning.cancel', $enrollment) }}" class="mt-2 text-right" data-confirm="Batalkan pendaftaran pada {{ $enrollment->program->name }}? Progres tidak dilanjutkan dan kuota kelas dilepas.">@csrf
                         <button type="submit" class="btn-mini-danger">Batalkan pendaftaran</button>
                     </form>

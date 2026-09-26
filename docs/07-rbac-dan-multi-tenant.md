@@ -33,6 +33,7 @@ scope adalah **404** (bukan 403) agar keberadaan objek tidak bocor.
 | `finance_admin` | Admin Keuangan | Seluruh platform (data transaksi) | Ditetapkan Super Admin | **Wajib** |
 | `support_admin` | Admin Layanan (opsional) | Baca-saja data pengguna untuk bantuan; reset MFA dengan verifikasi | Ditetapkan Super Admin | **Wajib** |
 | `org_admin` | Admin Organisasi | Satu/lebih organisasi tertentu | Ditetapkan Super Admin / Admin Akademik | **Wajib** |
+| `supervisor` | Supervisor | Satu/lebih organisasi tertentu, **hanya baca** (progres, nilai, presensi, laporan, pengumuman) | Ditetapkan Super Admin / Admin Akademik | **Wajib** |
 | `trainer` | Trainer | Kelas yang diampu | Ditetapkan Admin Akademik | **Wajib** |
 | `participant` | Peserta | Data diri sendiri & kelas yang diikuti | Registrasi mandiri (verifikasi email/HP) atau didaftarkan organisasi | Opsional (dianjurkan) |
 | — | Publik (anonim) | Halaman publik, katalog, verifikasi sertifikat | — | — |

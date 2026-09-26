@@ -69,5 +69,6 @@
         </div>
     </section>
 
+    @include('dashboards._announcements')
     @include('dashboards._shortcuts', ['workspace' => 'admin'])
 </x-layouts.app>

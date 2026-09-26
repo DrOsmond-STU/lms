@@ -24,6 +24,7 @@ use App\Modules\Cms\Http\Controllers\LandingPartnerController;
 use App\Modules\Cms\Http\Controllers\LandingSlideController;
 use App\Modules\Cms\Http\Controllers\LandingTestimonialController;
 use App\Modules\Cms\Http\Controllers\SiteProfileController;
+use App\Modules\Communication\Http\Controllers\AnnouncementController;
 use App\Modules\Discussion\Http\Controllers\DiscussionController;
 use App\Modules\Discussion\Http\Controllers\PollController;
 use App\Modules\Enrollment\Http\Controllers\LearningController;
@@ -39,6 +40,7 @@ use App\Modules\Identity\Http\Controllers\RegistrationController;
 use App\Modules\Identity\Http\Controllers\UserAdminController;
 use App\Modules\Learning\Http\Controllers\AcademicCalendarController;
 use App\Modules\Learning\Http\Controllers\ClassAdminController;
+use App\Modules\Learning\Http\Controllers\ClassGroupController;
 use App\Modules\Learning\Http\Controllers\ClassListController;
 use App\Modules\Learning\Http\Controllers\ClassManageController;
 use App\Modules\Learning\Http\Controllers\ClassSessionController;
@@ -51,6 +53,7 @@ use App\Modules\Organization\Http\Controllers\OrgPortalController;
 use App\Modules\Payment\Http\Controllers\PaymentAdminController;
 use App\Modules\Payment\Http\Controllers\PaymentController;
 use App\Modules\Referral\Http\Controllers\ReferralController;
+use App\Modules\Reporting\Http\Controllers\GradebookController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -110,6 +113,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/persetujuan', [AccountController::class, 'storeReconsent'])->name('consent.store');
 
         Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
         Route::post('/notifikasi/tandai-semua', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifikasi/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
 
@@ -206,6 +210,12 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('/{enrollment}/tolak', 'reject')->middleware(['can:certificate.reject', 'reauth'])->name('reject');
             });
 
+            Route::controller(AnnouncementController::class)->prefix('pengumuman')->name('announcements.')->middleware('can:announcement.manage')->group(function (): void {
+                Route::get('/', 'adminIndex')->name('index');
+                Route::post('/', 'store')->middleware('throttle:30,1,announcements-store')->name('store');
+                Route::put('/{announcement}', 'update')->name('update');
+                Route::delete('/{announcement}', 'destroy')->name('destroy');
+            });
             Route::controller(AcademicCalendarController::class)->prefix('kalender')->name('calendar.')->middleware('can:calendar.manage')->group(function (): void {
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->middleware('throttle:30,1,calendar-store')->name('store');
@@ -359,6 +369,12 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/anggota', [OrgPortalController::class, 'members'])->middleware('can:organization.manage_members')->name('org.members');
             Route::post('/anggota/{member}', [OrgPortalController::class, 'decide'])->middleware(['can:organization.manage_members', 'throttle:60,1,org-members-decide'])->name('org.members.decide');
             Route::get('/enrollment', [OrgPortalController::class, 'enrollments'])->middleware('can:report.view_organization')->name('org.enrollments');
+            Route::controller(AnnouncementController::class)->prefix('pengumuman')->name('org.announcements.')->middleware('can:announcement.manage')->group(function (): void {
+                Route::get('/', 'orgIndex')->name('index');
+                Route::post('/', 'store')->middleware('throttle:30,1,org-announcements-store')->name('store');
+                Route::put('/{announcement}', 'update')->name('update');
+                Route::delete('/{announcement}', 'destroy')->name('destroy');
+            });
             Route::get('/audit', [AuditLogController::class, 'index'])->middleware('can:audit_log.view')->name('org.audit');
             Route::get('/audit/ekspor', [AuditLogController::class, 'export'])->middleware(['can:audit_log.export', 'throttle:5,1,org-audit-export'])->name('org.audit.export');
         });
@@ -368,6 +384,23 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/kelas/{class}', [ClassManageController::class, 'show'])->name('classes.manage');
             Route::get('/kelas/{class}/peserta', [ClassManageController::class, 'participants'])->name('classes.participants');
             Route::post('/kelas/{class}/peserta/{enrollment}/batal', [ClassManageController::class, 'cancelEnrollment'])->middleware('throttle:30,1,class-cancel')->name('classes.enrollments.cancel');
+            Route::post('/kelas/{class}/peserta/{enrollment}/putuskan', [ClassManageController::class, 'decideEnrollment'])->middleware('throttle:60,1,class-decide')->name('classes.enrollments.decide');
+
+            // Kelompok belajar, buku nilai, pengumuman kelas
+            Route::controller(ClassGroupController::class)->prefix('kelas/{class}/kelompok')->name('classes.groups.')->group(function (): void {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->middleware('throttle:30,1,groups-store')->name('store');
+                Route::post('/bagi', 'assign')->middleware('throttle:30,1,groups-assign')->name('assign');
+                Route::delete('/{group}', 'destroy')->name('destroy');
+            });
+            Route::get('/kelas/{class}/nilai', [GradebookController::class, 'index'])->name('classes.gradebook');
+            Route::get('/kelas/{class}/nilai/ekspor', [GradebookController::class, 'export'])->middleware('throttle:10,1,gradebook-export')->name('classes.gradebook.export');
+            Route::controller(AnnouncementController::class)->name('classes.announcements.')->group(function (): void {
+                Route::get('/kelas/{class}/pengumuman', 'classIndex')->name('index');
+                Route::post('/kelas/{class}/pengumuman', 'store')->middleware('throttle:30,1,class-announcements-store')->name('store');
+                Route::put('/pengumuman/{announcement}', 'update')->name('update');
+                Route::delete('/pengumuman/{announcement}', 'destroy')->name('destroy');
+            });
             Route::get('/kelas/{class}/asesmen', [ClassManageController::class, 'assessments'])->name('classes.assessments');
 
             // Tugas (assignment) & pengumpulan

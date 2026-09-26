@@ -47,5 +47,6 @@
         </div>
     </section>
 
+    @include('dashboards._announcements')
     @include('dashboards._shortcuts', ['workspace' => 'organization'])
 </x-layouts.app>

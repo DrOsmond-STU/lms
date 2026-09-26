@@ -191,7 +191,7 @@ final class User extends Authenticatable implements CanResetPasswordContract
     {
         /** @var list<string> */
         return array_values($this->roles
-            ->filter(fn (Role $role): bool => $role->code === RoleCode::OrgAdmin->value)
+            ->filter(fn (Role $role): bool => in_array($role->code, [RoleCode::OrgAdmin->value, RoleCode::Supervisor->value], true))
             ->map(fn (Role $role) => $role->getRelationValue('pivot')?->getAttribute('organization_id'))
             ->filter()
             ->unique()
@@ -251,7 +251,7 @@ final class User extends Authenticatable implements CanResetPasswordContract
     /** Workspace default setelah login (peran dengan hak tertinggi). */
     public function defaultWorkspace(): ?string
     {
-        $order = [RoleCode::SuperAdmin, RoleCode::AcademicAdmin, RoleCode::FinanceAdmin, RoleCode::SupportAdmin, RoleCode::OrgAdmin, RoleCode::Trainer, RoleCode::Participant];
+        $order = [RoleCode::SuperAdmin, RoleCode::AcademicAdmin, RoleCode::FinanceAdmin, RoleCode::SupportAdmin, RoleCode::OrgAdmin, RoleCode::Supervisor, RoleCode::Trainer, RoleCode::Participant];
         $codes = $this->roleCodes();
         foreach ($order as $role) {
             if (in_array($role, $codes, true)) {

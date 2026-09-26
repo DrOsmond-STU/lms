@@ -6,6 +6,7 @@ namespace App\Modules\Enrollment\Models;
 
 use App\Modules\Catalog\Models\Program;
 use App\Modules\Identity\Models\User;
+use App\Modules\Learning\Models\ClassGroup;
 use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Payment\Models\PaymentTransaction;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $user_id
  * @property string $course_class_id
  * @property string $program_id
+ * @property string|null $group_id
  * @property string $status
  * @property string $source
  * @property int $progress_percent
@@ -37,12 +39,14 @@ use Illuminate\Support\Carbon;
  * @property-read CourseClass $courseClass
  * @property-read Program $program
  * @property-read PaymentTransaction|null $payment
+ * @property-read ClassGroup|null $group
  */
 final class Enrollment extends Model
 {
     use HasUuids;
 
     public const STATUSES = [
+        'applied' => 'Menunggu Persetujuan Pendaftaran',
         'awaiting_payment' => 'Menunggu Pembayaran',
         'enrolled' => 'Terdaftar',
         'in_progress' => 'Sedang Belajar',
@@ -54,6 +58,7 @@ final class Enrollment extends Model
 
     /** Nada chip status di UI (critical|high|medium|low|info|neutral). */
     public const STATUS_TONES = [
+        'applied' => 'medium',
         'awaiting_payment' => 'high',
         'enrolled' => 'info',
         'in_progress' => 'info',
@@ -67,6 +72,7 @@ final class Enrollment extends Model
 
     /** Transisi yang sah (docs/02 §21.1). */
     public const TRANSITIONS = [
+        'applied' => ['enrolled', 'cancelled'],
         'awaiting_payment' => ['enrolled', 'cancelled'],
         'enrolled' => ['in_progress', 'pending_approval', 'failed', 'cancelled'],
         'in_progress' => ['pending_approval', 'failed', 'cancelled'],
@@ -107,12 +113,22 @@ final class Enrollment extends Model
         return $this->belongsTo(Program::class);
     }
 
+    /** Kelompok belajar dalam kelas (opsional). */
+    /** @return BelongsTo<ClassGroup, $this> */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(ClassGroup::class, 'group_id');
+    }
+
     /** Tagihan transfer manual (hanya enrollment berbayar). */
     /** @return HasOne<PaymentTransaction, $this> */
     public function payment(): HasOne
     {
         return $this->hasOne(PaymentTransaction::class);
     }
+
+    /** Status yang masih dapat dibatalkan peserta/admin (belum lulus/gagal). */
+    public const CANCELLABLE = ['applied', 'enrolled', 'in_progress', 'awaiting_payment'];
 
     public function isActive(): bool
     {

@@ -1,6 +1,6 @@
 {{-- Tab kelola kelas (judul kelas ada di slot hero view). $class, $tab, $canManageSettings --}}
 <nav class="tabs mb-6" aria-label="Bagian kelas">
-    @foreach (['content' => ['classes.manage', 'Konten'], 'assessments' => ['classes.assessments', 'Asesmen'], 'assignments' => ['classes.assignments', 'Tugas'], 'sessions' => ['classes.sessions', 'Sesi & Presensi'], 'participants' => ['classes.participants', 'Peserta']] as $key => [$routeName, $label])
+    @foreach (['content' => ['classes.manage', 'Konten'], 'assessments' => ['classes.assessments', 'Asesmen'], 'assignments' => ['classes.assignments', 'Tugas'], 'sessions' => ['classes.sessions', 'Sesi & Presensi'], 'participants' => ['classes.participants', 'Peserta'], 'groups' => ['classes.groups.index', 'Kelompok'], 'gradebook' => ['classes.gradebook', 'Nilai'], 'announcements' => ['classes.announcements.index', 'Pengumuman']] as $key => [$routeName, $label])
         <a href="{{ route($routeName, $class) }}" @if ($tab === $key) aria-current="page" @endif>{{ $label }}</a>
     @endforeach
     <a href="{{ route('discussion.index', $class) }}">Diskusi &amp; Polling</a>

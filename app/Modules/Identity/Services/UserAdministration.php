@@ -43,10 +43,10 @@ final class UserAdministration
     public function assignableRoles(User $actor): array
     {
         if ($actor->hasRole(RoleCode::SuperAdmin)) {
-            return [RoleCode::AcademicAdmin, RoleCode::FinanceAdmin, RoleCode::SupportAdmin, RoleCode::OrgAdmin, RoleCode::Trainer, RoleCode::Participant];
+            return [RoleCode::AcademicAdmin, RoleCode::FinanceAdmin, RoleCode::SupportAdmin, RoleCode::OrgAdmin, RoleCode::Supervisor, RoleCode::Trainer, RoleCode::Participant];
         }
         if ($actor->hasRole(RoleCode::AcademicAdmin)) {
-            return [RoleCode::OrgAdmin, RoleCode::Trainer, RoleCode::Participant];
+            return [RoleCode::OrgAdmin, RoleCode::Supervisor, RoleCode::Trainer, RoleCode::Participant];
         }
 
         return [];
