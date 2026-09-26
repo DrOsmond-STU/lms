@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, string>|null $match_pairs
  * @property array<string, float>|null $rubric_scores
  * @property string|null $feedback
+ * @property array<string, mixed>|null $ai_suggestion
  * @property string|null $text_answer
  * @property bool|null $is_correct
  * @property string|null $points_awarded
@@ -36,7 +37,7 @@ final class AttemptAnswer extends Model
         return [
             'selected_option_ids' => 'array',
             'match_pairs' => 'array',
-            'rubric_scores' => 'array',
+            'rubric_scores' => 'array', 'ai_suggestion' => 'array',
             'is_correct' => 'boolean',
             'answered_at' => 'datetime',
             'graded_at' => 'datetime',

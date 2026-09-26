@@ -45,6 +45,7 @@ final class Permissions
         'calendar' => ['view', 'manage'],
         'announcement' => ['view', 'manage'],
         'gradebook' => ['view', 'export'],
+        'ai' => ['use', 'author'],
     ];
 
     /**
@@ -64,7 +65,7 @@ final class Permissions
             'certificate_template.*', 'payment.*', 'coupon.*', 'discussion.view', 'discussion.moderate',
             'gamification.*', 'notification_setting.*', 'report.*', 'cms.*',
             'privacy_request.view_any', 'privacy_request.process', 'api_key.*', 'integration.*',
-            'system_setting.*', 'audit_log.*', 'referral.*', 'calendar.*', 'announcement.*', 'gradebook.*',
+            'system_setting.*', 'audit_log.*', 'referral.*', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*',
         ],
         'academic_admin' => [
             'user.view_any', 'user.view', 'user.create', 'user.update', 'user.deactivate', 'user.assign_role', 'user.export',
@@ -77,7 +78,7 @@ final class Permissions
             'certificate.revoke', 'certificate.reissue', 'certificate.download', 'certificate_template.*',
             'payment.view_any', 'payment.view', 'discussion.view', 'discussion.moderate', 'gamification.*',
             'report.view_platform', 'report.export', 'cms.*', 'referral.view_any',
-            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view', 'calendar.*', 'announcement.*', 'gradebook.*',
+            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*',
         ],
         'finance_admin' => [
             'program.view_any', 'program.view', 'payment.*', 'coupon.*', 'report.view_platform', 'report.export', 'audit_log.view', 'referral.*',
@@ -107,7 +108,7 @@ final class Permissions
             'enrollment.view_any', 'enrollment.view', 'assignment.*', 'submission.view_any', 'submission.view', 'submission.review',
             'attendance.view_any', 'attendance.manage_session', 'attendance.record_manual', 'live_session.*',
             'discussion.view', 'discussion.post', 'discussion.moderate', 'gamification.view_leaderboard',
-            'report.view_class', 'report.export', 'calendar.view', 'announcement.*', 'gradebook.*',
+            'report.view_class', 'report.export', 'calendar.view', 'announcement.*', 'gradebook.*', 'ai.*',
         ],
         'participant' => [
             'program.view_any', 'program.view', 'course_class.view', 'content.view', 'assessment.attempt',
@@ -115,7 +116,7 @@ final class Permissions
             'attendance.check_in', 'live_session.view', 'certificate.view', 'certificate.download',
             'payment.view', 'payment.refund_request', 'discussion.view', 'discussion.post', 'discussion.report',
             'gamification.view_leaderboard', 'notification_setting.view', 'notification_setting.update',
-            'privacy_request.create', 'referral.view', 'calendar.view', 'announcement.view', 'gradebook.view',
+            'privacy_request.create', 'referral.view', 'calendar.view', 'announcement.view', 'gradebook.view', 'ai.use',
         ],
     ];
 

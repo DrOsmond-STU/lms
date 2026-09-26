@@ -62,6 +62,7 @@ it('routes notifications by preference to email, push and whatsapp and stores se
         SystemSettings::field('whatsapp.enabled') => '1', SystemSettings::field('whatsapp.endpoint') => 'https://wa.example.test/send',
         SystemSettings::field('whatsapp.token') => 'rahasia-gateway', SystemSettings::field('whatsapp.payload') => 'json',
         SystemSettings::field('reminder.deadline_hours') => '48', SystemSettings::field('reminder.inactive_days') => '7', SystemSettings::field('reminder.new_program') => '1',
+        SystemSettings::field('ai.model') => 'claude-sonnet-5', SystemSettings::field('ai.daily_limit') => '40',
     ], $extra);
     confirmAccess();
     $this->put(route('admin.settings.update', 'integrasi'), $fields([]))->assertSessionHasNoErrors();

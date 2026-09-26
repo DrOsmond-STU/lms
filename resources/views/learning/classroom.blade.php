@@ -58,6 +58,21 @@
                 @endif
             </section>
 
+            @if ($aiConfigured)
+                <section class="card p-5" aria-labelledby="reco-heading">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 id="reco-heading" class="font-bold text-slate-800">Rekomendasi AI</h2>
+                        @if ($enrollment->isActive())<form method="POST" action="{{ route('ai.recommend', $enrollment) }}">@csrf<button class="btn-secondary min-h-0 px-3 py-1.5 text-xs">{{ $recommendation ? 'Perbarui' : 'Buat rekomendasi' }}</button></form>@endif
+                    </div>
+                    @if ($recommendation)
+                        <div class="prose-content mt-3 text-sm">@include('components.safe-html', ['html' => $recommendation->body_html])</div>
+                        <p class="mt-2 text-[11px] text-slate-500">{{ $recommendation->generated_at->timezone(display_tz())->translatedFormat('d M H:i') }} · <a href="{{ route('learning.path') }}" class="font-bold text-link hover:underline">jalur belajar lengkap</a></p>
+                    @else
+                        <p class="mt-2 text-xs text-slate-500">Langkah belajar berikutnya berdasarkan progres dan hasil kuis Anda.</p>
+                    @endif
+                </section>
+            @endif
+
             <section class="card p-5" aria-labelledby="assess-heading">
                 <h2 id="assess-heading" class="font-bold text-slate-800">Kuis &amp; Ujian</h2>
                 <ul class="mt-3 space-y-3 text-sm">

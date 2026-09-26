@@ -65,6 +65,29 @@
         @endif
     </div>
 
+    @if ($aiConfigured && $lesson->type === 'text')
+        <section class="card mt-6 p-6" aria-labelledby="summary-heading">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="summary-heading" class="font-bold text-slate-800">Rangkuman AI</h2>
+                @if ($enrollment->isActive())
+                    <form method="POST" action="{{ route('ai.summarize', [$enrollment, $lesson]) }}">@csrf @if ($summary)<input type="hidden" name="ulang" value="1">@endif<button class="btn-secondary min-h-0 px-3 py-1.5 text-xs">{{ $summary ? 'Buat ulang' : 'Buat rangkuman' }}</button></form>
+                @endif
+            </div>
+            @if ($summary)
+                <div class="prose-content mt-3 text-sm">@include('components.safe-html', ['html' => $summary->summary_html])</div>
+                <p class="mt-2 text-[11px] text-slate-500">Dibuat {{ $summary->generated_at->timezone(display_tz())->translatedFormat('d M Y H:i') }} · dapat keliru, cek dengan materi.</p>
+            @else
+                <p class="mt-2 text-sm text-slate-500">Belum ada rangkuman. Klik "Buat rangkuman" untuk poin-poin utama, istilah kunci, dan pertanyaan refleksi.</p>
+            @endif
+        </section>
+    @endif
+    @if ($aiConfigured && $tutorEnabled && $enrollment->isActive())
+        <section class="mt-6" aria-labelledby="tutor-heading">
+            <h2 id="tutor-heading" class="mb-2 font-bold text-slate-800">Tutor AI</h2>
+            <livewire:ai-tutor :enrollment="$enrollment" :lesson="$lesson" />
+        </section>
+    @endif
+
     @if ($enrollment->courseClass->discussion_enabled)
         <section class="card mt-6 p-6" aria-labelledby="comments-heading">
             <h2 id="comments-heading" class="font-bold text-slate-800">Komentar materi <span class="text-sm font-normal text-slate-500">({{ $comments->count() }})</span></h2>

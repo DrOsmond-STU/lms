@@ -26,6 +26,20 @@
         <x-form-error field="name" />
     </details>
 
+    @if (\App\Modules\Ai\Services\ClaudeClient::configured() && auth()->user()->can('ai.author'))
+        <details class="card mb-5 p-4">
+            <summary class="cursor-pointer text-sm font-semibold text-slate-800">Buat soal dengan AI (draf nonaktif untuk ditinjau)</summary>
+            <form method="POST" action="{{ route('ai.questions', $bank) }}" class="mt-3 grid gap-3 sm:grid-cols-4">@csrf
+                <div class="sm:col-span-4"><label for="ai-topic" class="form-label">Materi / topik (tempel ringkasan materi bila ada)</label><textarea id="ai-topic" name="topic" rows="4" required minlength="10" maxlength="4000" class="form-input" placeholder="Contoh: Prinsip CIA triad dalam keamanan informasi: kerahasiaan, integritas, ketersediaan; contoh ancaman masing-masing…">{{ old('topic') }}</textarea><x-form-error field="topic" /></div>
+                <div><label for="ai-count" class="form-label">Jumlah</label><input id="ai-count" name="count" type="number" min="1" max="10" value="{{ old('count', 5) }}" class="form-input"></div>
+                <div><label for="ai-type" class="form-label">Tipe</label><select id="ai-type" name="type" class="form-select">@foreach (['single_choice' => 'Pilihan ganda (1 benar)', 'multiple_choice' => 'Pilihan ganda (multi)', 'true_false' => 'Benar / Salah', 'essay' => 'Esai + rubrik'] as $v => $l)<option value="{{ $v }}" @selected(old('type') === $v)>{{ $l }}</option>@endforeach</select></div>
+                <div><label for="ai-diff" class="form-label">Kesulitan (1–5)</label><input id="ai-diff" name="difficulty" type="number" min="1" max="5" value="{{ old('difficulty', 3) }}" class="form-input"></div>
+                <div class="flex items-end"><button class="btn-primary w-full">Buat soal</button></div>
+            </form>
+            <p class="mt-2 text-xs text-slate-500">Soal hasil AI diberi tag <span class="font-mono">draf-ai</span> dan nonaktif sampai Anda meninjau dan mengaktifkannya. Kunci jawaban tetap rahasia di platform.</p>
+        </details>
+    @endif
+
     <div class="space-y-3">
         @forelse ($questions as $question)
             <article @class(['card p-5', 'opacity-60' => ! $question->is_active])>

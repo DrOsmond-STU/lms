@@ -135,6 +135,11 @@ final class SystemSettings
         'reminder.deadline_hours' => ['label' => 'Pengingat tenggat tugas/sesi (jam sebelum)', 'type' => 'int', 'min' => 6, 'max' => 168, 'default' => 48, 'group' => 'integrasi', 'section' => 'Pengingat otomatis'],
         'reminder.inactive_days' => ['label' => 'Pengingat peserta tidak aktif setelah (hari)', 'type' => 'int', 'min' => 3, 'max' => 60, 'default' => 7, 'group' => 'integrasi', 'section' => 'Pengingat otomatis', 'help' => 'Dikirim sekali per pekan selama peserta tetap tidak aktif.'],
         'reminder.new_program' => ['label' => 'Beri tahu peserta saat program baru terbit', 'type' => 'bool', 'default' => true, 'group' => 'integrasi', 'section' => 'Pengingat otomatis'],
+        'ai.enabled' => ['label' => 'Asisten AI (Claude) aktif', 'type' => 'bool', 'default' => false, 'group' => 'integrasi', 'section' => 'Asisten AI', 'help' => 'Tutor materi, rangkuman, rekomendasi & jalur belajar (peserta); generator soal, saran penilaian esai, analisis kelas & rancangan kurikulum (trainer/admin).'],
+        'ai.api_key' => ['label' => 'Claude API key', 'type' => 'secret', 'max' => 400, 'default' => '', 'group' => 'integrasi', 'section' => 'Asisten AI', 'help' => 'Dari console.anthropic.com. Disimpan terenkripsi; kosongkan untuk mempertahankan.'],
+        'ai.model' => ['label' => 'Model', 'type' => 'select', 'options' => ['claude-sonnet-5' => 'Claude Sonnet 5 (seimbang)', 'claude-haiku-4-5-20251001' => 'Claude Haiku 4.5 (cepat & hemat)', 'claude-opus-5-5' => 'Claude Opus 5.5 (paling mampu)'], 'default' => 'claude-sonnet-5', 'group' => 'integrasi', 'section' => 'Asisten AI'],
+        'ai.daily_limit' => ['label' => 'Batas permintaan AI per pengguna per hari', 'type' => 'int', 'min' => 1, 'max' => 1000, 'default' => 40, 'group' => 'integrasi', 'section' => 'Asisten AI'],
+        'ai.tutor_enabled' => ['label' => 'Tutor AI di halaman materi peserta', 'type' => 'bool', 'default' => true, 'group' => 'integrasi', 'section' => 'Asisten AI'],
     ];
 
     /** @var array<string, mixed>|null nilai tersimpan per permintaan */

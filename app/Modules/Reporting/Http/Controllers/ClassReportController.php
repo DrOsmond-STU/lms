@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Reporting\Http\Controllers;
 
+use App\Modules\Ai\Models\AiInsight;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Learning\Models\CourseClass;
@@ -46,6 +47,7 @@ final class ClassReportController
             'canManageSettings' => $this->access->canManageSettings($user),
             'canExport' => $user->hasPermission('report.export'),
             'inactiveDays' => ClassReportService::INACTIVE_DAYS,
+            'insight' => AiInsight::find('class_insight', $class->id),
         ]);
     }
 

@@ -58,6 +58,44 @@
         </table>
     </section>
 
+    <section class="mt-6 grid gap-6 lg:grid-cols-2">
+        <div class="card p-5">
+            <h2 class="card-title">Materi Tersulit</h2>
+            <p class="card-sub">Penyelesaian terendah &amp; waktu terlama (materi wajib yang sudah dibuka)</p>
+            <ul class="space-y-2 text-sm">
+                @forelse ($difficultLessons as $l)
+                    <li class="flex items-center justify-between gap-2"><span><span class="font-semibold text-slate-800">{{ $l['title'] }}</span><span class="block text-xs text-slate-500">{{ $l['module'] }}</span></span><span class="text-right font-mono text-xs">{{ str_replace('.', ',', (string) $l['completion']) }}% selesai<span class="block text-slate-500">{{ \App\Modules\Reporting\Services\ClassReportService::duration($l['avg_seconds']) }}/peserta</span></span></li>
+                @empty
+                    <li class="text-slate-500">Belum ada data materi yang dibuka.</li>
+                @endforelse
+            </ul>
+        </div>
+        <div class="card p-5">
+            <h2 class="card-title">Soal Tersulit</h2>
+            <p class="card-sub">Persentase jawaban benar terendah (min. 3 jawaban)</p>
+            <ul class="space-y-2 text-sm">
+                @forelse ($difficultQuestions as $q)
+                    <li class="flex items-center justify-between gap-2"><span class="text-slate-800">{{ \Illuminate\Support\Str::limit($q['stem'], 90) }}</span><span class="font-mono text-xs text-rose-700">{{ str_replace('.', ',', (string) $q['correct_rate']) }}% benar<span class="block text-slate-500">{{ $q['answers'] }} jawaban</span></span></li>
+                @empty
+                    <li class="text-slate-500">Belum cukup jawaban untuk dianalisis.</li>
+                @endforelse
+            </ul>
+        </div>
+    </section>
+
+    @if (\App\Modules\Ai\Services\ClaudeClient::configured() && auth()->user()->can('ai.author'))
+        <section class="card mt-6 p-5" aria-labelledby="ai-insight">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div><h2 id="ai-insight" class="card-title">Analisis AI</h2><p class="card-sub">Temuan, materi/soal yang perlu diperbaiki, dan tindakan minggu ini</p></div>
+                <form method="POST" action="{{ route('ai.class-insight', $class) }}">@csrf<button class="btn-secondary">{{ $insight ? 'Perbarui analisis' : 'Buat analisis' }}</button></form>
+            </div>
+            @if ($insight)
+                <div class="prose-content mt-2 text-sm">@include('components.safe-html', ['html' => $insight->body_html])</div>
+                <p class="mt-2 text-[11px] text-slate-500">Dibuat {{ $insight->generated_at->timezone(display_tz())->translatedFormat('d M Y H:i') }} · AI dapat keliru; putuskan sendiri.</p>
+            @endif
+        </section>
+    @endif
+
     <section class="card mt-6 overflow-x-auto">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-5 py-4">
             <div><h2 class="card-title">Aktivitas per Peserta</h2><p class="card-sub">Durasi belajar dihitung dari waktu membuka materi (video/audio/teks) dan mengerjakan asesmen</p></div>

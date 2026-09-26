@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
 use App\Modules\Access\Http\Controllers\ApprovalRequestController;
+use App\Modules\Ai\Http\Controllers\AiController;
 use App\Modules\Assessment\Http\Controllers\AssessmentManageController;
 use App\Modules\Assessment\Http\Controllers\AssignmentManageController;
 use App\Modules\Assessment\Http\Controllers\AssignmentParticipantController;
@@ -313,6 +314,10 @@ Route::middleware('auth')->group(function (): void {
 
             Route::get('/pembelajaran', [LearningController::class, 'index'])->name('learning.index');
             Route::get('/nilai', [LearningController::class, 'grades'])->name('learning.grades');
+            Route::get('/jalur-belajar', [AiController::class, 'learningPath'])->middleware('can:ai.use')->name('learning.path');
+            Route::post('/jalur-belajar', [AiController::class, 'generateLearningPath'])->middleware(['can:ai.use', 'throttle:10,1,ai-path'])->name('learning.path.generate');
+            Route::post('/kelas/{enrollment}/materi/{lesson}/rangkuman', [AiController::class, 'summarize'])->middleware(['can:ai.use', 'throttle:10,1,ai-summary'])->name('ai.summarize');
+            Route::post('/kelas/{enrollment}/rekomendasi', [AiController::class, 'recommend'])->middleware(['can:ai.use', 'throttle:10,1,ai-reco'])->name('ai.recommend');
             Route::get('/kelas/{enrollment}', [LearningController::class, 'classroom'])->name('learning.classroom');
             Route::post('/kelas/{enrollment}/batal', [LearningController::class, 'cancel'])->middleware('throttle:10,1,learning-cancel')->name('learning.cancel');
             Route::get('/kelas/{enrollment}/materi/{lesson}', [LearningController::class, 'lesson'])->name('learning.lesson');
@@ -407,6 +412,10 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/kelas/{class}/nilai', [GradebookController::class, 'index'])->name('classes.gradebook');
             Route::get('/kelas/{class}/nilai/ekspor', [GradebookController::class, 'export'])->middleware('throttle:60,1,gradebook-export')->name('classes.gradebook.export');
             Route::get('/kelas/{class}/laporan', [ClassReportController::class, 'show'])->name('classes.report');
+            Route::post('/kelas/{class}/laporan/ai-analisis', [AiController::class, 'classInsight'])->middleware(['can:ai.author', 'throttle:10,1,ai-insight'])->name('ai.class-insight');
+            Route::post('/kelas/{class}/ai-kurikulum', [AiController::class, 'draftCurriculum'])->middleware(['can:ai.author', 'throttle:5,1,ai-curriculum'])->name('ai.curriculum');
+            Route::post('/kelas/{class}/asesmen/attempt/{attempt}/ai-saran/{question}', [AiController::class, 'essayFeedback'])->middleware(['can:ai.author', 'throttle:30,1,ai-essay'])->name('ai.essay-feedback');
+            Route::post('/bank-soal/{bank}/ai-soal', [AiController::class, 'generateQuestions'])->middleware(['can:ai.author', 'throttle:10,1,ai-questions'])->name('ai.questions');
             Route::get('/kelas/{class}/laporan/ekspor', [ClassReportController::class, 'export'])->middleware('throttle:60,1,class-report-export')->name('classes.report.export');
             Route::controller(AnnouncementController::class)->name('classes.announcements.')->group(function (): void {
                 Route::get('/kelas/{class}/pengumuman', 'classIndex')->name('index');

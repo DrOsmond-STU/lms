@@ -14,17 +14,33 @@ use Illuminate\Support\Facades\DB;
 /**
  * Analitik kelas untuk trainer/admin: jumlah peserta, tingkat penyelesaian, rata-rata nilai,
  * aktivitas belajar, peserta tidak aktif, hasil kuis per asesmen, durasi belajar, presensi.
+ *
+ * @phpstan-type ActivityRow array{enrollment: Enrollment, last_at: Carbon|null, seconds: int, inactive: bool}
+ * @phpstan-type ClassReport array{
+ *     difficultLessons: list<array{id: string, title: string, module: string, completion: float, avg_seconds: int, opened: int}>,
+ *     difficultQuestions: list<array{id: string, stem: string, answers: int, correct_rate: float}>,
+ *     total: int, passed: int, failed: int, active: int, pendingApproval: int,
+ *     completionRate: float|null, avgScore: float|null, avgProgress: float|null, activeLast7: int,
+ *     inactive: Collection<int, array{enrollment: Enrollment, last_at: Carbon|null, seconds: int, inactive: true}>,
+ *     rows: Collection<int, ActivityRow>,
+ *     quiz: Collection<int, array{assessment: Assessment, stats: \stdClass|null}>, gain: float|null,
+ *     avgSeconds: int, totalSeconds: int, attendanceRate: float|null, sessions: int,
+ *     weekly: list<array{label: string, value: int}>
+ * }
  */
 final class ClassReportService
 {
     public const INACTIVE_DAYS = 7;
 
-    /** @return array<string, mixed> */
+    /**
+     * @return ClassReport
+     */
     public function build(CourseClass $class): array
     {
         $enrollments = Enrollment::query()->with('user:id,name,email', 'group:id,name')->where('course_class_id', $class->id)
             ->whereNotIn('status', ['applied', 'awaiting_payment', 'cancelled'])->get();
-        $ids = $enrollments->pluck('id')->all();
+        /** @var list<string> $ids */
+        $ids = $enrollments->pluck('id')->values()->all();
         $total = $enrollments->count();
         $passed = $enrollments->where('status', 'passed')->count();
         $failed = $enrollments->where('status', 'failed')->count();
@@ -75,6 +91,8 @@ final class ClassReportService
             ->groupBy('week')->pluck('active', 'week');
 
         return [
+            'difficultLessons' => $this->difficultLessons($class, $ids, $total),
+            'difficultQuestions' => $this->difficultQuestions($ids),
             'total' => $total, 'passed' => $passed, 'failed' => $failed, 'active' => $enrollments->whereIn('status', Enrollment::ACTIVE)->count(),
             'pendingApproval' => $enrollments->where('status', 'pending_approval')->count(),
             'completionRate' => $total === 0 ? null : round($passed * 100 / $total, 1),
@@ -86,7 +104,7 @@ final class ClassReportService
             'quiz' => $quizRows, 'gain' => $gain,
             'avgSeconds' => $total === 0 ? 0 : (int) round($secondsAll / $total), 'totalSeconds' => (int) $secondsAll,
             'attendanceRate' => $sessions === 0 || $total === 0 ? null : round($present * 100 / ($sessions * $total), 1), 'sessions' => $sessions,
-            'weekly' => $weeks->map(fn (Carbon $w) => ['label' => $w->translatedFormat('d M'), 'value' => (int) ($weekly[$w->format('Y-m-d')] ?? 0)])->all(),
+            'weekly' => array_values($weeks->map(fn (Carbon $w) => ['label' => $w->translatedFormat('d M'), 'value' => (int) ($weekly[$w->format('Y-m-d')] ?? 0)])->all()),
         ];
     }
 
@@ -102,6 +120,49 @@ final class ClassReportService
         return DB::table('enrollments')->whereIn('course_class_id', $classIds)->whereNotIn('status', ['applied', 'awaiting_payment', 'cancelled'])
             ->selectRaw("course_class_id, count(*) as total, count(*) filter (where status = 'passed') as passed, avg(final_score) as avg_score, avg(progress_percent) as avg_progress")
             ->groupBy('course_class_id')->get()->keyBy('course_class_id');
+    }
+
+    /**
+     * Materi tersulit: tingkat penyelesaian terendah & waktu rata-rata tertinggi (min. 1 peserta membuka).
+     *
+     * @param  list<string>  $enrollmentIds
+     * @return list<array{id: string, title: string, module: string, completion: float, avg_seconds: int, opened: int}>
+     */
+    private function difficultLessons(CourseClass $class, array $enrollmentIds, int $total): array
+    {
+        if ($total === 0) {
+            return [];
+        }
+        $rows = DB::table('lessons')->join('chapters', 'chapters.id', '=', 'lessons.chapter_id')->join('modules', 'modules.id', '=', 'chapters.module_id')
+            ->leftJoin('lesson_progress', fn ($join) => $join->on('lesson_progress.lesson_id', '=', 'lessons.id')->whereIn('lesson_progress.enrollment_id', $enrollmentIds))
+            ->where('modules.course_class_id', $class->id)->where('lessons.is_required', true)
+            ->groupBy('lessons.id', 'lessons.title', 'modules.title')
+            ->selectRaw("lessons.id, lessons.title, modules.title as module, count(lesson_progress.id) as opened, count(*) filter (where lesson_progress.status = 'completed') as done, coalesce(avg(lesson_progress.time_spent_seconds), 0) as avg_seconds")
+            ->get();
+
+        return array_values($rows->map(fn ($r) => ['id' => (string) $r->id, 'title' => (string) $r->title, 'module' => (string) $r->module, 'completion' => round((int) $r->done * 100 / $total, 1), 'avg_seconds' => (int) $r->avg_seconds, 'opened' => (int) $r->opened])
+            ->filter(fn (array $r) => $r['opened'] > 0)
+            ->sortBy([['completion', 'asc'], ['avg_seconds', 'desc']])->take(5)->all());
+    }
+
+    /**
+     * Soal tersulit: persentase jawaban benar terendah (min. 3 jawaban).
+     *
+     * @param  list<string>  $enrollmentIds
+     * @return list<array{id: string, stem: string, answers: int, correct_rate: float}>
+     */
+    private function difficultQuestions(array $enrollmentIds): array
+    {
+        if ($enrollmentIds === []) {
+            return [];
+        }
+        $rows = DB::table('attempt_answers')->join('exam_attempts', 'exam_attempts.id', '=', 'attempt_answers.exam_attempt_id')->join('questions', 'questions.id', '=', 'attempt_answers.question_id')
+            ->whereIn('exam_attempts.enrollment_id', $enrollmentIds)->where('exam_attempts.status', '<>', 'voided')->whereNotNull('attempt_answers.is_correct')
+            ->groupBy('questions.id', 'questions.stem_html')
+            ->selectRaw('questions.id, questions.stem_html, count(*) as answers, count(*) filter (where attempt_answers.is_correct) as correct')
+            ->havingRaw('count(*) >= 3')->orderByRaw('count(*) filter (where attempt_answers.is_correct)::float / count(*) asc')->limit(5)->get();
+
+        return array_values($rows->map(fn ($r) => ['id' => (string) $r->id, 'stem' => trim(strip_tags((string) $r->stem_html)), 'answers' => (int) $r->answers, 'correct_rate' => round((int) $r->correct * 100 / max(1, (int) $r->answers), 1)])->all());
     }
 
     public static function duration(int $seconds): string

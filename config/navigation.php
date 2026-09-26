@@ -15,6 +15,7 @@ return [
             ['label' => 'Pilih Pelatihan', 'icon' => 'cert', 'route' => 'catalog.participant', 'permission' => 'program.view_any'],
             ['label' => 'Pembelajaran Saya', 'icon' => 'book', 'route' => 'learning.index', 'permission' => 'enrollment.view'],
             ['label' => 'Nilai Saya', 'icon' => 'chart', 'route' => 'learning.grades', 'permission' => 'enrollment.view'],
+            ['label' => 'Jalur Belajar AI', 'icon' => 'star', 'route' => 'learning.path', 'permission' => 'ai.use'],
             ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => 'schedule.participant', 'permission' => null],
             ['label' => 'Pengumuman', 'icon' => 'chat-bubble', 'route' => 'announcements.index', 'permission' => null],
             ['label' => 'Sertifikat Saya', 'icon' => 'shield', 'route' => 'certificates.mine', 'permission' => 'certificate.view'],

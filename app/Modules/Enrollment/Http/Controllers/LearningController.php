@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Enrollment\Http\Controllers;
 
+use App\Modules\Ai\Models\AiInsight;
+use App\Modules\Ai\Models\LessonSummary;
+use App\Modules\Ai\Services\ClaudeClient;
 use App\Modules\Assessment\Models\Assessment;
 use App\Modules\Assessment\Models\Assignment;
 use App\Modules\Assessment\Models\AssignmentSubmission;
@@ -72,7 +75,7 @@ final class LearningController
 
     public function classroom(Request $request, Enrollment $enrollment): View
     {
-        $this->own($request, $enrollment);
+        $user = $this->own($request, $enrollment);
         abort_unless($enrollment->canAccessContent() || $enrollment->status === 'failed', 404);
         $enrollment->load('program', 'courseClass.trainers:id,name');
         $modules = Module::query()->with('chapters.lessons')->where('course_class_id', $enrollment->course_class_id)->orderBy('position')->get();
@@ -96,6 +99,8 @@ final class LearningController
             'assessments' => $assessments,
             'attemptStats' => $attemptStats,
             'check' => CompletionEvaluator::check($enrollment),
+            'aiConfigured' => ClaudeClient::configured() && $user->hasPermission('ai.use'),
+            'recommendation' => AiInsight::find('recommendation', $enrollment->id),
             'remaining' => $assessments->mapWithKeys(fn (Assessment $a) => [$a->id => $this->attempts->remainingAttempts($enrollment, $a)]),
         ]);
     }
@@ -133,6 +138,9 @@ final class LearningController
             'progress' => $progress,
             'mediaUrl' => $mediaUrl,
             'comments' => $comments,
+            'aiConfigured' => ClaudeClient::configured() && $user->hasPermission('ai.use'),
+            'tutorEnabled' => (bool) setting('ai.tutor_enabled'),
+            'summary' => LessonSummary::query()->find($lesson->id),
             'previousId' => $index !== false && $index > 0 ? $ordered[$index - 1] : null,
             'nextId' => $index !== false && $index < $ordered->count() - 1 ? $ordered[$index + 1] : null,
         ]);

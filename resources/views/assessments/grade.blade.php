@@ -1,3 +1,4 @@
+@php($aiConfigured = \App\Modules\Ai\Services\ClaudeClient::configured() && auth()->user()->can('ai.author'))
 <x-layouts.app title="Penilaian Esai" :workspace="$workspace">
     <x-slot:back><a href="{{ route('assessments.attempts', [$class, $attempt->assessment_id]) }}" class="hero-back">&larr; Attempt {{ $attempt->assessment->title }}</a></x-slot:back>
     <x-slot:heading>Penilaian — {{ $attempt->enrollment->user->name }}</x-slot:heading>
@@ -31,8 +32,23 @@
                     @endif
                     <div class="mt-3">
                         <label for="fb-{{ $question->id }}" class="form-label">Umpan balik untuk peserta (opsional)</label>
-                        <textarea id="fb-{{ $question->id }}" name="feedback[{{ $question->id }}]" rows="2" maxlength="3000" class="form-input">{{ $answer?->feedback }}</textarea>
+                        <textarea id="fb-{{ $question->id }}" name="feedback[{{ $question->id }}]" rows="2" maxlength="3000" class="form-input">{{ $answer?->feedback ?: ($answer?->ai_suggestion['feedback'] ?? '') }}</textarea>
                     </div>
+                    @if ($aiConfigured)
+                        <div class="mt-3 rounded-lg border border-dashed border-brand-200 bg-brand-50/40 p-3 text-sm">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-bold text-slate-800">Saran penilaian AI</span>
+                                <button type="submit" form="ai-form-{{ $question->id }}" class="btn-mini">{{ $answer?->ai_suggestion ? 'Minta ulang' : 'Minta saran AI' }}</button>
+                            </div>
+                            @if ($answer?->ai_suggestion)
+                                <p class="mt-2"><span class="font-mono font-bold">{{ fmt_score($answer->ai_suggestion['score']) }}</span> / {{ fmt_score($question->points) }} poin — {{ $answer->ai_suggestion['feedback'] }}</p>
+                                @if (! empty($answer->ai_suggestion['rubric']))<p class="mt-1 text-xs text-slate-500">Rubrik: {{ collect($answer->ai_suggestion['rubric'])->map(fn ($v, $k) => $k.' '.$v)->implode(', ') }}</p>@endif
+                                <p class="mt-1 text-[11px] text-slate-500">Saran, bukan keputusan — umpan balik sudah diisikan ke kolom di atas bila masih kosong; sesuaikan poin sendiri.</p>
+                            @else
+                                <p class="mt-1 text-xs text-slate-500">AI membaca pertanyaan, rubrik, dan jawaban peserta lalu mengusulkan poin & umpan balik.</p>
+                            @endif
+                        </div>
+                    @endif
                 @else
                     <p class="mt-2 text-sm">{{ $answer?->is_correct ? '✓ Benar' : '✗ Salah' }} ({{ fmt_score(($answer?->points_awarded ?? '0')) ?: '0' }} poin)</p>
                 @endif
@@ -41,4 +57,9 @@
         <x-form-error field="points" />
         <button class="btn-primary w-auto">Simpan Penilaian</button>
     </form>
+    @if ($aiConfigured)
+        @foreach ($attempt->question_order as $questionId)
+            @if (($questions->get($questionId)?->type ?? null) === 'essay')<form id="ai-form-{{ $questionId }}" method="POST" action="{{ route('ai.essay-feedback', [$class, $attempt, $questionId]) }}">@csrf</form>@endif
+        @endforeach
+    @endif
 </x-layouts.app>

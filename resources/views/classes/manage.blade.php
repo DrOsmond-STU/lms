@@ -105,6 +105,17 @@
         </div>
 
         <aside class="space-y-6">
+            @if ($canEditContent && \App\Modules\Ai\Services\ClaudeClient::configured() && auth()->user()->can('ai.author'))
+                <section class="card p-5" aria-labelledby="ai-curriculum">
+                    <h2 id="ai-curriculum" class="font-bold text-slate-800">Rancang Kurikulum dengan AI</h2>
+                    <p class="mt-1 text-xs text-slate-500">Membuat modul → bab → lesson teks berisi kerangka materi sebagai draf yang Anda sunting.</p>
+                    <form method="POST" action="{{ route('ai.curriculum', $class) }}" class="mt-3 space-y-3" data-confirm="Tambahkan draf kurikulum AI ke kelas ini?">@csrf
+                        <div><label for="ai-goals" class="form-label">Tujuan pembelajaran & fokus</label><textarea id="ai-goals" name="goals" rows="4" required minlength="10" maxlength="4000" class="form-input" placeholder="Contoh: peserta mampu menyusun prosedur keselamatan kerja sesuai ISO 45001, fokus praktik industri manufaktur">{{ old('goals') }}</textarea><x-form-error field="goals" /></div>
+                        <div><label for="ai-modules" class="form-label">Jumlah modul</label><input id="ai-modules" name="modules" type="number" min="1" max="8" value="{{ old('modules', 4) }}" class="form-input"></div>
+                        <button class="btn-secondary w-full">Buat draf kurikulum</button>
+                    </form>
+                </section>
+            @endif
             @if ($canManageSettings)
                 <section class="card p-5" aria-labelledby="status-heading">
                     <h2 id="status-heading" class="font-bold text-slate-800">Status Kelas</h2>
