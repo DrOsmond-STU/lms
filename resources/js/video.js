@@ -3,7 +3,7 @@ import { sendJson } from './http';
 // Heartbeat posisi video tiap 15 detik selama diputar (FR-CNT-005). Server memvalidasi
 // kewajaran kemajuan (SEC-EXAM-17), jadi klien hanya melaporkan posisi.
 export function initVideoProgress() {
-    const video = document.querySelector('video[data-heartbeat-url]');
+    const video = document.querySelector('video[data-heartbeat-url], audio[data-heartbeat-url]');
     if (!video) return;
 
     const url = video.dataset.heartbeatUrl;
@@ -17,7 +17,7 @@ export function initVideoProgress() {
             if (!response.ok) return;
             const data = await response.json();
             if (data.completed && statusEl) {
-                statusEl.textContent = 'Selesai ditonton ✓';
+                statusEl.textContent = 'Selesai ✓';
                 statusEl.classList.add('text-emerald-700');
             }
         } catch {
@@ -30,4 +30,14 @@ export function initVideoProgress() {
     }, 5000);
     video.addEventListener('pause', send);
     video.addEventListener('ended', send);
+}
+
+// Ping aktivitas lesson non-media tiap 30 detik selama tab terlihat (durasi belajar).
+export function initLessonPing() {
+    const root = document.querySelector('[data-lesson-ping-url]');
+    if (!root) return;
+    const url = root.dataset.lessonPingUrl;
+    setInterval(() => {
+        if (document.visibilityState === 'visible') sendJson(url, 'POST', {}).catch(() => {});
+    }, 30000);
 }

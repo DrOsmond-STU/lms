@@ -71,6 +71,13 @@
                 <input id="min_final_score" name="min_final_score" type="number" min="0" max="100" step="0.01" value="{{ old('min_final_score', $rules['min_final_score'] ?? '') }}" class="form-input">
             </div>
         </fieldset>
+        <fieldset class="rounded-lg border border-slate-200 p-4">
+            <legend class="px-1 text-xs font-bold text-slate-600">Alur belajar &amp; interaksi</legend>
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_sequential" value="1" @checked(old('is_sequential', $editing ? $class->is_sequential : false))> Materi wajib dibuka berurutan (learning path terkunci sampai materi sebelumnya selesai)</label>
+            <label class="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" name="requires_approval" value="1" @checked(old('requires_approval', $editing ? $class->requires_approval : false))> Pendaftaran peserta perlu persetujuan trainer/admin sebelum aktif</label>
+            <label class="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" name="discussion_enabled" value="1" @checked(old('discussion_enabled', $editing ? $class->discussion_enabled : true))> Forum diskusi &amp; komentar materi aktif</label>
+            <label class="mt-2 flex items-center gap-2 text-sm"><input type="checkbox" name="chat_enabled" value="1" @checked(old('chat_enabled', $editing ? $class->chat_enabled : true))> Obrolan kelas aktif</label>
+        </fieldset>
         <button type="submit" class="btn-primary w-auto">Simpan</button>
     </form>
 

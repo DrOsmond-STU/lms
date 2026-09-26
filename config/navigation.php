@@ -14,7 +14,7 @@ return [
             ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => 'participant.dashboard', 'permission' => null],
             ['label' => 'Pilih Pelatihan', 'icon' => 'cert', 'route' => 'catalog.participant', 'permission' => 'program.view_any'],
             ['label' => 'Pembelajaran Saya', 'icon' => 'book', 'route' => 'learning.index', 'permission' => 'enrollment.view'],
-            ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => null, 'permission' => null],
+            ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => 'schedule.participant', 'permission' => null],
             ['label' => 'Sertifikat Saya', 'icon' => 'shield', 'route' => 'certificates.mine', 'permission' => 'certificate.view'],
             ['label' => 'Transaksi', 'icon' => 'card', 'route' => 'payments.mine', 'permission' => 'payment.view'],
             ['label' => 'Referral', 'icon' => 'star', 'route' => 'referral.mine', 'permission' => 'referral.view'],
@@ -27,6 +27,7 @@ return [
         ['group' => null, 'items' => [
             ['label' => 'Dashboard', 'icon' => 'dashboard', 'route' => 'trainer.dashboard', 'permission' => null],
             ['label' => 'Kelas Saya', 'icon' => 'layers', 'route' => 'trainer.classes', 'permission' => 'course_class.view_any'],
+            ['label' => 'Jadwal', 'icon' => 'calendar', 'route' => 'schedule.trainer', 'permission' => null],
             ['label' => 'Diskusi', 'icon' => 'chat', 'route' => null, 'permission' => 'discussion.moderate'],
             ['label' => 'Laporan', 'icon' => 'chart', 'route' => null, 'permission' => 'report.view_class'],
             ['label' => 'Notifikasi', 'icon' => 'bell', 'route' => 'notifications.index', 'permission' => null],
@@ -56,6 +57,7 @@ return [
             ['label' => 'Organisasi', 'icon' => 'building', 'route' => 'admin.organizations.index', 'permission' => 'organization.view_any'],
             ['label' => 'Pengguna', 'icon' => 'users', 'route' => 'admin.users.index', 'permission' => 'user.view_any'],
             ['label' => 'Template Sertifikat', 'icon' => 'doc', 'route' => 'admin.templates.index', 'permission' => 'certificate_template.view_any'],
+            ['label' => 'Kalender Akademik', 'icon' => 'calendar', 'route' => 'admin.calendar.index', 'permission' => 'calendar.manage'],
         ]],
         ['group' => 'Operasional', 'items' => [
             ['label' => 'Pembayaran', 'icon' => 'card', 'route' => 'admin.payments.index', 'permission' => 'payment.view_any'],

@@ -12,8 +12,11 @@ use App\Modules\Enrollment\Services\CompletionEvaluator;
 use App\Modules\Enrollment\Services\EnrollmentService;
 use App\Modules\Enrollment\Services\ProgressService;
 use App\Modules\Identity\Models\User;
+use App\Modules\Learning\Models\AttendanceRecord;
+use App\Modules\Learning\Models\ClassSession;
 use App\Modules\Learning\Models\Lesson;
 use App\Modules\Learning\Models\Module;
+use App\Modules\Learning\Services\LessonAvailability;
 use App\Modules\Learning\Services\MediaStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +34,7 @@ final class LearningController
     public function __construct(
         private readonly ProgressService $progress,
         private readonly AttemptService $attempts,
+        private readonly LessonAvailability $availability,
     ) {}
 
     public function index(Request $request): View
@@ -55,11 +59,16 @@ final class LearningController
         $attemptStats = ExamAttempt::query()->where('enrollment_id', $enrollment->id)->where('status', '<>', 'voided')
             ->selectRaw('assessment_id, count(*) as used, max(score) as best, bool_or(passed) as passed, bool_or(status = \'in_progress\') as active')
             ->groupBy('assessment_id')->get()->keyBy('assessment_id');
+        $ordered = $modules->flatMap(fn (Module $m) => $m->chapters->flatMap(fn ($c) => $c->lessons))->values();
+        $sessions = ClassSession::query()->where('course_class_id', $enrollment->course_class_id)->where('ends_at', '>=', now()->subDay())->orderBy('starts_at')->limit(8)->get();
 
         return view('learning.classroom', [
             'enrollment' => $enrollment,
             'modules' => $modules,
             'done' => $done,
+            'locks' => $this->availability->locks($enrollment, $ordered, $done->all()),
+            'sessions' => $sessions,
+            'attendance' => AttendanceRecord::query()->where('enrollment_id', $enrollment->id)->whereIn('class_session_id', $sessions->pluck('id'))->get()->keyBy('class_session_id'),
             'assessments' => $assessments,
             'attemptStats' => $attemptStats,
             'check' => CompletionEvaluator::check($enrollment),
@@ -67,10 +76,13 @@ final class LearningController
         ]);
     }
 
-    public function lesson(Request $request, Enrollment $enrollment, Lesson $lesson, MediaStorage $media): View
+    public function lesson(Request $request, Enrollment $enrollment, Lesson $lesson, MediaStorage $media): View|RedirectResponse
     {
         $user = $this->own($request, $enrollment);
         abort_unless($enrollment->canAccessContent() && $lesson->courseClassId() === $enrollment->course_class_id, 404);
+        if ($enrollment->isActive() && ($reason = $this->availability->lockReason($enrollment, $lesson)) !== null) {
+            return redirect()->route('learning.classroom', $enrollment)->with('status', 'Materi "'.$lesson->title.'" masih terkunci. '.$reason);
+        }
         $progress = $enrollment->isActive() ? $this->progress->open($enrollment, $lesson) : null;
         if ($enrollment->status === 'enrolled') {
             $enrollment->refresh();
@@ -101,6 +113,7 @@ final class LearningController
     {
         $this->own($request, $enrollment);
         abort_unless($enrollment->isActive(), 409);
+        $this->assertUnlocked($enrollment, $lesson);
         $data = $request->validate(['position' => ['required', 'integer', 'between:0,86400']]);
         $progress = $this->progress->heartbeat($enrollment, $lesson, (int) $data['position']);
         if ($progress->wasChanged('status') && $progress->status === 'completed') {
@@ -110,10 +123,21 @@ final class LearningController
         return response()->json(['completed' => $progress->status === 'completed', 'watched' => $progress->watched_seconds]);
     }
 
+    /** Ping aktivitas lesson non-media (durasi belajar). */
+    public function ping(Request $request, Enrollment $enrollment, Lesson $lesson): JsonResponse
+    {
+        $this->own($request, $enrollment);
+        abort_unless($enrollment->isActive() && $lesson->courseClassId() === $enrollment->course_class_id, 409);
+        $progress = $this->progress->ping($enrollment, $lesson);
+
+        return response()->json(['time_spent' => $progress->time_spent_seconds]);
+    }
+
     public function complete(Request $request, Enrollment $enrollment, Lesson $lesson): RedirectResponse
     {
         $this->own($request, $enrollment);
         abort_unless($enrollment->isActive(), 409);
+        $this->assertUnlocked($enrollment, $lesson);
         $this->progress->markComplete($enrollment, $lesson);
         $this->progress->recalculate($enrollment);
 
@@ -132,6 +156,16 @@ final class LearningController
         $enrollments->cancel($enrollment->load('program', 'user'), $user, trim((string) ($data['reason'] ?? '')) ?: 'Dibatalkan peserta');
 
         return redirect()->route('learning.index')->with('status', 'Pendaftaran pada '.$enrollment->program->name.' dibatalkan.');
+    }
+
+    private function assertUnlocked(Enrollment $enrollment, Lesson $lesson): void
+    {
+        if ($lesson->courseClassId() !== $enrollment->course_class_id) {
+            abort(404);
+        }
+        if (($reason = $this->availability->lockReason($enrollment, $lesson)) !== null) {
+            throw ValidationException::withMessages(['lesson' => 'Materi terkunci. '.$reason]);
+        }
     }
 
     private function own(Request $request, Enrollment $enrollment): User

@@ -6,15 +6,32 @@
         @if ($progress?->status === 'completed')<span class="badge bg-emerald-50 text-emerald-700">Selesai</span>@endif
     </x-slot:meta>
 
-    <div class="card p-6">
+    <div class="card p-6" @if ($enrollment->isActive() && ! $lesson->isTimed()) data-lesson-ping-url="{{ route('learning.ping', [$enrollment, $lesson]) }}" @endif>
         @switch($lesson->type)
             @case('video')
                 @if ($mediaUrl)
                     <video src="{{ $mediaUrl }}" controls preload="metadata" playsinline class="w-full rounded-lg bg-black" @unless ($lesson->allow_download) controlsList="nodownload" @endunless
                         @if ($enrollment->isActive()) data-heartbeat-url="{{ route('learning.heartbeat', [$enrollment, $lesson]) }}" @endif></video>
-                    <p class="mt-3 text-xs text-slate-500" data-video-status>Tonton minimal 90% durasi untuk menyelesaikan lesson ini. Progres tersimpan otomatis.</p>
+                    <p class="mt-3 text-xs text-slate-500" data-video-status>Tonton minimal {{ (int) round(\App\Modules\Enrollment\Services\ProgressService::videoCompletionRatio() * 100) }}% durasi untuk menyelesaikan lesson ini. Progres tersimpan otomatis.</p>
                 @else
                     <p class="text-sm text-slate-500">Video sedang diproses atau belum tersedia.</p>
+                @endif
+                @break
+            @case('audio')
+                @if ($mediaUrl)
+                    <audio src="{{ $mediaUrl }}" controls preload="metadata" class="w-full" @unless ($lesson->allow_download) controlsList="nodownload" @endunless
+                        @if ($enrollment->isActive()) data-heartbeat-url="{{ route('learning.heartbeat', [$enrollment, $lesson]) }}" @endif></audio>
+                    <p class="mt-3 text-xs text-slate-500" data-video-status>Dengarkan minimal {{ (int) round(\App\Modules\Enrollment\Services\ProgressService::videoCompletionRatio() * 100) }}% durasi ({{ intdiv((int) $lesson->duration_seconds, 60) }} menit) untuk menyelesaikan lesson ini.</p>
+                @else
+                    <p class="text-sm text-slate-500">Audio belum tersedia.</p>
+                @endif
+                @break
+            @case('document')
+                @if ($mediaUrl)
+                    <p class="text-sm text-slate-600">Dokumen <span class="font-bold">{{ $lesson->media->original_filename }}</span> ({{ $lesson->media->humanSize() }}) diunduh melalui tautan aman yang berlaku {{ config('media.signed_url_minutes') }} menit. Buka dengan PowerPoint/Word/Excel atau aplikasi sejenis.</p>
+                    <a href="{{ $mediaUrl }}" class="btn-primary mt-3 w-auto">Unduh Dokumen</a>
+                @else
+                    <p class="text-sm text-slate-500">Dokumen belum tersedia.</p>
                 @endif
                 @break
             @case('pdf')
@@ -41,7 +58,7 @@
                 @break
         @endswitch
 
-        @if (in_array($lesson->type, ['pdf', 'text', 'link'], true) && $enrollment->isActive() && $progress?->status !== 'completed')
+        @if (in_array($lesson->type, \App\Modules\Learning\Models\Lesson::MANUAL_COMPLETE_TYPES, true) && $enrollment->isActive() && $progress?->status !== 'completed')
             <form method="POST" action="{{ route('learning.complete', [$enrollment, $lesson]) }}" class="mt-6 border-t border-slate-100 pt-4">@csrf
                 <button class="btn-secondary">Tandai Selesai</button>
             </form>

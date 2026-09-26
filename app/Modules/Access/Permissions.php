@@ -42,6 +42,7 @@ final class Permissions
         'integration' => ['view', 'update'],
         'system_setting' => ['view', 'update'],
         'audit_log' => ['view', 'export'],
+        'calendar' => ['view', 'manage'],
     ];
 
     /**
@@ -61,7 +62,7 @@ final class Permissions
             'certificate_template.*', 'payment.*', 'coupon.*', 'discussion.view', 'discussion.moderate',
             'gamification.*', 'notification_setting.*', 'report.*', 'cms.*',
             'privacy_request.view_any', 'privacy_request.process', 'api_key.*', 'integration.*',
-            'system_setting.*', 'audit_log.*', 'referral.*',
+            'system_setting.*', 'audit_log.*', 'referral.*', 'calendar.*',
         ],
         'academic_admin' => [
             'user.view_any', 'user.view', 'user.create', 'user.update', 'user.deactivate', 'user.assign_role', 'user.export',
@@ -74,7 +75,7 @@ final class Permissions
             'certificate.revoke', 'certificate.reissue', 'certificate.download', 'certificate_template.*',
             'payment.view_any', 'payment.view', 'discussion.view', 'discussion.moderate', 'gamification.*',
             'report.view_platform', 'report.export', 'cms.*', 'referral.view_any',
-            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view',
+            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view', 'calendar.*',
         ],
         'finance_admin' => [
             'program.view_any', 'program.view', 'payment.*', 'coupon.*', 'report.view_platform', 'report.export', 'audit_log.view', 'referral.*',
@@ -89,7 +90,7 @@ final class Permissions
             'enrollment.view_any', 'enrollment.view', 'enrollment.create', 'enrollment.bulk_create',
             'attendance.view_any', 'certificate.view_any', 'certificate.view', 'certificate.download',
             'payment.view_any', 'payment.view', 'gamification.view_leaderboard',
-            'report.view_organization', 'report.export', 'audit_log.view',
+            'report.view_organization', 'report.export', 'audit_log.view', 'calendar.view',
         ],
         'trainer' => [
             'program.view_any', 'program.view', 'course_class.view_any', 'course_class.view', 'course_class.update',
@@ -98,7 +99,7 @@ final class Permissions
             'enrollment.view_any', 'enrollment.view', 'assignment.*', 'submission.view_any', 'submission.view', 'submission.review',
             'attendance.view_any', 'attendance.manage_session', 'attendance.record_manual', 'live_session.*',
             'discussion.view', 'discussion.post', 'discussion.moderate', 'gamification.view_leaderboard',
-            'report.view_class', 'report.export',
+            'report.view_class', 'report.export', 'calendar.view',
         ],
         'participant' => [
             'program.view_any', 'program.view', 'course_class.view', 'content.view', 'assessment.attempt',
@@ -106,7 +107,7 @@ final class Permissions
             'attendance.check_in', 'live_session.view', 'certificate.view', 'certificate.download',
             'payment.view', 'payment.refund_request', 'discussion.view', 'discussion.post', 'discussion.report',
             'gamification.view_leaderboard', 'notification_setting.view', 'notification_setting.update',
-            'privacy_request.create', 'referral.view',
+            'privacy_request.create', 'referral.view', 'calendar.view',
         ],
     ];
 

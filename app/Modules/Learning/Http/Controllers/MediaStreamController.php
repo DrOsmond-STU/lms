@@ -25,8 +25,8 @@ final class MediaStreamController
         $user = $request->user();
         abort_unless($request->query('u') === $user->id && $media->isServable(), 404);
 
-        $download = false;
-        if (preg_match('/^lesson:([0-9a-f-]{36})$/', (string) $request->query('c'), $match) === 1) {
+        $download = in_array($media->kind, ['document', 'submission'], true);
+        if (! $download && preg_match('/^lesson:([0-9a-f-]{36})$/', (string) $request->query('c'), $match) === 1) {
             $download = (bool) Lesson::query()->whereKey($match[1])->where('media_asset_id', $media->id)->value('allow_download');
         }
 

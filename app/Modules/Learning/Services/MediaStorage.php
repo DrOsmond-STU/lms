@@ -41,6 +41,9 @@ final class MediaStorage
 
         $path = (string) $file->getRealPath();
         $detected = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+        if (in_array($detected, ['application/zip', 'application/octet-stream'], true) && in_array($kind, ['document', 'submission'], true)) {
+            $detected = self::sniffOfficeZip($path) ?? $detected;
+        }
         if (! array_key_exists($detected, $rules['mimes'])) {
             $this->securityEvents->log('upload_rejected', 'warning', $owner->id, ['reason' => 'type', 'detected' => $detected, 'kind' => $kind]);
 
@@ -90,6 +93,40 @@ final class MediaStorage
     public function absolutePath(MediaAsset $asset): string
     {
         return Storage::disk((string) config('media.disk'))->path($asset->storage_key);
+    }
+
+    /**
+     * libmagic lama melaporkan OOXML sebagai application/zip; kenali dari [Content_Types].xml.
+     * Arsip yang bukan OOXML tetap dilaporkan sebagai zip (hanya diizinkan pada kind tertentu).
+     */
+    public static function sniffOfficeZip(string $path): ?string
+    {
+        if (! class_exists(\ZipArchive::class)) {
+            return null;
+        }
+        $zip = new \ZipArchive;
+        if ($zip->open($path, \ZipArchive::RDONLY) !== true) {
+            return null;
+        }
+        try {
+            $types = $zip->getFromName('[Content_Types].xml', 200000);
+            if ($types === false) {
+                return null;
+            }
+            foreach ([
+                'presentationml.presentation.main' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'wordprocessingml.document.main' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'spreadsheetml.sheet.main' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ] as $needle => $mime) {
+                if (str_contains($types, $needle)) {
+                    return $mime;
+                }
+            }
+
+            return null;
+        } finally {
+            $zip->close();
+        }
     }
 
     public static function safeName(string $name): string

@@ -161,6 +161,10 @@ final class ClassAdminController
             'restricted_organization_id' => ['nullable', 'uuid', Rule::exists('organizations', 'id')],
             'min_final_score' => ['nullable', 'numeric', 'between:0,100'],
             'require_final_exam' => ['nullable', 'boolean'],
+            'is_sequential' => ['nullable', 'boolean'],
+            'requires_approval' => ['nullable', 'boolean'],
+            'discussion_enabled' => ['nullable', 'boolean'],
+            'chat_enabled' => ['nullable', 'boolean'],
         ], ['quota.min' => 'Kuota tidak boleh lebih kecil dari jumlah peserta terdaftar ('.$minQuota.').']);
     }
 
@@ -180,6 +184,10 @@ final class ClassAdminController
             'mode' => $data['mode'],
             'location' => $data['location'] ?? null,
             'restricted_organization_id' => $data['restricted_organization_id'] ?? null,
+            'is_sequential' => (bool) ($data['is_sequential'] ?? false),
+            'requires_approval' => (bool) ($data['requires_approval'] ?? false),
+            'discussion_enabled' => (bool) ($data['discussion_enabled'] ?? false),
+            'chat_enabled' => (bool) ($data['chat_enabled'] ?? false),
             'completion_rules' => array_filter([
                 'min_final_score' => isset($data['min_final_score']) && $data['min_final_score'] !== '' ? (float) $data['min_final_score'] : null,
                 'require_final_exam' => (bool) ($data['require_final_exam'] ?? false),

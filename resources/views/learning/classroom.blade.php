@@ -14,13 +14,15 @@
                         <h3 class="mt-3 text-xs font-bold tracking-wide text-slate-500 uppercase">{{ $chapter->title }}</h3>
                         <ul class="mt-1 divide-y divide-slate-100 text-sm">
                             @foreach ($chapter->lessons as $lesson)
+                                @php($locked = $locks[$lesson->id] ?? null)
                                 <li>
-                                    <a href="{{ route('learning.lesson', [$enrollment, $lesson]) }}" class="flex items-center justify-between gap-3 py-2 hover:text-link">
+                                    <a href="{{ route('learning.lesson', [$enrollment, $lesson]) }}" @class(['flex items-center justify-between gap-3 py-2 hover:text-link', 'opacity-60' => $locked !== null]) @if ($locked) title="{{ $locked }}" @endif>
                                         <span class="flex items-center gap-2">
-                                            <span @class(['flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold', 'bg-emerald-500 text-white' => isset($done[$lesson->id]), 'border border-slate-300 text-slate-400' => ! isset($done[$lesson->id])]) aria-hidden="true">{{ isset($done[$lesson->id]) ? '✓' : '' }}</span>
+                                            <span @class(['flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-bold', 'bg-emerald-500 text-white' => isset($done[$lesson->id]), 'border border-slate-300 text-slate-400' => ! isset($done[$lesson->id])]) aria-hidden="true">{{ isset($done[$lesson->id]) ? '✓' : ($locked ? '🔒' : '') }}</span>
                                             <span>{{ $lesson->title }}</span>
                                             @unless ($lesson->is_required)<span class="text-xs text-slate-400">(opsional)</span>@endunless
-                                            <span class="sr-only">{{ isset($done[$lesson->id]) ? 'selesai' : 'belum selesai' }}</span>
+                                            @if ($locked)<span class="text-xs text-amber-700">{{ $locked }}</span>@endif
+                                            <span class="sr-only">{{ isset($done[$lesson->id]) ? 'selesai' : ($locked ? 'terkunci' : 'belum selesai') }}</span>
                                         </span>
                                         <span class="badge bg-slate-100 text-slate-600">{{ \App\Modules\Learning\Models\Lesson::TYPES[$lesson->type] }}</span>
                                     </a>
@@ -71,6 +73,33 @@
                         <li class="text-slate-500">Belum ada asesmen.</li>
                     @endforelse
                 </ul>
+            </section>
+
+            <section class="card p-5" aria-labelledby="sessions-heading">
+                <h2 id="sessions-heading" class="font-bold text-slate-800">Sesi &amp; Live Class</h2>
+                <x-form-error field="checkin" />
+                <ul class="mt-3 space-y-3 text-sm">
+                    @forelse ($sessions as $session)
+                        @php($record = $attendance->get($session->id))
+                        <li>
+                            <span class="font-bold text-slate-800">{{ $session->title }}</span>
+                            <span class="block text-xs text-slate-500">{{ $session->starts_at->timezone(display_tz())->translatedFormat('D, d M Y H:i') }}–{{ $session->ends_at->timezone(display_tz())->format('H:i') }} {{ tz_label() }} · {{ \App\Modules\Learning\Models\ClassSession::TYPES[$session->type] }}@if ($session->location) · {{ $session->location }}@endif</span>
+                            <span class="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                                @if ($session->joinOpen())<a href="{{ $session->meeting_url }}" target="_blank" rel="noopener noreferrer" class="btn-primary min-h-0 w-auto px-3 py-1.5">Gabung Live Class</a>@elseif ($session->isLive() && ! $session->isPast())<span class="text-slate-500">Tautan meeting tampil 30 menit sebelum mulai.</span>@endif
+                                @if ($record)<span class="badge bg-emerald-50 text-emerald-700">{{ $record->statusLabel() }}</span>
+                                @elseif ($enrollment->isActive() && $session->checkinOpen())
+                                    <form method="POST" action="{{ route('schedule.checkin', [$enrollment, $session]) }}" class="flex items-center gap-1">@csrf
+                                        @if ($session->checkin_code)<input name="code" maxlength="8" placeholder="Kode" class="form-input min-h-0 w-24 py-1 font-mono text-xs uppercase" aria-label="Kode cek-in">@endif
+                                        <button class="btn-secondary min-h-0 px-3 py-1.5">Cek-in Hadir</button>
+                                    </form>
+                                @elseif ($session->attendance_mode === 'self' && ! $session->isPast())<span class="text-slate-500">Cek-in dibuka {{ $session->checkin_opens_before }} menit sebelum mulai.</span>@endif
+                            </span>
+                        </li>
+                    @empty
+                        <li class="text-slate-500">Belum ada sesi terjadwal.</li>
+                    @endforelse
+                </ul>
+                <a href="{{ route('schedule.participant') }}" class="mt-3 block text-xs font-bold text-link hover:underline">Lihat jadwal lengkap &rarr;</a>
             </section>
 
             <section class="card p-5 text-sm text-slate-600">

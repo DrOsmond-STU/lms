@@ -31,6 +31,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $restricted_organization_id
  * @property array<string, mixed> $completion_rules
  * @property string $status
+ * @property bool $is_sequential
+ * @property bool $requires_approval
+ * @property bool $discussion_enabled
+ * @property bool $chat_enabled
  * @property-read Program $program
  */
 final class CourseClass extends Model
@@ -61,6 +65,10 @@ final class CourseClass extends Model
             'quota' => 'integer',
             'enrolled_count' => 'integer',
             'completion_rules' => 'array',
+            'is_sequential' => 'boolean',
+            'requires_approval' => 'boolean',
+            'discussion_enabled' => 'boolean',
+            'chat_enabled' => 'boolean',
         ];
     }
 
@@ -86,6 +94,12 @@ final class CourseClass extends Model
     public function modules(): HasMany
     {
         return $this->hasMany(Module::class)->orderBy('position');
+    }
+
+    /** @return HasMany<ClassSession, $this> */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ClassSession::class)->orderBy('starts_at');
     }
 
     public function label(): string

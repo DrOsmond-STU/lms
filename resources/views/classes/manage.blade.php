@@ -142,8 +142,9 @@
             <section class="card p-5 text-sm text-slate-600">
                 <h2 class="font-bold text-slate-800">Panduan</h2>
                 <ul class="mt-2 list-disc space-y-1 pl-5">
-                    <li>Video: MP4/MOV/WebM, isi durasi agar progres 90% dapat dihitung.</li>
-                    <li>PDF maks. 50 MB. Jenis berkas diperiksa dari isinya.</li>
+                    <li>Video/audio: isi durasi agar progres tonton/dengar dapat dihitung.</li>
+                    <li>PDF & dokumen kantor (PPT/Word/Excel) maks. 50 MB. Jenis berkas diperiksa dari isinya.</li>
+                    <li>Drip content & prasyarat diatur per lesson; urutan wajib diatur di Pengaturan Kelas.</li>
                     <li>Lesson kuis ditautkan ke kuis di tab Asesmen.</li>
                     <li>Lesson yang sudah dipelajari tidak dapat dihapus.</li>
                 </ul>

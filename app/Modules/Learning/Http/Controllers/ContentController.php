@@ -12,6 +12,7 @@ use App\Modules\Learning\Models\CourseClass;
 use App\Modules\Learning\Models\Lesson;
 use App\Modules\Learning\Models\Module;
 use App\Modules\Learning\Services\ClassAccess;
+use App\Modules\Learning\Services\LessonAvailability;
 use App\Modules\Learning\Services\MediaStorage;
 use App\Support\Content\RichText;
 use Illuminate\Database\Eloquent\Builder;
@@ -126,7 +127,7 @@ final class ContentController
 
         return view('classes.lesson-form', [
             'class' => $class, 'chapter' => $chapter, 'lesson' => (new Lesson)->forceFill(['type' => $type, 'is_required' => true]),
-            'workspace' => $this->access->workspaceFor($user), 'quizzes' => $this->quizzes($class),
+            'workspace' => $this->access->workspaceFor($user), 'quizzes' => $this->quizzes($class), 'siblings' => $this->siblings($class, null),
         ]);
     }
 
@@ -135,7 +136,7 @@ final class ContentController
         $user = $this->authorize($request, $class);
         $this->owns($class, $chapter->module->course_class_id);
         $type = (string) $request->input('type');
-        $data = $this->validateLesson($request, $class, $type, creating: true);
+        $data = $this->validateLesson($request, $class, $type, creating: true, lessonId: null);
 
         $lesson = DB::transaction(function () use ($data, $chapter, $type, $request, $media, $user): Lesson {
             $lesson = new Lesson;
@@ -145,7 +146,7 @@ final class ContentController
                 'position' => (int) Lesson::query()->where('chapter_id', $chapter->id)->max('position') + 1,
                 'published_at' => now(),
             ]);
-            if (in_array($type, ['video', 'pdf'], true)) {
+            if (in_array($type, Lesson::MEDIA_TYPES, true)) {
                 $file = $request->file('file');
                 if (! $file instanceof UploadedFile) {
                     throw ValidationException::withMessages(['file' => 'Berkas wajib diunggah.']);
@@ -168,7 +169,7 @@ final class ContentController
 
         return view('classes.lesson-form', [
             'class' => $class, 'chapter' => $lesson->chapter, 'lesson' => $lesson,
-            'workspace' => $this->access->workspaceFor($user), 'quizzes' => $this->quizzes($class),
+            'workspace' => $this->access->workspaceFor($user), 'quizzes' => $this->quizzes($class), 'siblings' => $this->siblings($class, $lesson->id),
         ]);
     }
 
@@ -176,12 +177,12 @@ final class ContentController
     {
         $user = $this->authorize($request, $class);
         $this->owns($class, $lesson->courseClassId());
-        $data = $this->validateLesson($request, $class, $lesson->type, creating: false);
+        $data = $this->validateLesson($request, $class, $lesson->type, creating: false, lessonId: $lesson->id);
 
         DB::transaction(function () use ($lesson, $data, $request, $media, $user): void {
             $lesson->forceFill($this->lessonAttributes($data, $lesson->type) + ['version' => $lesson->version + 1]);
             $file = $request->file('file');
-            if (in_array($lesson->type, ['video', 'pdf'], true) && $file instanceof UploadedFile) {
+            if (in_array($lesson->type, Lesson::MEDIA_TYPES, true) && $file instanceof UploadedFile) {
                 $lesson->media_asset_id = $media->store($file, $lesson->type, $user)->id;
             }
             $lesson->save();
@@ -257,21 +258,26 @@ final class ContentController
     }
 
     /** @return array<string, mixed> */
-    private function validateLesson(Request $request, CourseClass $class, string $type, bool $creating): array
+    private function validateLesson(Request $request, CourseClass $class, string $type, bool $creating, ?string $lessonId): array
     {
         $rules = [
             'type' => [$creating ? 'required' : 'nullable', Rule::in(array_keys(Lesson::TYPES))],
             'title' => ['required', 'string', 'min:2', 'max:200'],
             'is_required' => ['nullable', 'boolean'],
+            // Drip content & prasyarat (berlaku untuk semua tipe).
+            'unlock_at' => ['nullable', 'date'],
+            'unlock_after_days' => ['nullable', 'integer', 'between:0,3650'],
+            'prerequisite_lesson_id' => ['nullable', 'uuid'],
         ];
         $rules += match ($type) {
-            'video' => [
+            'video', 'audio' => [
                 'file' => [$creating ? 'required' : 'nullable', 'file'],
                 'duration_minutes' => ['required', 'integer', 'between:0,600'],
                 'duration_seconds_part' => ['required', 'integer', 'between:0,59'],
                 'allow_download' => ['nullable', 'boolean'],
             ],
             'pdf' => ['file' => [$creating ? 'required' : 'nullable', 'file'], 'allow_download' => ['nullable', 'boolean']],
+            'document' => ['file' => [$creating ? 'required' : 'nullable', 'file']],
             'text' => ['body_md' => ['required', 'string', 'max:50000']],
             'link' => ['external_url' => ['required', 'string', 'max:500', 'url:https']],
             'quiz' => ['assessment_id' => ['required', 'uuid', Rule::exists('assessments', 'id')->where('course_class_id', $class->id)->where('kind', 'quiz')]],
@@ -286,8 +292,14 @@ final class ContentController
         if ($type === 'link' && ! self::linkAllowed((string) $data['external_url'])) {
             throw ValidationException::withMessages(['external_url' => 'Domain tautan tidak termasuk daftar yang diizinkan.']);
         }
-        if ($type === 'video' && (int) $data['duration_minutes'] * 60 + (int) $data['duration_seconds_part'] <= 0) {
-            throw ValidationException::withMessages(['duration_minutes' => 'Durasi video wajib diisi.']);
+        if (in_array($type, Lesson::TIMED_TYPES, true) && (int) $data['duration_minutes'] * 60 + (int) $data['duration_seconds_part'] <= 0) {
+            throw ValidationException::withMessages(['duration_minutes' => 'Durasi '.($type === 'audio' ? 'audio' : 'video').' wajib diisi.']);
+        }
+        if (! empty($data['prerequisite_lesson_id'])) {
+            $allowed = $this->siblings($class, $lessonId)->pluck('id');
+            if (! $allowed->contains($data['prerequisite_lesson_id'])) {
+                throw ValidationException::withMessages(['prerequisite_lesson_id' => 'Pilih lesson prasyarat dari kelas ini.']);
+            }
         }
 
         return $data;
@@ -321,9 +333,22 @@ final class ContentController
             'body_html' => $type === 'text' ? RichText::toHtml((string) $data['body_md']) : null,
             'external_url' => $type === 'link' ? $data['external_url'] : null,
             'assessment_id' => $type === 'quiz' ? $data['assessment_id'] : null,
-            'allow_download' => in_array($type, ['video', 'pdf'], true) && (bool) ($data['allow_download'] ?? false),
-            'duration_seconds' => $type === 'video' ? (int) $data['duration_minutes'] * 60 + (int) $data['duration_seconds_part'] : null,
+            'allow_download' => $type === 'document' || (in_array($type, ['video', 'audio', 'pdf'], true) && (bool) ($data['allow_download'] ?? false)),
+            'duration_seconds' => in_array($type, Lesson::TIMED_TYPES, true) ? (int) $data['duration_minutes'] * 60 + (int) $data['duration_seconds_part'] : null,
+            'unlock_at' => ! empty($data['unlock_at']) ? $data['unlock_at'] : null,
+            'unlock_after_days' => isset($data['unlock_after_days']) && $data['unlock_after_days'] !== '' ? (int) $data['unlock_after_days'] : null,
+            'prerequisite_lesson_id' => ! empty($data['prerequisite_lesson_id']) ? $data['prerequisite_lesson_id'] : null,
         ];
+    }
+
+    /**
+     * Lesson lain di kelas (calon prasyarat), urut kurikulum.
+     *
+     * @return Collection<int, Lesson>
+     */
+    private function siblings(CourseClass $class, ?string $exceptId): Collection
+    {
+        return LessonAvailability::orderedLessons($class->id)->reject(fn (Lesson $lesson): bool => $lesson->id === $exceptId)->values();
     }
 
     /** @return Collection<int, Assessment> */

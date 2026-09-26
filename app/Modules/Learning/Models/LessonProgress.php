@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property int $watched_seconds
  * @property int $max_position_seconds
+ * @property int $time_spent_seconds
  * @property Carbon|null $first_opened_at
  * @property Carbon|null $last_heartbeat_at
  * @property Carbon|null $completed_at
@@ -36,6 +37,7 @@ final class LessonProgress extends Model
         return [
             'watched_seconds' => 'integer',
             'max_position_seconds' => 'integer',
+            'time_spent_seconds' => 'integer',
             'first_opened_at' => 'datetime',
             'last_heartbeat_at' => 'datetime',
             'completed_at' => 'datetime',

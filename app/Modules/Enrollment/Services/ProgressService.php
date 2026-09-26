@@ -22,6 +22,9 @@ final class ProgressService
 
     private const TOLERANCE_SECONDS = 5;
 
+    /** Kredit durasi belajar maksimal per heartbeat/ping (detik). */
+    private const PING_CREDIT_CAP = 60;
+
     /** Rasio tonton minimum agar video dianggap selesai (Pengaturan Sistem → Pembelajaran). */
     public static function videoCompletionRatio(): float
     {
@@ -49,8 +52,8 @@ final class ProgressService
     /** Heartbeat video (tiap ±15 detik) berisi posisi pemutaran dalam detik. */
     public function heartbeat(Enrollment $enrollment, Lesson $lesson, int $position): LessonProgress
     {
-        if ($lesson->type !== 'video') {
-            throw ValidationException::withMessages(['position' => 'Lesson bukan video.']);
+        if (! $lesson->isTimed()) {
+            throw ValidationException::withMessages(['position' => 'Lesson bukan video/audio.']);
         }
 
         return DB::transaction(function () use ($enrollment, $lesson, $position): LessonProgress {
@@ -73,6 +76,7 @@ final class ProgressService
             $attributes = [
                 'watched_seconds' => $watched,
                 'max_position_seconds' => max($progress->max_position_seconds, $progress->max_position_seconds + $credited),
+                'time_spent_seconds' => $progress->time_spent_seconds + min($elapsed, self::PING_CREDIT_CAP),
                 'last_heartbeat_at' => $now,
                 'integrity_flags' => $flags === [] ? null : $flags,
             ];
@@ -85,10 +89,27 @@ final class ProgressService
         }, 3);
     }
 
-    /** "Tandai selesai" untuk PDF/teks/tautan (SEC-EXAM-18: waktu baca tak wajar = indikator). */
+    /**
+     * Ping aktivitas untuk lesson non-media (teks/PDF/dokumen/tautan) — menambah durasi belajar
+     * paling banyak PING_CREDIT_CAP detik per ping agar tab yang ditinggal tidak menggelembungkan angka.
+     */
+    public function ping(Enrollment $enrollment, Lesson $lesson): LessonProgress
+    {
+        return DB::transaction(function () use ($enrollment, $lesson): LessonProgress {
+            $progress = $this->record($enrollment, $lesson, lock: true);
+            $now = now();
+            $last = $progress->last_heartbeat_at ?? $progress->first_opened_at ?? $now;
+            $elapsed = max(0, (int) $last->diffInSeconds($now));
+            $progress->forceFill(['time_spent_seconds' => $progress->time_spent_seconds + min($elapsed, self::PING_CREDIT_CAP), 'last_heartbeat_at' => $now])->save();
+
+            return $progress;
+        }, 3);
+    }
+
+    /** "Tandai selesai" untuk PDF/dokumen/teks/tautan (SEC-EXAM-18: waktu baca tak wajar = indikator). */
     public function markComplete(Enrollment $enrollment, Lesson $lesson): LessonProgress
     {
-        if (! in_array($lesson->type, ['pdf', 'text', 'link'], true)) {
+        if (! in_array($lesson->type, Lesson::MANUAL_COMPLETE_TYPES, true)) {
             throw ValidationException::withMessages(['lesson' => 'Lesson ini selesai otomatis dari aktivitasnya.']);
         }
 

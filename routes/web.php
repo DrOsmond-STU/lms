@@ -33,11 +33,14 @@ use App\Modules\Identity\Http\Controllers\MfaSetupController;
 use App\Modules\Identity\Http\Controllers\PasswordResetController;
 use App\Modules\Identity\Http\Controllers\RegistrationController;
 use App\Modules\Identity\Http\Controllers\UserAdminController;
+use App\Modules\Learning\Http\Controllers\AcademicCalendarController;
 use App\Modules\Learning\Http\Controllers\ClassAdminController;
 use App\Modules\Learning\Http\Controllers\ClassListController;
 use App\Modules\Learning\Http\Controllers\ClassManageController;
+use App\Modules\Learning\Http\Controllers\ClassSessionController;
 use App\Modules\Learning\Http\Controllers\ContentController;
 use App\Modules\Learning\Http\Controllers\MediaStreamController;
+use App\Modules\Learning\Http\Controllers\ScheduleController;
 use App\Modules\Notification\Http\Controllers\NotificationController;
 use App\Modules\Organization\Http\Controllers\OrganizationAdminController;
 use App\Modules\Organization\Http\Controllers\OrgPortalController;
@@ -199,6 +202,13 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('/{enrollment}/tolak', 'reject')->middleware(['can:certificate.reject', 'reauth'])->name('reject');
             });
 
+            Route::controller(AcademicCalendarController::class)->prefix('kalender')->name('calendar.')->middleware('can:calendar.manage')->group(function (): void {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->middleware('throttle:30,1,calendar-store')->name('store');
+                Route::put('/{event}', 'update')->middleware('throttle:30,1,calendar-update')->name('update');
+                Route::delete('/{event}', 'destroy')->name('destroy');
+            });
+
             Route::controller(ReportController::class)->prefix('laporan')->name('reports.')->group(function (): void {
                 Route::get('/organisasi', 'organizations')->middleware('can:report.view_platform')->name('organizations');
                 Route::get('/organisasi/ekspor', 'organizationsExport')->middleware(['can:report.view_platform', 'can:report.export', 'throttle:5,1,report-org-export'])->name('organizations.export');
@@ -284,6 +294,11 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/kelas/{enrollment}/materi/{lesson}', [LearningController::class, 'lesson'])->name('learning.lesson');
             Route::post('/kelas/{enrollment}/materi/{lesson}/heartbeat', [LearningController::class, 'heartbeat'])->middleware('throttle:20,1,learning-heartbeat')->name('learning.heartbeat');
             Route::post('/kelas/{enrollment}/materi/{lesson}/selesai', [LearningController::class, 'complete'])->middleware('throttle:30,1,learning-complete')->name('learning.complete');
+            Route::post('/kelas/{enrollment}/materi/{lesson}/ping', [LearningController::class, 'ping'])->middleware('throttle:10,1,learning-ping')->name('learning.ping');
+
+            // Jadwal, sesi & presensi mandiri
+            Route::get('/jadwal', [ScheduleController::class, 'participant'])->name('schedule.participant');
+            Route::post('/kelas/{enrollment}/sesi/{session}/hadir', [ScheduleController::class, 'checkIn'])->middleware(['can:attendance.check_in', 'throttle:10,1,schedule-checkin'])->name('schedule.checkin');
 
             Route::get('/kelas/{enrollment}/asesmen/{assessment}', [ExamController::class, 'show'])->name('exams.show');
             Route::post('/kelas/{enrollment}/asesmen/{assessment}/mulai', [ExamController::class, 'start'])->middleware('throttle:10,1,exams-start')->name('exams.start');
@@ -309,6 +324,7 @@ Route::middleware('auth')->group(function (): void {
         });
 
         Route::get('/trainer/kelas', [ClassListController::class, 'trainer'])->middleware('workspace:trainer')->name('trainer.classes');
+        Route::get('/trainer/jadwal', [ScheduleController::class, 'trainer'])->middleware('workspace:trainer')->name('schedule.trainer');
 
         // Portal Admin Organisasi (docs/08 ORG-*).
         Route::prefix('organisasi')->middleware('workspace:organization')->group(function (): void {
@@ -325,6 +341,17 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/kelas/{class}/peserta', [ClassManageController::class, 'participants'])->name('classes.participants');
             Route::post('/kelas/{class}/peserta/{enrollment}/batal', [ClassManageController::class, 'cancelEnrollment'])->middleware('throttle:30,1,class-cancel')->name('classes.enrollments.cancel');
             Route::get('/kelas/{class}/asesmen', [ClassManageController::class, 'assessments'])->name('classes.assessments');
+
+            // Sesi kelas (tatap muka / live class) & presensi
+            Route::controller(ClassSessionController::class)->prefix('kelas/{class}')->name('classes.')->group(function (): void {
+                Route::get('/sesi', 'index')->name('sessions');
+                Route::post('/sesi', 'store')->middleware('throttle:30,1,sessions-store')->name('sessions.store');
+                Route::put('/sesi/{session}', 'update')->middleware('throttle:30,1,sessions-update')->name('sessions.update');
+                Route::delete('/sesi/{session}', 'destroy')->name('sessions.destroy');
+                Route::get('/sesi/{session}/presensi', 'attendance')->name('attendance');
+                Route::post('/sesi/{session}/presensi', 'storeAttendance')->middleware('throttle:30,1,attendance-store')->name('attendance.store');
+                Route::get('/presensi/ekspor', 'exportAttendance')->middleware('throttle:10,1,attendance-export')->name('attendance.export');
+            });
 
             Route::controller(ContentController::class)->prefix('kelas/{class}')->name('content.')->group(function (): void {
                 Route::post('/modul', 'storeModule')->name('modules.store');
