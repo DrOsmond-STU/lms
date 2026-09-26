@@ -57,7 +57,11 @@
             <div class="grid gap-2 text-sm sm:grid-cols-2">
                 <label class="flex items-center gap-2"><input type="checkbox" name="shuffle_questions" value="1" @checked(old('shuffle_questions', $assessment->shuffle_questions))> Acak urutan soal</label>
                 <label class="flex items-center gap-2"><input type="checkbox" name="shuffle_options" value="1" @checked(old('shuffle_options', $assessment->shuffle_options))> Acak urutan opsi</label>
-                <label class="flex items-center gap-2"><input type="checkbox" name="is_required" value="1" @checked(old('is_required', $assessment->is_required))> Wajib lulus (syarat kelulusan)</label>
+                @if ($assessment->kind === 'pretest')
+                    <p class="text-xs text-slate-500 sm:col-span-2">Pre-test bersifat diagnostik: tidak menjadi syarat kelulusan; hasilnya dibandingkan dengan post-test pada laporan kelas.</p>
+                @else
+                    <label class="flex items-center gap-2"><input type="checkbox" name="is_required" value="1" @checked(old('is_required', $assessment->is_required))> Wajib lulus (syarat kelulusan)</label>
+                @endif
                 @if ($assessment->kind === 'final_exam')
                     <label class="flex items-center gap-2"><input type="checkbox" name="requires_prerequisites" value="1" @checked(old('requires_prerequisites', $assessment->requires_prerequisites))> Terkunci sampai materi & kuis wajib selesai</label>
                 @endif

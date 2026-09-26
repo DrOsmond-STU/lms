@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
 use App\Modules\Access\Http\Controllers\ApprovalRequestController;
 use App\Modules\Assessment\Http\Controllers\AssessmentManageController;
+use App\Modules\Assessment\Http\Controllers\AssignmentManageController;
+use App\Modules\Assessment\Http\Controllers\AssignmentParticipantController;
 use App\Modules\Assessment\Http\Controllers\ExamController;
 use App\Modules\Assessment\Http\Controllers\QuestionBankController;
 use App\Modules\Audit\Http\Controllers\AuditLogController;
@@ -296,6 +298,10 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/kelas/{enrollment}/materi/{lesson}/selesai', [LearningController::class, 'complete'])->middleware('throttle:30,1,learning-complete')->name('learning.complete');
             Route::post('/kelas/{enrollment}/materi/{lesson}/ping', [LearningController::class, 'ping'])->middleware('throttle:10,1,learning-ping')->name('learning.ping');
 
+            // Tugas peserta
+            Route::get('/kelas/{enrollment}/tugas/{assignment}', [AssignmentParticipantController::class, 'show'])->name('assignments.show');
+            Route::post('/kelas/{enrollment}/tugas/{assignment}', [AssignmentParticipantController::class, 'submit'])->middleware(['can:submission.create', 'throttle:10,1,assignment-submit'])->name('assignments.submit');
+
             // Jadwal, sesi & presensi mandiri
             Route::get('/jadwal', [ScheduleController::class, 'participant'])->name('schedule.participant');
             Route::post('/kelas/{enrollment}/sesi/{session}/hadir', [ScheduleController::class, 'checkIn'])->middleware(['can:attendance.check_in', 'throttle:10,1,schedule-checkin'])->name('schedule.checkin');
@@ -341,6 +347,18 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/kelas/{class}/peserta', [ClassManageController::class, 'participants'])->name('classes.participants');
             Route::post('/kelas/{class}/peserta/{enrollment}/batal', [ClassManageController::class, 'cancelEnrollment'])->middleware('throttle:30,1,class-cancel')->name('classes.enrollments.cancel');
             Route::get('/kelas/{class}/asesmen', [ClassManageController::class, 'assessments'])->name('classes.assessments');
+
+            // Tugas (assignment) & pengumpulan
+            Route::get('/kelas/{class}/tugas', [AssignmentManageController::class, 'index'])->name('classes.assignments');
+            Route::controller(AssignmentManageController::class)->prefix('kelas/{class}')->name('assignments.')->group(function (): void {
+                Route::get('/tugas/baru', 'create')->name('create');
+                Route::post('/tugas', 'store')->middleware('throttle:30,1,assignments-store')->name('store');
+                Route::get('/tugas/{assignment}/ubah', 'edit')->name('edit');
+                Route::put('/tugas/{assignment}', 'update')->middleware('throttle:30,1,assignments-update')->name('update');
+                Route::delete('/tugas/{assignment}', 'destroy')->name('destroy');
+                Route::get('/tugas/{assignment}/pengumpulan', 'submissions')->name('submissions');
+                Route::post('/pengumpulan/{submission}/nilai', 'grade')->middleware('throttle:60,1,assignments-grade')->name('grade');
+            });
 
             // Sesi kelas (tatap muka / live class) & presensi
             Route::controller(ClassSessionController::class)->prefix('kelas/{class}')->name('classes.')->group(function (): void {

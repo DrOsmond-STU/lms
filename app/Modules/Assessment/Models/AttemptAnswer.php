@@ -13,6 +13,9 @@ use Illuminate\Support\Carbon;
  * @property string $exam_attempt_id
  * @property string $question_id
  * @property list<string>|null $selected_option_ids
+ * @property array<string, string>|null $match_pairs
+ * @property array<string, float>|null $rubric_scores
+ * @property string|null $feedback
  * @property string|null $text_answer
  * @property bool|null $is_correct
  * @property string|null $points_awarded
@@ -32,6 +35,8 @@ final class AttemptAnswer extends Model
     {
         return [
             'selected_option_ids' => 'array',
+            'match_pairs' => 'array',
+            'rubric_scores' => 'array',
             'is_correct' => 'boolean',
             'answered_at' => 'datetime',
             'graded_at' => 'datetime',

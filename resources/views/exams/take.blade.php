@@ -14,7 +14,7 @@
 
         <nav class="mb-5 flex flex-wrap gap-1.5" aria-label="Nomor soal">
             @foreach ($items as $item)
-                @php($answered = collect($item['options'])->contains('selected', true) || filled($item['text_answer']))
+                @php($answered = collect($item['options'])->contains('selected', true) || filled($item['text_answer']) || $item['pairs'] !== [])
                 <a href="#q-{{ $item['alias'] }}" data-answered="{{ $item['alias'] }}" @class(['flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs font-bold', 'bg-accent-500 text-white' => $answered])>{{ $item['number'] }}</a>
             @endforeach
         </nav>
@@ -33,6 +33,18 @@
                                     <input type="{{ $item['type'] === 'multiple_choice' ? 'checkbox' : 'radio' }}" name="answers[{{ $item['alias'] }}][]" value="{{ $option['alias'] }}" data-question="{{ $item['alias'] }}" @checked($option['selected']) class="mt-0.5">
                                     <span>@include('components.safe-html', ['html' => $option['body_html']])</span>
                                 </label>
+                            @endforeach
+                        @elseif ($item['type'] === 'matching')
+                            @foreach ($item['options'] as $option)
+                                <div class="grid items-center gap-2 sm:grid-cols-2">
+                                    <span class="text-sm">@include('components.safe-html', ['html' => $option['body_html']])</span>
+                                    <select name="pairs[{{ $item['alias'] }}][{{ $option['alias'] }}]" data-question="{{ $item['alias'] }}" data-pair-left="{{ $option['alias'] }}" class="form-select py-1.5" aria-label="Pasangan untuk item">
+                                        <option value="">— pilih pasangan —</option>
+                                        @foreach ($item['targets'] as $target)
+                                            <option value="{{ $target['alias'] }}" @selected(($item['pairs'][$option['alias']] ?? null) === $target['alias'])>{{ $target['text'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             @endforeach
                         @elseif ($item['type'] === 'short_answer')
                             <label for="t-{{ $item['alias'] }}" class="sr-only">Jawaban</label>

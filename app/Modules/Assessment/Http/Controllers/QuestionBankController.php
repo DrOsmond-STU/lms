@@ -116,7 +116,7 @@ final class QuestionBankController
     {
         $user = $this->authorize($request, $question->bank->program);
         $question->load('options');
-        $options = $question->options->map(fn (QuestionOption $option) => ['body' => html_entity_decode(strip_tags($option->body_html), ENT_QUOTES), 'correct' => $option->is_correct])->all();
+        $options = $question->options->map(fn (QuestionOption $option) => ['body' => html_entity_decode(strip_tags($option->body_html), ENT_QUOTES), 'correct' => $option->is_correct, 'right' => $option->match_text])->all();
 
         return view('banks.question-form', [
             'bank' => $question->bank, 'question' => $question, 'options' => $options,
@@ -211,9 +211,31 @@ final class QuestionBankController
             $rules += ['correct_answer' => ['required', Rule::in(['true', 'false'])]];
         } elseif ($type === 'short_answer') {
             $rules += ['accepted_answers' => ['required', 'string', 'max:2000']];
+        } elseif ($type === 'matching') {
+            $rules += ['pairs' => ['required', 'array', 'min:2', 'max:10'], 'pairs.*.left' => ['nullable', 'string', 'max:500'], 'pairs.*.right' => ['nullable', 'string', 'max:500']];
+        } elseif ($type === 'essay') {
+            $rules += ['rubric' => ['nullable', 'array', 'max:8'], 'rubric.*.name' => ['nullable', 'string', 'max:120'], 'rubric.*.max' => ['nullable', 'numeric', 'between:0,1000'], 'rubric.*.description' => ['nullable', 'string', 'max:300']];
         }
 
         $data = $request->validate($rules);
+
+        if ($type === 'matching') {
+            $pairs = array_values(array_filter($data['pairs'], fn (array $pair): bool => trim((string) ($pair['left'] ?? '')) !== '' && trim((string) ($pair['right'] ?? '')) !== ''));
+            if (count($pairs) < 2) {
+                throw ValidationException::withMessages(['pairs' => 'Isi minimal dua pasangan (kiri dan kanan).']);
+            }
+            $data['pairs'] = $pairs;
+        }
+        if ($type === 'essay') {
+            $rubric = [];
+            foreach ($data['rubric'] ?? [] as $row) {
+                $name = trim((string) ($row['name'] ?? ''));
+                if ($name !== '') {
+                    $rubric[] = array_filter(['name' => $name, 'max' => (float) ($row['max'] ?? 0), 'description' => trim((string) ($row['description'] ?? '')) ?: null], fn ($v) => $v !== null);
+                }
+            }
+            $data['rubric'] = $rubric;
+        }
 
         if (in_array($type, ['single_choice', 'multiple_choice'], true)) {
             $options = array_values(array_filter($data['options'], fn (array $option): bool => trim((string) ($option['body'] ?? '')) !== ''));
@@ -248,6 +270,7 @@ final class QuestionBankController
             'accepted_answers_encrypted' => $type === 'short_answer'
                 ? array_slice(array_filter(array_map('trim', preg_split('/\R/', (string) $data['accepted_answers']) ?: [])), 0, 20)
                 : null,
+            'rubric' => $type === 'essay' && ($data['rubric'] ?? []) !== [] ? $data['rubric'] : null,
         ];
     }
 
@@ -267,6 +290,12 @@ final class QuestionBankController
         foreach ($rows as $index => [$body, $correct]) {
             $option = new QuestionOption;
             $option->forceFill(['question_id' => $question->id, 'body_html' => e($body), 'is_correct' => $correct, 'position' => $index + 1])->save();
+        }
+        if ($type === 'matching') {
+            foreach ($data['pairs'] as $index => $pair) {
+                $option = new QuestionOption;
+                $option->forceFill(['question_id' => $question->id, 'body_html' => e(trim((string) $pair['left'])), 'match_text' => trim((string) $pair['right']), 'is_correct' => true, 'position' => $index + 1])->save();
+            }
         }
     }
 }

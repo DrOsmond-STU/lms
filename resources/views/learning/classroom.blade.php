@@ -46,6 +46,7 @@
                 <ul class="mt-4 space-y-2 text-sm">
                     <li>{{ $check['lessons_done'] === $check['lessons_total'] ? '✓' : '○' }} Materi wajib: {{ $check['lessons_done'] }}/{{ $check['lessons_total'] }}</li>
                     <li>{{ $check['quizzes_ok'] ? '✓' : '○' }} Kuis wajib lulus</li>
+                    @if ($check['assignments_total'] > 0)<li>{{ $check['assignments_done'] === $check['assignments_total'] ? '✓' : '○' }} Tugas wajib dinilai: {{ $check['assignments_done'] }}/{{ $check['assignments_total'] }}</li>@endif
                     @if ($check['final_required'])
                         <li>{{ $check['final_score'] !== null && $check['final_score'] >= $check['min_score'] ? '✓' : '○' }} Ujian akhir ≥ {{ fmt_score($check['min_score']) }} (terbaik: {{ $check['final_score'] ?? '—' }})</li>
                     @endif
@@ -71,6 +72,24 @@
                         </li>
                     @empty
                         <li class="text-slate-500">Belum ada asesmen.</li>
+                    @endforelse
+                </ul>
+            </section>
+
+            <section class="card p-5" aria-labelledby="assign-heading">
+                <h2 id="assign-heading" class="font-bold text-slate-800">Tugas</h2>
+                <ul class="mt-3 space-y-3 text-sm">
+                    @forelse ($assignments as $assignment)
+                        @php($sub = $submissions->get($assignment->id))
+                        <li>
+                            <a href="{{ route('assignments.show', [$enrollment, $assignment]) }}" class="font-bold text-link hover:underline">{{ $assignment->title }}</a>
+                            <span class="block text-xs text-slate-500">
+                                {{ $assignment->is_required ? 'Wajib' : 'Opsional' }} · tenggat {{ $assignment->due_at?->timezone(display_tz())->translatedFormat('d M H:i') ?? '—' }}
+                                · @if ($sub)<span @class(['font-bold', 'text-emerald-700' => $sub->status === 'graded', 'text-amber-700' => $sub->status !== 'graded'])>{{ $sub->statusLabel() }}{{ $sub->score !== null ? ' '.fmt_score($sub->score).'/'.fmt_score($assignment->max_score) : '' }}</span>@elseif ($assignment->isOverdue() && ! $assignment->allow_late)<span class="text-rose-700">tenggat lewat</span>@else belum dikumpulkan @endif
+                            </span>
+                        </li>
+                    @empty
+                        <li class="text-slate-500">Belum ada tugas.</li>
                     @endforelse
                 </ul>
             </section>

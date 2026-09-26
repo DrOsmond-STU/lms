@@ -38,7 +38,10 @@ final class Assessment extends Model
 {
     use HasUuids;
 
-    public const KINDS = ['quiz' => 'Kuis', 'final_exam' => 'Ujian Akhir'];
+    public const KINDS = ['pretest' => 'Pre-test', 'quiz' => 'Kuis', 'posttest' => 'Post-test', 'final_exam' => 'Ujian Akhir'];
+
+    /** Jenis yang dapat menjadi syarat kelulusan (pre-test hanya diagnostik). */
+    public const GRADED_KINDS = ['quiz', 'posttest'];
 
     public const REVIEW_POLICIES = [
         'never' => 'Tidak ditampilkan',

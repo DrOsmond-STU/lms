@@ -41,7 +41,7 @@
                 @if ($question->options->isNotEmpty())
                     <ul class="mt-2 space-y-1 text-sm">
                         @foreach ($question->options as $option)
-                            <li @class(['font-bold text-emerald-700' => $option->is_correct])>{{ $option->is_correct ? '✓' : '○' }} @include('components.safe-html', ['html' => $option->body_html])</li>
+                            <li @class(['font-bold text-emerald-700' => $option->is_correct])>{{ $option->is_correct ? '✓' : '○' }} @include('components.safe-html', ['html' => $option->body_html])@if ($question->type === 'matching') <span class="font-normal text-slate-600">↔ {{ $option->match_text }}</span>@endif</li>
                         @endforeach
                     </ul>
                 @elseif ($question->type === 'short_answer')

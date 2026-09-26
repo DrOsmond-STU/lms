@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Enrollment\Http\Controllers;
 
 use App\Modules\Assessment\Models\Assessment;
+use App\Modules\Assessment\Models\Assignment;
+use App\Modules\Assessment\Models\AssignmentSubmission;
 use App\Modules\Assessment\Models\ExamAttempt;
 use App\Modules\Assessment\Services\AttemptService;
 use App\Modules\Enrollment\Models\Enrollment;
@@ -67,6 +69,8 @@ final class LearningController
             'modules' => $modules,
             'done' => $done,
             'locks' => $this->availability->locks($enrollment, $ordered, $done->all()),
+            'assignments' => Assignment::query()->where('course_class_id', $enrollment->course_class_id)->orderBy('position')->get(),
+            'submissions' => AssignmentSubmission::query()->where('enrollment_id', $enrollment->id)->get()->keyBy('assignment_id'),
             'sessions' => $sessions,
             'attendance' => AttendanceRecord::query()->where('enrollment_id', $enrollment->id)->whereIn('class_session_id', $sessions->pluck('id'))->get()->keyBy('class_session_id'),
             'assessments' => $assessments,

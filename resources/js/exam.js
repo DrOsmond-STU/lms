@@ -41,14 +41,16 @@ export function initExam() {
     const save = async (question) => {
         const inputs = root.querySelectorAll(`[data-question="${question}"]`);
         const options = [];
+        const pairs = {};
         let text = null;
         inputs.forEach((input) => {
             if ((input.type === 'radio' || input.type === 'checkbox') && input.checked) options.push(input.value);
             if (input.tagName === 'TEXTAREA' || input.type === 'text') text = input.value;
+            if (input.tagName === 'SELECT' && input.dataset.pairLeft) pairs[input.dataset.pairLeft] = input.value;
         });
         setStatus('Menyimpan…');
         try {
-            const response = await sendJson(answerUrl, 'PUT', { question, options, text });
+            const response = await sendJson(answerUrl, 'PUT', { question, options, text, pairs });
             if (response.status === 409) {
                 setStatus('Waktu habis. Jawaban tidak dapat diubah.');
                 return;

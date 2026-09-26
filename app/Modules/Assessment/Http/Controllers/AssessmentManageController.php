@@ -38,7 +38,7 @@ final class AssessmentManageController
     public function create(Request $request, CourseClass $class): View
     {
         $user = $this->authorize($request, $class);
-        $kind = $request->query('jenis') === 'final_exam' ? 'final_exam' : 'quiz';
+        $kind = array_key_exists((string) $request->query('jenis'), Assessment::KINDS) ? (string) $request->query('jenis') : 'quiz';
 
         return view('assessments.form', [
             'class' => $class,
@@ -46,7 +46,7 @@ final class AssessmentManageController
                 'kind' => $kind, 'duration_minutes' => $kind === 'final_exam' ? 90 : 20, 'max_attempts' => $kind === 'final_exam' ? 2 : 3,
                 'question_count' => $kind === 'final_exam' ? 20 : 5, 'passing_score' => $class->minimumScore(), 'cooldown_minutes' => 0,
                 'review_policy' => $kind === 'final_exam' ? 'after_close' : 'after_submit', 'shuffle_questions' => true, 'shuffle_options' => true,
-                'is_required' => true, 'requires_prerequisites' => $kind === 'final_exam',
+                'is_required' => $kind !== 'pretest', 'requires_prerequisites' => $kind === 'final_exam',
             ]),
             'banks' => $this->banks($class),
             'workspace' => $this->access->workspaceFor($user),
@@ -134,8 +134,14 @@ final class AssessmentManageController
     {
         $user = $this->authorize($request, $class, 'assessment.grade_manual');
         abort_unless($attempt->course_class_id === $class->id, 404);
-        $data = $request->validate(['points' => ['required', 'array'], 'points.*' => ['required', 'numeric', 'min:0', 'max:100']]);
-        $this->attempts->gradeEssays($attempt, array_map('floatval', $data['points']), $user);
+        $data = $request->validate([
+            'points' => ['nullable', 'array'], 'points.*' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'rubric' => ['nullable', 'array'], 'rubric.*' => ['nullable', 'array'], 'rubric.*.*' => ['nullable', 'numeric', 'min:0', 'max:1000'],
+            'feedback' => ['nullable', 'array'], 'feedback.*' => ['nullable', 'string', 'max:3000'],
+        ]);
+        $points = array_map('floatval', array_filter($data['points'] ?? [], fn ($v) => $v !== null && $v !== ''));
+        $rubric = array_map(fn (array $criteria) => array_map('floatval', array_filter($criteria, fn ($v) => $v !== null && $v !== '')), $data['rubric'] ?? []);
+        $this->attempts->gradeEssays($attempt, $points, $user, $rubric, array_map('strval', $data['feedback'] ?? []));
 
         return redirect()->route('assessments.attempts', [$class, $attempt->assessment_id])->with('status', 'Penilaian disimpan.');
     }
@@ -242,7 +248,7 @@ final class AssessmentManageController
             'review_policy' => $data['review_policy'],
             'shuffle_questions' => (bool) ($data['shuffle_questions'] ?? false),
             'shuffle_options' => (bool) ($data['shuffle_options'] ?? false),
-            'is_required' => (bool) ($data['is_required'] ?? false),
+            'is_required' => ($data['kind'] ?? '') !== 'pretest' && (bool) ($data['is_required'] ?? false),
             'requires_prerequisites' => (bool) ($data['requires_prerequisites'] ?? false),
         ];
     }

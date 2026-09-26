@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $id
  * @property string $question_id
  * @property string $body_html
+ * @property string|null $match_text
  * @property bool $is_correct
  * @property int $position
  */

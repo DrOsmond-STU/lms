@@ -25,7 +25,15 @@
                 <article class="card p-5">
                     <p class="text-xs font-bold {{ $answer?->is_correct ? 'text-emerald-700' : 'text-rose-700' }}">Soal {{ $index + 1 }} · {{ $answer?->is_correct ? 'Benar' : 'Salah' }}</p>
                     <div class="prose-content mt-1 text-sm">@include('components.safe-html', ['html' => $question->stem_html])</div>
-                    @if ($question->options->isNotEmpty())
+                    @if ($question->type === 'matching')
+                        <ul class="mt-2 space-y-1 text-sm">
+                            @foreach ($question->options as $option)
+                                @php($chosen = $answer?->match_pairs[$option->id] ?? null)
+                                <li @class(['text-emerald-700' => $chosen === $option->id, 'text-rose-700' => $chosen !== $option->id])>{{ $chosen === $option->id ? '✓' : '✗' }} @include('components.safe-html', ['html' => $option->body_html]) ↔ <span class="font-bold">{{ $option->match_text }}</span></li>
+                            @endforeach
+                        </ul>
+                        <p class="mt-1 text-xs text-slate-500">{{ fmt_score($answer?->points_awarded ?? 0) }} dari {{ fmt_score($question->points) }} poin (kredit parsial).</p>
+                    @elseif ($question->options->isNotEmpty())
                         <ul class="mt-2 space-y-1 text-sm">
                             @foreach ($question->options as $option)
                                 <li @class(['font-bold text-emerald-700' => $option->is_correct, 'text-rose-700' => ! $option->is_correct && in_array($option->id, $answer?->selected_option_ids ?? [], true)])>
@@ -35,7 +43,12 @@
                         </ul>
                     @elseif ($question->type === 'short_answer')
                         <p class="mt-2 text-sm">Jawaban Anda: {{ $answer?->text_answer ?: '—' }}</p>
+                    @elseif ($question->type === 'essay')
+                        <div class="mt-2 rounded-lg bg-slate-50 p-3 text-sm whitespace-pre-line">{{ $answer?->text_answer ?: '(tidak dijawab)' }}</div>
+                        <p class="mt-1 text-xs text-slate-500">{{ fmt_score($answer?->points_awarded ?? 0) }} dari {{ fmt_score($question->points) }} poin</p>
+                        @if ($answer?->rubric_scores)<ul class="mt-1 text-xs text-slate-600">@foreach ($answer->rubric_scores as $name => $value)<li>{{ $name }}: {{ fmt_score($value) }}</li>@endforeach</ul>@endif
                     @endif
+                    @if ($answer?->feedback)<div class="mt-2 rounded-lg border border-brand-100 bg-brand-50 p-3 text-sm"><span class="font-bold">Umpan balik trainer:</span> {{ $answer->feedback }}</div>@endif
                     @if ($question->explanation_html)
                         <div class="prose-content mt-3 rounded-lg bg-slate-50 p-3 text-sm">@include('components.safe-html', ['html' => $question->explanation_html])</div>
                     @endif

@@ -16,7 +16,7 @@
     </div>
 
     <section class="mt-8 grid gap-4 lg:grid-cols-3">
-        <div class="card p-5 lg:col-span-2">
+        <div class="card p-5 lg:col-span-3 xl:col-span-1">
             <h2 class="card-title">Sedang Dipelajari</h2>
             <p class="card-sub">Pelatihan terakhir yang Anda buka</p>
             <div>
@@ -36,6 +36,21 @@
                     </div>
                 @endforelse
             </div>
+        </div>
+        <div class="card p-5">
+            <h2 class="card-title">Tenggat &amp; Jadwal Terdekat</h2>
+            <p class="card-sub">14 hari ke depan</p>
+            <div>
+                @forelse ($deadlines as $item)
+                    <a href="{{ $item['url'] }}" class="feed-item group">
+                        <span class="feed-icon bg-amber-50 text-amber-700"><x-icon name="calendar" class="h-4 w-4" /></span>
+                        <span class="min-w-0"><span class="feed-title group-hover:text-link">{{ $item['kind'] }}: {{ $item['title'] }}</span><span class="feed-meta">{{ $item['at']->timezone(display_tz())->translatedFormat('D, d M H:i') }} {{ tz_label() }}</span></span>
+                    </a>
+                @empty
+                    <p class="py-6 text-center text-sm text-slate-500">Tidak ada tenggat atau sesi dalam 14 hari.</p>
+                @endforelse
+            </div>
+            <a href="{{ route('schedule.participant') }}" class="btn-secondary mt-4 w-full">Jadwal lengkap</a>
         </div>
         <div class="card p-5">
             <h2 class="card-title">Notifikasi</h2>

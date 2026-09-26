@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Enrollment\Services;
 
+use App\Modules\Assessment\Models\Assessment;
+use App\Modules\Assessment\Services\AssignmentService;
 use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Notification\Services\Notifier;
 use Illuminate\Support\Facades\DB;
@@ -41,14 +43,14 @@ final class CompletionEvaluator
     }
 
     /**
-     * @return array{met: bool, lessons_done: int, lessons_total: int, quizzes_ok: bool, final_required: bool, final_score: float|null, min_score: float}
+     * @return array{met: bool, lessons_done: int, lessons_total: int, quizzes_ok: bool, assignments_done: int, assignments_total: int, final_required: bool, final_score: float|null, min_score: float}
      */
     public static function check(Enrollment $enrollment): array
     {
         [$done, $total] = ProgressService::requiredCounts($enrollment);
         $class = $enrollment->courseClass;
 
-        $requiredQuizIds = DB::table('assessments')->where('course_class_id', $class->id)->where('kind', 'quiz')->where('is_required', true)->pluck('id');
+        $requiredQuizIds = DB::table('assessments')->where('course_class_id', $class->id)->whereIn('kind', Assessment::GRADED_KINDS)->where('is_required', true)->pluck('id');
         $passedQuizzes = $requiredQuizIds->isEmpty() ? 0 : DB::table('exam_attempts')
             ->where('enrollment_id', $enrollment->id)
             ->whereIn('assessment_id', $requiredQuizIds)
@@ -64,13 +66,16 @@ final class CompletionEvaluator
         $finalScore = $finalScore === null ? null : (float) $finalScore;
         $minScore = $class->minimumScore();
 
-        $met = $done === $total && $quizzesOk && (! $finalRequired || ($finalScore !== null && $finalScore >= $minScore));
+        [$assignmentsDone, $assignmentsTotal] = AssignmentService::requiredCounts($enrollment);
+        $met = $done === $total && $quizzesOk && $assignmentsDone === $assignmentsTotal && (! $finalRequired || ($finalScore !== null && $finalScore >= $minScore));
 
         return [
             'met' => $met,
             'lessons_done' => $done,
             'lessons_total' => $total,
             'quizzes_ok' => $quizzesOk,
+            'assignments_done' => $assignmentsDone,
+            'assignments_total' => $assignmentsTotal,
             'final_required' => $finalRequired,
             'final_score' => $finalScore,
             'min_score' => $minScore,

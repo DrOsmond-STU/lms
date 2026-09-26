@@ -48,8 +48,32 @@
                 <textarea id="accepted_answers" name="accepted_answers" rows="4" maxlength="2000" class="form-input">{{ old('accepted_answers', $answers) }}</textarea>
                 <x-form-error field="accepted_answers" />
             </div>
+        @elseif ($type === 'matching')
+            @php($pairRows = old('pairs', collect($options)->map(fn ($o) => ['left' => $o['body'] ?? '', 'right' => $o['right'] ?? ''])->all()))
+            <fieldset class="space-y-2">
+                <legend class="form-label">Pasangan (kiri ↔ kanan). Sisi kanan diacak saat ujian; kredit parsial per pasangan benar.</legend>
+                @for ($i = 0; $i < max(4, count($pairRows) + 1) && $i < 10; $i++)
+                    <div class="grid grid-cols-2 gap-2">
+                        <input name="pairs[{{ $i }}][left]" value="{{ $pairRows[$i]['left'] ?? '' }}" maxlength="500" class="form-input py-1.5" placeholder="Kiri {{ $i + 1 }}" aria-label="Kiri {{ $i + 1 }}">
+                        <input name="pairs[{{ $i }}][right]" value="{{ $pairRows[$i]['right'] ?? '' }}" maxlength="500" class="form-input py-1.5" placeholder="Pasangan kanan {{ $i + 1 }}" aria-label="Kanan {{ $i + 1 }}">
+                    </div>
+                @endfor
+                <x-form-error field="pairs" />
+            </fieldset>
         @else
             <p class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">Esai dinilai manual oleh trainer pengampu setelah dikumpulkan.</p>
+            @php($rubricRows = old('rubric', $question->rubric ?? []))
+            <fieldset class="rounded-lg border border-slate-200 p-4">
+                <legend class="px-1 text-xs font-bold text-slate-600">Rubrik penilaian (opsional)</legend>
+                <p class="mb-2 text-xs text-slate-500">Skor per kriteria dijumlahkan lalu diskalakan ke poin soal. Kosongkan nama untuk baris yang tidak dipakai.</p>
+                @for ($i = 0; $i < max(3, count($rubricRows) + 1) && $i < 8; $i++)
+                    <div class="mb-2 grid gap-2 sm:grid-cols-[2fr_1fr_3fr]">
+                        <input name="rubric[{{ $i }}][name]" value="{{ $rubricRows[$i]['name'] ?? '' }}" maxlength="120" class="form-input py-1.5" placeholder="Kriteria {{ $i + 1 }}" aria-label="Kriteria {{ $i + 1 }}">
+                        <input name="rubric[{{ $i }}][max]" type="number" min="0" max="1000" step="0.5" value="{{ $rubricRows[$i]['max'] ?? '' }}" class="form-input py-1.5" placeholder="Maks." aria-label="Poin maksimal kriteria {{ $i + 1 }}">
+                        <input name="rubric[{{ $i }}][description]" value="{{ $rubricRows[$i]['description'] ?? '' }}" maxlength="300" class="form-input py-1.5" placeholder="Deskripsi" aria-label="Deskripsi kriteria {{ $i + 1 }}">
+                    </div>
+                @endfor
+            </fieldset>
         @endif
 
         <div>

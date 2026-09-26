@@ -75,8 +75,10 @@ final class ExamController
             'options' => ['nullable', 'array', 'max:10'],
             'options.*' => ['string', 'size:20'],
             'text' => ['nullable', 'string', 'max:10000'],
+            'pairs' => ['nullable', 'array', 'max:20'],
+            'pairs.*' => ['nullable', 'string', 'max:20'],
         ]);
-        $this->attempts->saveAnswer($attempt, $data['question'], array_values($data['options'] ?? []), $data['text'] ?? null);
+        $this->attempts->saveAnswer($attempt, $data['question'], array_values($data['options'] ?? []), $data['text'] ?? null, array_map('strval', $data['pairs'] ?? []));
 
         return response()->json(['saved' => true, 'seconds_left' => $attempt->secondsLeft()]);
     }

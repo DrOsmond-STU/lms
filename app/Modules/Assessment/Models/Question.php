@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property list<string> $competency_tags
  * @property string $points
  * @property list<string>|null $accepted_answers_encrypted
+ * @property list<array{name: string, max: float, description?: string}>|null $rubric
  * @property bool $is_active
  * @property int $version
  * @property-read QuestionBank $bank
@@ -36,6 +37,7 @@ final class Question extends Model
         'true_false' => 'Benar / Salah',
         'short_answer' => 'Isian singkat',
         'essay' => 'Esai (dinilai manual)',
+        'matching' => 'Menjodohkan',
     ];
 
     /** @var list<string> */
@@ -50,6 +52,7 @@ final class Question extends Model
             'difficulty' => 'integer',
             'competency_tags' => 'array',
             'accepted_answers_encrypted' => 'encrypted:array',
+            'rubric' => 'array',
             'is_active' => 'boolean',
             'version' => 'integer',
         ];

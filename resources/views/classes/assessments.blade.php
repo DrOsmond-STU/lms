@@ -10,7 +10,9 @@
     @endif
     @if ($canEditAssessments)
         <div class="mb-4 flex flex-wrap gap-2">
+            <a href="{{ route('assessments.create', [$class, 'jenis' => 'pretest']) }}" class="btn-secondary">+ Pre-test</a>
             <a href="{{ route('assessments.create', [$class, 'jenis' => 'quiz']) }}" class="btn-secondary">+ Kuis</a>
+            <a href="{{ route('assessments.create', [$class, 'jenis' => 'posttest']) }}" class="btn-secondary">+ Post-test</a>
             <a href="{{ route('assessments.create', [$class, 'jenis' => 'final_exam']) }}" class="btn-secondary">+ Ujian Akhir</a>
             <a href="{{ route('banks.index', $class->program) }}" class="btn-secondary">Bank Soal Program</a>
         </div>

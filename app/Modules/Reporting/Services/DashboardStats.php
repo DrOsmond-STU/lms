@@ -9,6 +9,8 @@ use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Identity\Models\User;
 use App\Modules\Notification\Models\InAppNotification;
 use App\Modules\Organization\Models\Organization;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,7 +30,33 @@ final class DashboardStats
             'certificates' => DB::table('certificates')->where('user_id', $user->id)->where('status', 'active')->count(),
             'notifications' => InAppNotification::query()->where('user_id', $user->id)->orderByDesc('created_at')->limit(5)->get(),
             'unread' => InAppNotification::query()->where('user_id', $user->id)->whereNull('read_at')->count(),
+            'deadlines' => $this->participantDeadlines($user),
         ];
+    }
+
+    /**
+     * Tenggat tugas & sesi terdekat (14 hari) untuk enrollment aktif — belum dikumpulkan saja.
+     *
+     * @return Collection<int, array{kind: string, title: string, at: Carbon, url: string}>
+     */
+    private function participantDeadlines(User $user): Collection
+    {
+        $enrollments = Enrollment::query()->where('user_id', $user->id)->whereIn('status', Enrollment::ACTIVE)->pluck('id', 'course_class_id');
+        if ($enrollments->isEmpty()) {
+            return collect();
+        }
+        $classIds = $enrollments->keys()->all();
+        $submitted = DB::table('assignment_submissions')->where('user_id', $user->id)->pluck('assignment_id')->flip();
+        $items = collect();
+        DB::table('assignments')->whereIn('course_class_id', $classIds)->whereNotNull('due_at')->where('due_at', '>=', now()->subDay())->where('due_at', '<=', now()->addDays(14))
+            ->orderBy('due_at')->get(['id', 'course_class_id', 'title', 'due_at'])
+            ->reject(fn ($a) => $submitted->has($a->id))
+            ->each(fn ($a) => $items->push(['kind' => 'Tugas', 'title' => $a->title, 'at' => Carbon::parse((string) $a->due_at), 'url' => '/peserta/kelas/'.(string) $enrollments->get($a->course_class_id).'/tugas/'.$a->id]));
+        DB::table('class_sessions')->whereIn('course_class_id', $classIds)->where('starts_at', '>=', now()->subHours(2))->where('starts_at', '<=', now()->addDays(14))
+            ->orderBy('starts_at')->get(['id', 'course_class_id', 'title', 'starts_at', 'type'])
+            ->each(fn ($s) => $items->push(['kind' => $s->type === 'online' ? 'Live class' : 'Sesi', 'title' => $s->title, 'at' => Carbon::parse((string) $s->starts_at), 'url' => '/peserta/kelas/'.(string) $enrollments->get($s->course_class_id)]));
+
+        return $items->sortBy(fn (array $i) => $i['at']->getTimestamp())->values()->take(6);
     }
 
     /** @return array<string, mixed> */

@@ -280,7 +280,7 @@ final class ContentController
             'document' => ['file' => [$creating ? 'required' : 'nullable', 'file']],
             'text' => ['body_md' => ['required', 'string', 'max:50000']],
             'link' => ['external_url' => ['required', 'string', 'max:500', 'url:https']],
-            'quiz' => ['assessment_id' => ['required', 'uuid', Rule::exists('assessments', 'id')->where('course_class_id', $class->id)->where('kind', 'quiz')]],
+            'quiz' => ['assessment_id' => ['required', 'uuid', Rule::exists('assessments', 'id')->where('course_class_id', $class->id)->whereIn('kind', ['quiz', 'pretest', 'posttest'])]],
             default => throw ValidationException::withMessages(['type' => 'Tipe lesson tidak valid.']),
         };
 
@@ -354,6 +354,6 @@ final class ContentController
     /** @return Collection<int, Assessment> */
     private function quizzes(CourseClass $class): Collection
     {
-        return Assessment::query()->where('course_class_id', $class->id)->where('kind', 'quiz')->orderBy('title')->get(['id', 'title']);
+        return Assessment::query()->where('course_class_id', $class->id)->whereIn('kind', ['quiz', 'pretest', 'posttest'])->orderBy('kind')->orderBy('title')->get(['id', 'title', 'kind']);
     }
 }

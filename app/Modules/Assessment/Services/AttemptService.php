@@ -8,6 +8,7 @@ use App\Modules\Assessment\Models\Assessment;
 use App\Modules\Assessment\Models\AttemptAnswer;
 use App\Modules\Assessment\Models\ExamAttempt;
 use App\Modules\Assessment\Models\Question;
+use App\Modules\Assessment\Models\QuestionOption;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Enrollment\Services\CompletionEvaluator;
@@ -168,7 +169,7 @@ final class AttemptService
     /**
      * Payload soal untuk klien — tanpa kunci jawaban (SEC-EXAM-01).
      *
-     * @return list<array{alias: string, number: int, type: string, stem_html: string, points: string, options: list<array{alias: string, body_html: string, selected: bool}>, text_answer: string|null}>
+     * @return list<array{alias: string, number: int, type: string, stem_html: string, points: string, options: list<array{alias: string, body_html: string, selected: bool}>, targets: list<array{alias: string, text: string}>, pairs: array<string, string>, text_answer: string|null}>
      */
     public function payload(ExamAttempt $attempt): array
     {
@@ -190,6 +191,24 @@ final class AttemptService
                     $options[] = ['alias' => self::alias($attempt, $optionId), 'body_html' => $option->body_html, 'selected' => in_array($optionId, $selected, true)];
                 }
             }
+            // Menjodohkan: sisi kiri = opsi urut asli, sisi kanan (target) = teks pasangan urut acak per attempt.
+            $targets = [];
+            $pairs = [];
+            if ($question->type === 'matching') {
+                $options = [];
+                foreach ($question->options as $left) {
+                    $options[] = ['alias' => self::alias($attempt, $left->id), 'body_html' => $left->body_html, 'selected' => false];
+                }
+                foreach ($attempt->option_order[$questionId] ?? [] as $optionId) {
+                    $option = $byId->get($optionId);
+                    if ($option !== null) {
+                        $targets[] = ['alias' => self::alias($attempt, 'target:'.$optionId), 'text' => (string) $option->match_text];
+                    }
+                }
+                foreach (($answer instanceof AttemptAnswer ? ($answer->match_pairs ?? []) : []) as $leftId => $rightId) {
+                    $pairs[self::alias($attempt, (string) $leftId)] = self::alias($attempt, 'target:'.$rightId);
+                }
+            }
             $items[] = [
                 'alias' => self::alias($attempt, $questionId),
                 'number' => $index + 1,
@@ -197,6 +216,8 @@ final class AttemptService
                 'stem_html' => $question->stem_html,
                 'points' => $question->points,
                 'options' => $options,
+                'targets' => $targets,
+                'pairs' => $pairs,
                 'text_answer' => $answer instanceof AttemptAnswer ? $answer->text_answer : null,
             ];
         }
@@ -208,8 +229,9 @@ final class AttemptService
      * Autosave jawaban idempoten (SEC-EXAM-08). Setelah deadline + grace → 409.
      *
      * @param  list<string>  $optionAliases
+     * @param  array<string, string>  $pairAliases  alias opsi kiri => alias target kanan (soal menjodohkan)
      */
-    public function saveAnswer(ExamAttempt $attempt, string $questionAlias, array $optionAliases, ?string $text): void
+    public function saveAnswer(ExamAttempt $attempt, string $questionAlias, array $optionAliases, ?string $text, array $pairAliases = []): void
     {
         if (! $attempt->isInProgress() || now()->greaterThan($attempt->deadline_at->copy()->addSeconds(self::graceSeconds()))) {
             throw new ConflictHttpException('Waktu mengerjakan sudah habis.');
@@ -221,6 +243,27 @@ final class AttemptService
         }
         /** @var Question $question */
         $question = Question::query()->findOrFail($questionId);
+
+        if ($question->type === 'matching') {
+            $pairs = [];
+            foreach ($attempt->option_order[$questionId] ?? [] as $leftId) {
+                $chosen = $pairAliases[self::alias($attempt, $leftId)] ?? null;
+                if ($chosen === null || $chosen === '') {
+                    continue;
+                }
+                foreach ($attempt->option_order[$questionId] ?? [] as $rightId) {
+                    if (hash_equals(self::alias($attempt, 'target:'.$rightId), (string) $chosen)) {
+                        $pairs[$leftId] = $rightId;
+                    }
+                }
+            }
+            DB::table('attempt_answers')->upsert([[
+                'id' => (string) Str::uuid7(), 'exam_attempt_id' => $attempt->id, 'question_id' => $questionId,
+                'selected_option_ids' => null, 'match_pairs' => json_encode($pairs), 'text_answer' => null, 'answered_at' => now(),
+            ]], ['exam_attempt_id', 'question_id'], ['match_pairs', 'answered_at']);
+
+            return;
+        }
 
         $optionIds = [];
         foreach ($attempt->option_order[$questionId] ?? [] as $optionId) {
@@ -284,11 +327,14 @@ final class AttemptService
     }
 
     /**
-     * Penilaian manual esai oleh trainer pengampu/Admin Akademik.
+     * Penilaian manual esai oleh trainer pengampu/Admin Akademik — poin langsung, atau skor per
+     * kriteria rubrik (dijumlahkan & diskalakan ke poin soal), plus umpan balik untuk peserta.
      *
      * @param  array<string, float>  $points  question_id => poin
+     * @param  array<string, array<string, float>>  $rubricScores  question_id => [kriteria => skor]
+     * @param  array<string, string>  $feedback  question_id => umpan balik
      */
-    public function gradeEssays(ExamAttempt $attempt, array $points, User $grader): void
+    public function gradeEssays(ExamAttempt $attempt, array $points, User $grader, array $rubricScores = [], array $feedback = []): void
     {
         if ($attempt->user_id === $grader->id) {
             throw ValidationException::withMessages(['points' => 'Anda tidak dapat menilai attempt milik sendiri.']);
@@ -297,19 +343,34 @@ final class AttemptService
             throw ValidationException::withMessages(['points' => 'Attempt ini tidak menunggu penilaian.']);
         }
 
-        DB::transaction(function () use ($attempt, $points, $grader): void {
+        DB::transaction(function () use ($attempt, $points, $grader, $rubricScores, $feedback): void {
             $essays = Question::query()->whereIn('id', $attempt->question_order)->where('type', 'essay')->get()->keyBy('id');
-            foreach ($points as $questionId => $value) {
-                $question = $essays->get($questionId);
-                if (! $question instanceof Question) {
+            foreach ($essays as $questionId => $question) {
+                $criteria = null;
+                if ($question->rubric !== null && $question->rubric !== [] && isset($rubricScores[$questionId])) {
+                    $criteria = [];
+                    $sum = 0.0;
+                    $max = 0.0;
+                    foreach ($question->rubric as $criterion) {
+                        $cap = (float) $criterion['max'];
+                        $given = max(0.0, min($cap, (float) ($rubricScores[$questionId][$criterion['name']] ?? 0)));
+                        $criteria[$criterion['name']] = $given;
+                        $sum += $given;
+                        $max += $cap;
+                    }
+                    $value = $max > 0 ? round($sum * (float) $question->points / $max, 2) : 0.0;
+                } elseif (array_key_exists($questionId, $points)) {
+                    $value = max(0.0, min((float) $question->points, (float) $points[$questionId]));
+                } else {
                     continue;
                 }
-                $value = max(0.0, min((float) $question->points, (float) $value));
                 DB::table('attempt_answers')->upsert([[
                     'id' => (string) Str::uuid7(), 'exam_attempt_id' => $attempt->id, 'question_id' => $questionId,
                     'points_awarded' => $value, 'is_correct' => $value >= (float) $question->points,
+                    'rubric_scores' => $criteria === null ? null : json_encode($criteria),
+                    'feedback' => isset($feedback[$questionId]) && trim($feedback[$questionId]) !== '' ? mb_substr(trim($feedback[$questionId]), 0, 3000) : null,
                     'graded_by' => $grader->id, 'graded_at' => now(),
-                ]], ['exam_attempt_id', 'question_id'], ['points_awarded', 'is_correct', 'graded_by', 'graded_at']);
+                ]], ['exam_attempt_id', 'question_id'], ['points_awarded', 'is_correct', 'rubric_scores', 'feedback', 'graded_by', 'graded_at']);
             }
 
             $pending = $essays->keys()->diff(DB::table('attempt_answers')->where('exam_attempt_id', $attempt->id)->whereNotNull('graded_by')->pluck('question_id'));
@@ -414,6 +475,20 @@ final class AttemptService
             $answer = $answers->get($questionId);
             if ($question->type === 'essay') {
                 $manual = true;
+
+                continue;
+            }
+
+            if ($question->type === 'matching') {
+                // Kredit parsial: proporsi pasangan yang benar.
+                $pairs = $answer instanceof AttemptAnswer ? ($answer->match_pairs ?? []) : [];
+                $total = $question->options->count();
+                $right = $question->options->filter(fn (QuestionOption $o) => ($pairs[$o->id] ?? null) === $o->id)->count();
+                $fraction = $total === 0 ? 0.0 : $right / $total;
+                DB::table('attempt_answers')->upsert([[
+                    'id' => (string) Str::uuid7(), 'exam_attempt_id' => $attempt->id, 'question_id' => $questionId,
+                    'is_correct' => $total > 0 && $right === $total, 'points_awarded' => round((float) $question->points * $fraction, 2),
+                ]], ['exam_attempt_id', 'question_id'], ['is_correct', 'points_awarded']);
 
                 continue;
             }
