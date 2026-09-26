@@ -24,6 +24,8 @@
                             <label for="{{ $field }}" class="form-label">{{ $definition['label'] }}@isset($definition['min']) <span class="font-normal text-slate-500">({{ $definition['min'] }}–{{ $definition['max'] }})</span>@endisset</label>
                             @if ($definition['type'] === 'select')
                                 <select id="{{ $field }}" name="{{ $field }}" class="form-select">@foreach ($definition['options'] as $option => $optionLabel)<option value="{{ $option }}" @selected($value === $option)>{{ $optionLabel }}</option>@endforeach</select>
+                            @elseif ($definition['type'] === 'secret')
+                                <input id="{{ $field }}" name="{{ $field }}" type="password" value="" autocomplete="new-password" maxlength="{{ $definition['max'] ?? 400 }}" placeholder="{{ $value !== '' ? '•••••••• (tersimpan)' : 'belum diisi' }}" class="form-input">
                             @elseif ($definition['type'] === 'text')
                                 <textarea id="{{ $field }}" name="{{ $field }}" rows="{{ $definition['rows'] ?? 3 }}" maxlength="{{ $definition['max'] ?? 300 }}" class="form-input">{{ $value }}</textarea>
                             @else
@@ -36,6 +38,9 @@
                 @endforeach
             </fieldset>
         @endforeach
+        @if ($tab === 'integrasi')
+            @include('settings._integrasi')
+        @endif
         @if ($canUpdate)
             <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" class="btn-primary w-auto">Simpan {{ $tabLabel }}</button>

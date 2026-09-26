@@ -7,6 +7,7 @@ namespace App\Modules\Settings\Services;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Identity\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -33,10 +34,11 @@ final class SystemSettings
         'pembayaran' => ['Pembayaran', 'system_setting.view', 'system_setting.update', true],
         'legal' => ['Dokumen Hukum', 'system_setting.view', 'system_setting.update', true],
         'keamanan' => ['Keamanan', 'system_setting.view', 'system_setting.update', true],
+        'integrasi' => ['Integrasi', 'system_setting.view', 'system_setting.update', true],
     ];
 
     /**
-     * @var array<string, array{label: string, type: 'string'|'text'|'email'|'int'|'bool'|'select', group: string, section?: string, default?: string|int|bool, min?: int, max?: int, config?: string, options?: array<string, string>, pattern?: string, required?: bool, help?: string, rows?: int}>
+     * @var array<string, array{label: string, type: 'string'|'text'|'email'|'int'|'bool'|'select'|'secret', group: string, section?: string, default?: string|int|bool, min?: int, max?: int, config?: string, options?: array<string, string>, pattern?: string, required?: bool, help?: string, rows?: int}>
      */
     public const DEFINITIONS = [
         // ---- Umum -------------------------------------------------------------------------
@@ -119,6 +121,20 @@ final class SystemSettings
         'security.session_idle_participant' => ['label' => 'Batas idle sesi peserta (menit)', 'type' => 'int', 'min' => 15, 'max' => 120, 'config' => 'security.session.idle_minutes.participant', 'group' => 'keamanan', 'section' => 'Sesi'],
         'security.password_min_privileged' => ['label' => 'Panjang minimal kata sandi admin/trainer', 'type' => 'int', 'min' => 12, 'max' => 64, 'config' => 'security.password.min_privileged', 'group' => 'keamanan', 'section' => 'Kata sandi'],
         'security.password_min_participant' => ['label' => 'Panjang minimal kata sandi peserta', 'type' => 'int', 'min' => 8, 'max' => 64, 'config' => 'security.password.min_participant', 'group' => 'keamanan', 'section' => 'Kata sandi'],
+
+        // ---- Integrasi (kanal notifikasi eksternal) --------------------------------------------
+        'push.enabled' => ['label' => 'Notifikasi push peramban (Web Push) aktif', 'type' => 'bool', 'default' => false, 'group' => 'integrasi', 'section' => 'Web Push', 'help' => 'Perlu kunci VAPID (tombol "Buat kunci VAPID" di bawah). Pengguna mengaktifkannya sendiri di Notifikasi → Preferensi.'],
+        'push.subject' => ['label' => 'Kontak VAPID (mailto: atau https://)', 'type' => 'string', 'max' => 120, 'pattern' => '/^(mailto:[^\\s@]+@[^\\s@]+|https:\\/\\/[^\\s]+)$/', 'default' => '', 'group' => 'integrasi', 'section' => 'Web Push', 'help' => 'Dikirim ke layanan push peramban sebagai identitas pengirim. Kosong = email pemilik situs.'],
+        'push.vapid_public' => ['label' => 'Kunci publik VAPID', 'type' => 'string', 'max' => 120, 'pattern' => '/^[A-Za-z0-9_-]{80,120}$/', 'default' => '', 'group' => 'integrasi', 'section' => 'Web Push'],
+        'push.vapid_private' => ['label' => 'Kunci privat VAPID', 'type' => 'secret', 'max' => 400, 'default' => '', 'group' => 'integrasi', 'section' => 'Web Push', 'help' => 'Disimpan terenkripsi. Kosongkan untuk mempertahankan nilai tersimpan.'],
+        'whatsapp.enabled' => ['label' => 'Kirim notifikasi lewat WhatsApp gateway', 'type' => 'bool', 'default' => false, 'group' => 'integrasi', 'section' => 'WhatsApp Gateway', 'help' => 'Hanya untuk pengguna yang mengisi nomor HP dan mengaktifkan kanal WhatsApp di preferensinya.'],
+        'whatsapp.endpoint' => ['label' => 'URL endpoint gateway (HTTPS)', 'type' => 'string', 'max' => 300, 'pattern' => '/^https:\\/\\/[^\\s]+$/', 'default' => '', 'group' => 'integrasi', 'section' => 'WhatsApp Gateway', 'help' => 'Gateway generik: permintaan POST berisi nomor tujuan dan pesan (mis. WAHA, Fonnte, wa-gateway sendiri).'],
+        'whatsapp.token' => ['label' => 'Token/API key gateway', 'type' => 'secret', 'max' => 400, 'default' => '', 'group' => 'integrasi', 'section' => 'WhatsApp Gateway', 'help' => 'Dikirim sebagai header Authorization: Bearer. Disimpan terenkripsi.'],
+        'whatsapp.payload' => ['label' => 'Format payload', 'type' => 'select', 'options' => ['json' => 'JSON {"to","message","sender"}', 'form' => 'Form-urlencoded (to, message, sender)'], 'default' => 'json', 'group' => 'integrasi', 'section' => 'WhatsApp Gateway'],
+        'whatsapp.sender' => ['label' => 'ID pengirim/sesi (opsional)', 'type' => 'string', 'max' => 80, 'default' => '', 'group' => 'integrasi', 'section' => 'WhatsApp Gateway', 'help' => 'Diteruskan sebagai field "sender" bila gateway memerlukan nama sesi/perangkat.'],
+        'reminder.deadline_hours' => ['label' => 'Pengingat tenggat tugas/sesi (jam sebelum)', 'type' => 'int', 'min' => 6, 'max' => 168, 'default' => 48, 'group' => 'integrasi', 'section' => 'Pengingat otomatis'],
+        'reminder.inactive_days' => ['label' => 'Pengingat peserta tidak aktif setelah (hari)', 'type' => 'int', 'min' => 3, 'max' => 60, 'default' => 7, 'group' => 'integrasi', 'section' => 'Pengingat otomatis', 'help' => 'Dikirim sekali per pekan selama peserta tetap tidak aktif.'],
+        'reminder.new_program' => ['label' => 'Beri tahu peserta saat program baru terbit', 'type' => 'bool', 'default' => true, 'group' => 'integrasi', 'section' => 'Pengingat otomatis'],
     ];
 
     /** @var array<string, mixed>|null nilai tersimpan per permintaan */
@@ -147,6 +163,9 @@ final class SystemSettings
     {
         $definition = self::definition($key);
         $stored = self::all()[$key] ?? null;
+        if ($definition['type'] === 'secret') {
+            return is_string($stored) && $stored !== '' ? self::reveal($stored) : '';
+        }
         if ($stored !== null && self::withinBounds($definition, $stored) && ! (($definition['required'] ?? false) && $stored === '')) {
             return $stored;
         }
@@ -214,6 +233,22 @@ final class SystemSettings
                 'int' => filter_var($input[$field] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
                 default => str_replace("\r\n", "\n", trim((string) ($input[$field] ?? ''))),
             };
+            if ($definition['type'] === 'secret') {
+                if ($value === '') {
+                    continue; // kosong = pertahankan nilai tersimpan
+                }
+                if (mb_strlen($value) > ($definition['max'] ?? 400)) {
+                    $errors[$field] = self::boundsMessage($definition);
+
+                    continue;
+                }
+                $stored = $current[$key] ?? null;
+                if (! is_string($stored) || self::reveal($stored) !== $value) {
+                    $changes[$key] = ['from' => is_string($stored) && $stored !== '' ? '••••' : '', 'to' => '••••', 'store' => Crypt::encryptString($value)];
+                }
+
+                continue;
+            }
             if ($value === null || ! self::withinBounds($definition, $value)) {
                 $errors[$field] = self::boundsMessage($definition);
 
@@ -239,13 +274,53 @@ final class SystemSettings
         DB::transaction(function () use ($changes, $actor, $audit, $tab): void {
             foreach ($changes as $key => $change) {
                 DB::table('system_settings')->upsert([[
-                    'key' => $key, 'value' => json_encode($change['to']), 'updated_by' => $actor->id, 'updated_at' => now(),
+                    'key' => $key, 'value' => json_encode($change['store'] ?? $change['to']), 'updated_by' => $actor->id, 'updated_at' => now(),
                 ]], ['key'], ['value', 'updated_by', 'updated_at']);
             }
-            $audit->record('system_setting.updated', $actor, 'system_setting', null, ['tab' => $tab] + $changes);
+            $audit->record('system_setting.updated', $actor, 'system_setting', null, ['tab' => $tab] + array_map(fn (array $c) => ['from' => $c['from'], 'to' => $c['to']], $changes));
         });
         Cache::forget(self::CACHE_KEY);
         self::applyToConfig();
+    }
+
+    /**
+     * Simpan beberapa kunci secara programatik (mis. kunci VAPID yang dibangkitkan). Tipe `secret`
+     * dienkripsi; nilai lain harus dalam batas definisi.
+     *
+     * @param  array<string, string|int|bool>  $values
+     */
+    public function put(array $values, User $actor, AuditLogger $audit, string $reason): void
+    {
+        $audited = [];
+        DB::transaction(function () use ($values, $actor, &$audited): void {
+            foreach ($values as $key => $value) {
+                $definition = self::definition($key);
+                if ($definition['type'] === 'secret') {
+                    $store = is_string($value) && $value !== '' ? Crypt::encryptString($value) : '';
+                    $audited[$key] = '••••';
+                } elseif (self::withinBounds($definition, $value)) {
+                    $store = $value;
+                    $audited[$key] = $value;
+                } else {
+                    throw new \InvalidArgumentException("Nilai pengaturan {$key} di luar batas.");
+                }
+                DB::table('system_settings')->upsert([[
+                    'key' => $key, 'value' => json_encode($store), 'updated_by' => $actor->id, 'updated_at' => now(),
+                ]], ['key'], ['value', 'updated_by', 'updated_at']);
+            }
+        });
+        $audit->record('system_setting.updated', $actor, 'system_setting', null, ['reason' => $reason, 'keys' => $audited]);
+        Cache::forget(self::CACHE_KEY);
+        self::applyToConfig();
+    }
+
+    private static function reveal(string $stored): string
+    {
+        try {
+            return Crypt::decryptString($stored);
+        } catch (Throwable) {
+            return '';
+        }
     }
 
     public static function field(string $key): string

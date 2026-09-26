@@ -2,6 +2,7 @@
     <x-slot:heading>Notifikasi</x-slot:heading>
     <x-slot:subtitle>Informasi enrollment, ujian, sertifikat, dan keamanan akun Anda.</x-slot:subtitle>
     <x-slot:actions>
+        <a href="{{ route('notifications.preferences') }}" class="btn-secondary">Preferensi</a>
         <form method="POST" action="{{ route('notifications.read-all') }}">
         @csrf
         <button type="submit" class="btn-secondary">Tandai semua dibaca</button>

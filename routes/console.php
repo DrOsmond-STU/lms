@@ -18,3 +18,6 @@ Schedule::command('stu:certificates-expiry-reminders')->dailyAt('08:00')->timezo
 
 // Tagihan transfer manual yang melewati batas waktu tanpa bukti (FR-PAY, tahap A).
 Schedule::command('stu:payments-expire')->hourly()->withoutOverlapping()->onOneServer();
+
+// Pengingat tenggat tugas/sesi, peserta tidak aktif, program baru (kanal sesuai preferensi).
+Schedule::command('stu:reminders')->hourly()->withoutOverlapping()->onOneServer();

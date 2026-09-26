@@ -82,6 +82,7 @@ final class SecurityHeaders
             'font-src' => ["'self'"],
             'connect-src' => $connectSrc,
             'media-src' => ["'self'"],
+            'worker-src' => ["'self'"],
             'frame-src' => ["'none'"],
             'frame-ancestors' => ["'none'"],
             'form-action' => ["'self'"],

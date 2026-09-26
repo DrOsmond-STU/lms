@@ -6,6 +6,7 @@ import { initConfirmations } from './confirm';
 import { initProgramFilter, initSlider } from './landing';
 import { initSidebar } from './sidebar';
 import { initThemeSwitch } from './theme';
+import { initPush } from './push';
 
 document.addEventListener('DOMContentLoaded', () => {
     initConfirmations();
@@ -16,4 +17,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initExam();
     initVideoProgress();
     initLessonPing();
+    initPush();
 });

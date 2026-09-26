@@ -48,6 +48,7 @@ use App\Modules\Learning\Http\Controllers\ContentController;
 use App\Modules\Learning\Http\Controllers\MediaStreamController;
 use App\Modules\Learning\Http\Controllers\ScheduleController;
 use App\Modules\Notification\Http\Controllers\NotificationController;
+use App\Modules\Notification\Http\Controllers\NotificationPreferenceController;
 use App\Modules\Organization\Http\Controllers\OrganizationAdminController;
 use App\Modules\Organization\Http\Controllers\OrgPortalController;
 use App\Modules\Payment\Http\Controllers\PaymentAdminController;
@@ -115,6 +116,11 @@ Route::middleware('auth')->group(function (): void {
 
         Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
         Route::get('/pengumuman', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/notifikasi/preferensi', [NotificationPreferenceController::class, 'edit'])->name('notifications.preferences');
+        Route::put('/notifikasi/preferensi', [NotificationPreferenceController::class, 'update'])->middleware('throttle:20,1,notif-prefs')->name('notifications.preferences.update');
+        Route::post('/notifikasi/preferensi/uji', [NotificationPreferenceController::class, 'test'])->middleware('throttle:5,1,notif-test')->name('notifications.preferences.test');
+        Route::post('/notifikasi/push/langganan', [NotificationPreferenceController::class, 'subscribe'])->middleware('throttle:10,1,push-subscribe')->name('notifications.push.subscribe');
+        Route::delete('/notifikasi/push/langganan/{subscription}', [NotificationPreferenceController::class, 'unsubscribe'])->name('notifications.push.unsubscribe');
         Route::post('/notifikasi/tandai-semua', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifikasi/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
 
@@ -292,9 +298,11 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/pengaturan', [SettingsController::class, 'index'])->name('settings.edit');
             Route::get('/pengaturan/pemilik', [SiteProfileController::class, 'edit'])->middleware('can:cms.view')->name('settings.owner');
             Route::put('/pengaturan/pemilik', [SiteProfileController::class, 'update'])->middleware(['can:cms.update', 'throttle:30,1,cms-profile-update'])->name('settings.owner.update');
-            Route::get('/pengaturan/{tab}', [SettingsController::class, 'show'])->whereIn('tab', ['umum', 'beranda', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan'])->name('settings.tab');
+            Route::get('/pengaturan/{tab}', [SettingsController::class, 'show'])->whereIn('tab', ['umum', 'beranda', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan', 'integrasi'])->name('settings.tab');
             Route::put('/pengaturan/beranda', [SettingsController::class, 'update'])->defaults('tab', 'beranda')->middleware(['can:cms.update', 'throttle:30,1,settings-landing'])->name('settings.landing.update');
-            Route::put('/pengaturan/{tab}', [SettingsController::class, 'update'])->whereIn('tab', ['umum', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan'])->middleware(['can:system_setting.update', 'reauth', 'throttle:30,1,settings-update'])->name('settings.update');
+            Route::put('/pengaturan/{tab}', [SettingsController::class, 'update'])->whereIn('tab', ['umum', 'pendaftaran', 'pembelajaran', 'sertifikat', 'pembayaran', 'legal', 'keamanan', 'integrasi'])->middleware(['can:system_setting.update', 'reauth', 'throttle:30,1,settings-update'])->name('settings.update');
+            Route::post('/pengaturan/integrasi/vapid', [SettingsController::class, 'generateVapid'])->middleware(['can:system_setting.update', 'reauth', 'throttle:5,1,settings-vapid'])->name('settings.vapid');
+            Route::post('/pengaturan/integrasi/whatsapp-uji', [SettingsController::class, 'testWhatsApp'])->middleware(['can:system_setting.update', 'throttle:5,1,settings-wa-test'])->name('settings.whatsapp-test');
         });
 
         // Area peserta (docs/08 PST-*).
@@ -397,9 +405,9 @@ Route::middleware('auth')->group(function (): void {
                 Route::delete('/{group}', 'destroy')->name('destroy');
             });
             Route::get('/kelas/{class}/nilai', [GradebookController::class, 'index'])->name('classes.gradebook');
-            Route::get('/kelas/{class}/nilai/ekspor', [GradebookController::class, 'export'])->middleware('throttle:10,1,gradebook-export')->name('classes.gradebook.export');
+            Route::get('/kelas/{class}/nilai/ekspor', [GradebookController::class, 'export'])->middleware('throttle:60,1,gradebook-export')->name('classes.gradebook.export');
             Route::get('/kelas/{class}/laporan', [ClassReportController::class, 'show'])->name('classes.report');
-            Route::get('/kelas/{class}/laporan/ekspor', [ClassReportController::class, 'export'])->middleware('throttle:10,1,class-report-export')->name('classes.report.export');
+            Route::get('/kelas/{class}/laporan/ekspor', [ClassReportController::class, 'export'])->middleware('throttle:60,1,class-report-export')->name('classes.report.export');
             Route::controller(AnnouncementController::class)->name('classes.announcements.')->group(function (): void {
                 Route::get('/kelas/{class}/pengumuman', 'classIndex')->name('index');
                 Route::post('/kelas/{class}/pengumuman', 'store')->middleware('throttle:30,1,class-announcements-store')->name('store');

@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace App\Modules\Notification\Services;
 
 use App\Modules\Identity\Models\User;
+use App\Modules\Notification\Jobs\SendPushNotification;
+use App\Modules\Notification\Jobs\SendWhatsAppMessage;
 use App\Modules\Notification\Mail\PlainNotificationMail;
 use App\Modules\Notification\Models\InAppNotification;
+use App\Modules\Notification\Models\NotificationPreference;
+use App\Modules\Notification\Models\PushSubscription;
 use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 
 /**
- * Pengirim notifikasi (FR-NTF-001/002/005): selalu in-app, email opsional. Isi email
- * minimal — tanpa skor rinci/token — dan tautan menuju aplikasi (login wajib).
+ * Pengirim notifikasi (FR-NTF-001/002/005): selalu in-app; email (bila diminta), Web Push, dan
+ * WhatsApp mengikuti preferensi pengguna & konfigurasi kanal. Isi minimal — tanpa skor rinci/token —
+ * dan tautan menuju aplikasi (login wajib).
  */
 final class Notifier
 {
@@ -47,8 +52,18 @@ final class Notifier
             'action_url' => $actionPath,
         ])->save();
 
-        if ($email && $user->isActive()) {
+        if (! $user->isActive()) {
+            return;
+        }
+        $preference = NotificationPreference::for($user);
+        if ($email && $preference->allows('email', $category)) {
             Mail::to($user->email)->queue(new PlainNotificationMail($title, $body, $actionPath));
+        }
+        if ($preference->allows('push', $category) && WebPush::configured() && PushSubscription::query()->where('user_id', $user->id)->exists()) {
+            SendPushNotification::dispatch($user->id, $notification->title, $notification->body, $actionPath);
+        }
+        if ($preference->allows('whatsapp', $category) && WhatsAppGateway::configured() && is_string($user->getAttribute('phone_encrypted'))) {
+            SendWhatsAppMessage::dispatch($user->id, $notification->title, $notification->body, $actionPath);
         }
     }
 

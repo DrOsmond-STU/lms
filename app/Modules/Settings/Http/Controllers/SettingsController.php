@@ -6,6 +6,8 @@ namespace App\Modules\Settings\Http\Controllers;
 
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Identity\Models\User;
+use App\Modules\Notification\Services\WebPush;
+use App\Modules\Notification\Services\WhatsAppGateway;
 use App\Modules\Settings\Services\SystemSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,5 +64,33 @@ final class SettingsController
         $user = $request->user();
 
         return $user;
+    }
+
+    /** Bangkitkan pasangan kunci VAPID baru dan simpan (privat terenkripsi). */
+    public function generateVapid(Request $request, SystemSettings $settings, AuditLogger $audit): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $keys = WebPush::generateKeys();
+        $settings->put(['push.vapid_public' => $keys['public'], 'push.vapid_private' => $keys['private']], $user, $audit, 'vapid_generated');
+
+        return redirect()->route('admin.settings.tab', 'integrasi')->with('status', 'Kunci VAPID baru dibuat. Aktifkan Web Push lalu simpan.');
+    }
+
+    /** Uji gateway WhatsApp ke nomor HP admin yang sedang masuk. */
+    public function testWhatsApp(Request $request, WhatsAppGateway $gateway): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $phone = $user->getAttribute('phone_encrypted');
+        if (! WhatsAppGateway::configured()) {
+            return back()->with('status', 'Gateway WhatsApp belum lengkap: aktifkan, isi endpoint dan token, lalu simpan.');
+        }
+        if (! is_string($phone) || $phone === '') {
+            return back()->with('status', 'Isi nomor HP Anda di Akun Saya terlebih dahulu.');
+        }
+        $result = $gateway->send($phone, 'Pesan uji dari '.config('app.name').' — gateway WhatsApp terhubung.');
+
+        return back()->with('status', $result['ok'] ? 'Pesan uji terkirim (HTTP '.$result['status'].').' : 'Gagal: '.$result['error']);
     }
 }
