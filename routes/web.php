@@ -24,6 +24,8 @@ use App\Modules\Cms\Http\Controllers\LandingPartnerController;
 use App\Modules\Cms\Http\Controllers\LandingSlideController;
 use App\Modules\Cms\Http\Controllers\LandingTestimonialController;
 use App\Modules\Cms\Http\Controllers\SiteProfileController;
+use App\Modules\Discussion\Http\Controllers\DiscussionController;
+use App\Modules\Discussion\Http\Controllers\PollController;
 use App\Modules\Enrollment\Http\Controllers\LearningController;
 use App\Modules\Identity\Http\Controllers\AccountController;
 use App\Modules\Identity\Http\Controllers\AccountSecurityController;
@@ -327,6 +329,26 @@ Route::middleware('auth')->group(function (): void {
             // Program referral
             Route::get('/referral', [ReferralController::class, 'show'])->middleware('can:referral.view')->name('referral.mine');
             Route::post('/referral/rekening', [ReferralController::class, 'updateAccount'])->middleware(['can:referral.view', 'throttle:10,1,referral-account'])->name('referral.account');
+        });
+
+        // Ruang interaktif kelas (forum, tanya jawab, komentar materi, polling, obrolan) — anggota kelas apa pun perannya.
+        Route::prefix('diskusi/kelas/{class}')->name('discussion.')->middleware('can:discussion.view')->group(function (): void {
+            Route::get('/', [DiscussionController::class, 'index'])->name('index');
+            Route::post('/', [DiscussionController::class, 'store'])->middleware(['can:discussion.post', 'throttle:20,1,discussion-store'])->name('store');
+            Route::post('/materi/{lesson}/komentar', [DiscussionController::class, 'storeComment'])->middleware(['can:discussion.post', 'throttle:20,1,discussion-comment'])->name('comment');
+            Route::get('/utas/{thread}', [DiscussionController::class, 'show'])->name('show');
+            Route::post('/utas/{thread}/balas', [DiscussionController::class, 'reply'])->middleware(['can:discussion.post', 'throttle:30,1,discussion-reply'])->name('reply');
+            Route::post('/utas/{thread}/jawaban/{post}', [DiscussionController::class, 'markAnswer'])->middleware('throttle:30,1,discussion-answer')->name('answer');
+            Route::post('/utas/{thread}/moderasi', [DiscussionController::class, 'moderate'])->middleware(['can:discussion.moderate', 'throttle:60,1,discussion-moderate'])->name('moderate');
+            Route::post('/utas/{thread}/lapor', [DiscussionController::class, 'report'])->middleware(['can:discussion.report', 'throttle:10,1,discussion-report'])->name('report');
+            Route::get('/laporan', [DiscussionController::class, 'reports'])->middleware('can:discussion.moderate')->name('reports');
+            Route::post('/laporan/{report}/selesai', [DiscussionController::class, 'resolveReport'])->middleware('can:discussion.moderate')->name('reports.resolve');
+            Route::get('/obrolan', [DiscussionController::class, 'chat'])->name('chat');
+            Route::get('/polling', [PollController::class, 'index'])->name('polls');
+            Route::post('/polling', [PollController::class, 'store'])->middleware(['can:discussion.moderate', 'throttle:20,1,polls-store'])->name('polls.store');
+            Route::post('/polling/{poll}/suara', [PollController::class, 'vote'])->middleware('throttle:30,1,polls-vote')->name('polls.vote');
+            Route::post('/polling/{poll}/tutup', [PollController::class, 'close'])->middleware('can:discussion.moderate')->name('polls.close');
+            Route::delete('/polling/{poll}', [PollController::class, 'destroy'])->middleware('can:discussion.moderate')->name('polls.destroy');
         });
 
         Route::get('/trainer/kelas', [ClassListController::class, 'trainer'])->middleware('workspace:trainer')->name('trainer.classes');

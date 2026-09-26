@@ -3,6 +3,7 @@
     @foreach (['content' => ['classes.manage', 'Konten'], 'assessments' => ['classes.assessments', 'Asesmen'], 'assignments' => ['classes.assignments', 'Tugas'], 'sessions' => ['classes.sessions', 'Sesi & Presensi'], 'participants' => ['classes.participants', 'Peserta']] as $key => [$routeName, $label])
         <a href="{{ route($routeName, $class) }}" @if ($tab === $key) aria-current="page" @endif>{{ $label }}</a>
     @endforeach
+    <a href="{{ route('discussion.index', $class) }}">Diskusi &amp; Polling</a>
     @if ($canManageSettings)
         <a href="{{ route('admin.classes.edit', $class) }}">Pengaturan</a>
     @endif

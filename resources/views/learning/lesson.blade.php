@@ -65,6 +65,31 @@
         @endif
     </div>
 
+    @if ($enrollment->courseClass->discussion_enabled)
+        <section class="card mt-6 p-6" aria-labelledby="comments-heading">
+            <h2 id="comments-heading" class="font-bold text-slate-800">Komentar materi <span class="text-sm font-normal text-slate-500">({{ $comments->count() }})</span></h2>
+            <x-form-error field="body" />
+            <div class="mt-3 divide-y divide-slate-100">
+                @forelse ($comments as $comment)
+                    <div class="py-3">
+                        <p class="text-xs text-slate-500"><span class="font-bold text-slate-800">{{ $comment->author->name }}</span> · {{ $comment->created_at->timezone(display_tz())->translatedFormat('d M Y H:i') }}</p>
+                        <div class="prose-content mt-1 text-sm">@include('components.safe-html', ['html' => $comment->body_html])</div>
+                        <a href="{{ route('discussion.show', [$enrollment->course_class_id, $comment]) }}" class="mt-1 inline-block text-xs font-bold text-link hover:underline">{{ $comment->posts_count }} balasan · buka</a>
+                    </div>
+                @empty
+                    <p class="py-3 text-sm text-slate-500">Belum ada komentar. Ajukan pertanyaan atau bagikan catatan Anda tentang materi ini.</p>
+                @endforelse
+            </div>
+            @can('discussion.post')
+                <form method="POST" action="{{ route('discussion.comment', [$enrollment->course_class_id, $lesson]) }}" class="mt-4 space-y-2 border-t border-slate-100 pt-4" novalidate>@csrf
+                    <label for="comment-body" class="form-label">Tulis komentar (Markdown)</label>
+                    <textarea id="comment-body" name="body" rows="3" maxlength="5000" required class="form-input"></textarea>
+                    <button class="btn-secondary">Kirim Komentar</button>
+                </form>
+            @endcan
+        </section>
+    @endif
+
     <nav class="mt-5 flex justify-between text-sm font-bold" aria-label="Navigasi lesson">
         @if ($previousId)<a href="{{ route('learning.lesson', [$enrollment, $previousId]) }}" class="text-link hover:underline">&larr; Sebelumnya</a>@else<span></span>@endif
         @if ($nextId)<a href="{{ route('learning.lesson', [$enrollment, $nextId]) }}" class="text-link hover:underline">Berikutnya &rarr;</a>@endif

@@ -76,6 +76,20 @@
                 </ul>
             </section>
 
+            @if ($enrollment->courseClass->discussion_enabled || $enrollment->courseClass->chat_enabled)
+                <section class="card p-5" aria-labelledby="interact-heading">
+                    <h2 id="interact-heading" class="font-bold text-slate-800">Ruang Interaktif</h2>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        @if ($enrollment->courseClass->discussion_enabled)
+                            <a href="{{ route('discussion.index', [$enrollment->course_class_id, 'jenis' => 'discussion']) }}" class="btn-secondary">Forum Diskusi</a>
+                            <a href="{{ route('discussion.index', [$enrollment->course_class_id, 'jenis' => 'question']) }}" class="btn-secondary">Tanya Jawab</a>
+                        @endif
+                        <a href="{{ route('discussion.polls', $enrollment->course_class_id) }}" class="btn-secondary">Polling</a>
+                        @if ($enrollment->courseClass->chat_enabled)<a href="{{ route('discussion.chat', $enrollment->course_class_id) }}" class="btn-secondary">Obrolan Kelas</a>@endif
+                    </div>
+                </section>
+            @endif
+
             <section class="card p-5" aria-labelledby="assign-heading">
                 <h2 id="assign-heading" class="font-bold text-slate-800">Tugas</h2>
                 <ul class="mt-3 space-y-3 text-sm">

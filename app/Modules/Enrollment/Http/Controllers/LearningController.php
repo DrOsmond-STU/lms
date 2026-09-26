@@ -9,6 +9,7 @@ use App\Modules\Assessment\Models\Assignment;
 use App\Modules\Assessment\Models\AssignmentSubmission;
 use App\Modules\Assessment\Models\ExamAttempt;
 use App\Modules\Assessment\Services\AttemptService;
+use App\Modules\Discussion\Models\DiscussionThread;
 use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Enrollment\Services\CompletionEvaluator;
 use App\Modules\Enrollment\Services\EnrollmentService;
@@ -103,11 +104,16 @@ final class LearningController
             $mediaUrl = $media->signedUrl($lesson->media, $user, 'lesson:'.$lesson->id);
         }
 
+        $comments = $enrollment->courseClass->discussion_enabled
+            ? DiscussionThread::query()->with('author:id,name')->withCount('posts')->where('lesson_id', $lesson->id)->where('kind', 'comment')->where('is_hidden', false)->orderByDesc('created_at')->limit(30)->get()
+            : collect();
+
         return view('learning.lesson', [
             'enrollment' => $enrollment->load('program', 'courseClass'),
             'lesson' => $lesson->load('assessment'),
             'progress' => $progress,
             'mediaUrl' => $mediaUrl,
+            'comments' => $comments,
             'previousId' => $index !== false && $index > 0 ? $ordered[$index - 1] : null,
             'nextId' => $index !== false && $index < $ordered->count() - 1 ? $ordered[$index + 1] : null,
         ]);
