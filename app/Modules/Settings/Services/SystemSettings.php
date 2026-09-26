@@ -121,6 +121,16 @@ final class SystemSettings
         'security.session_idle_participant' => ['label' => 'Batas idle sesi peserta (menit)', 'type' => 'int', 'min' => 15, 'max' => 120, 'config' => 'security.session.idle_minutes.participant', 'group' => 'keamanan', 'section' => 'Sesi'],
         'security.password_min_privileged' => ['label' => 'Panjang minimal kata sandi admin/trainer', 'type' => 'int', 'min' => 12, 'max' => 64, 'config' => 'security.password.min_privileged', 'group' => 'keamanan', 'section' => 'Kata sandi'],
         'security.password_min_participant' => ['label' => 'Panjang minimal kata sandi peserta', 'type' => 'int', 'min' => 8, 'max' => 64, 'config' => 'security.password.min_participant', 'group' => 'keamanan', 'section' => 'Kata sandi'],
+        'backup.enabled' => ['label' => 'Backup basis data otomatis setiap hari (01.30)', 'type' => 'bool', 'default' => true, 'group' => 'keamanan', 'section' => 'Backup', 'help' => 'Disimpan di storage/app/backups; unduh & jalankan manual dari Backup (menu Operasional). Enkripsi aktif bila BACKUP_ENCRYPTION_KEY diisi di .env.'],
+        'backup.include_media' => ['label' => 'Sertakan arsip media (video/PDF/tugas) pada backup harian', 'type' => 'bool', 'default' => false, 'group' => 'keamanan', 'section' => 'Backup', 'help' => 'Bisa berukuran besar; pastikan kuota disk hosting mencukupi.'],
+        'backup.keep_days' => ['label' => 'Masa simpan berkas backup (hari)', 'type' => 'int', 'min' => 3, 'max' => 365, 'default' => 14, 'group' => 'keamanan', 'section' => 'Backup'],
+        'monitor.failed_login_threshold' => ['label' => 'Ambang login gagal per IP per jam (dugaan brute force)', 'type' => 'int', 'min' => 3, 'max' => 200, 'default' => 10, 'group' => 'keamanan', 'section' => 'Pemantauan aktivitas mencurigakan'],
+        'monitor.export_threshold' => ['label' => 'Ambang ekspor data per pengguna per 24 jam', 'type' => 'int', 'min' => 3, 'max' => 500, 'default' => 20, 'group' => 'keamanan', 'section' => 'Pemantauan aktivitas mencurigakan'],
+        'retention.notifications_days' => ['label' => 'Simpan notifikasi in-app (hari)', 'type' => 'int', 'min' => 30, 'max' => 730, 'default' => 180, 'group' => 'keamanan', 'section' => 'Retensi data', 'help' => 'Jejak audit dan data sertifikat tidak pernah dipangkas otomatis.'],
+        'retention.sessions_days' => ['label' => 'Simpan riwayat sesi/perangkat (hari)', 'type' => 'int', 'min' => 7, 'max' => 365, 'default' => 90, 'group' => 'keamanan', 'section' => 'Retensi data'],
+        'retention.ai_days' => ['label' => 'Simpan percakapan & log AI (hari)', 'type' => 'int', 'min' => 7, 'max' => 365, 'default' => 90, 'group' => 'keamanan', 'section' => 'Retensi data'],
+        'retention.outbound_days' => ['label' => 'Simpan log pesan push/WhatsApp (hari)', 'type' => 'int', 'min' => 7, 'max' => 365, 'default' => 60, 'group' => 'keamanan', 'section' => 'Retensi data'],
+        'retention.security_events_days' => ['label' => 'Simpan event keamanan (hari)', 'type' => 'int', 'min' => 90, 'max' => 1825, 'default' => 365, 'group' => 'keamanan', 'section' => 'Retensi data'],
 
         // ---- Integrasi (kanal notifikasi eksternal) --------------------------------------------
         'push.enabled' => ['label' => 'Notifikasi push peramban (Web Push) aktif', 'type' => 'bool', 'default' => false, 'group' => 'integrasi', 'section' => 'Web Push', 'help' => 'Perlu kunci VAPID (tombol "Buat kunci VAPID" di bawah). Pengguna mengaktifkannya sendiri di Notifikasi → Preferensi.'],
@@ -233,6 +243,9 @@ final class SystemSettings
         $errors = [];
         foreach (self::forTab($tab) as $key => $definition) {
             $field = self::field($key);
+            if ($definition['type'] !== 'bool' && ! array_key_exists($field, $input)) {
+                continue; // kolom tidak dikirim formulir (mis. formulir lama) → nilai tersimpan dipertahankan
+            }
             $value = match ($definition['type']) {
                 'bool' => (bool) ($input[$field] ?? false),
                 'int' => filter_var($input[$field] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),

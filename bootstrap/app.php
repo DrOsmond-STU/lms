@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Modules/Identity/Console',
         __DIR__.'/../app/Modules/Payment/Console',
         __DIR__.'/../app/Modules/Notification/Console',
+        __DIR__.'/../app/Modules/Security/Console',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestId::class);

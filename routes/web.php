@@ -58,6 +58,7 @@ use App\Modules\Referral\Http\Controllers\ReferralController;
 use App\Modules\Reporting\Http\Controllers\ClassReportController;
 use App\Modules\Reporting\Http\Controllers\GradebookController;
 use App\Modules\Reporting\Http\Controllers\ReportController;
+use App\Modules\Security\Http\Controllers\SecurityOpsController;
 use App\Modules\Settings\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -132,6 +133,9 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/akun/keamanan/sesi/{session}', [AccountController::class, 'revokeSession'])->name('account.sessions.revoke');
         Route::get('/akun/privasi', [AccountController::class, 'privacy'])->name('account.privacy');
         Route::post('/akun/privasi', [AccountController::class, 'updatePrivacy'])->middleware('throttle:10,1,account-privacy-update')->name('account.privacy.update');
+        Route::get('/akun/privasi/ekspor', [AccountController::class, 'exportData'])->middleware('throttle:5,1,account-privacy-export')->name('account.privacy.export');
+        Route::post('/akun/privasi/hapus', [AccountController::class, 'requestDeletion'])->middleware('throttle:5,1,account-privacy-delete')->name('account.privacy.delete');
+        Route::post('/akun/privasi/hapus/{privacyRequest}/batal', [AccountController::class, 'cancelDeletion'])->name('account.privacy.delete.cancel');
 
         // Media & berkas sertifikat — URL bertanda tangan berumur pendek (FR-CNT-004, FR-CERT-006).
         Route::get('/media/{media}', MediaStreamController::class)->middleware('signed')->name('media.stream');
@@ -272,6 +276,16 @@ Route::middleware('auth')->group(function (): void {
 
             Route::get('/persetujuan', [ApprovalRequestController::class, 'index'])->name('second-approvals.index');
             Route::post('/persetujuan/{approval}', [ApprovalRequestController::class, 'decide'])->middleware('reauth')->name('second-approvals.decide');
+
+            Route::controller(SecurityOpsController::class)->prefix('keamanan')->group(function (): void {
+                Route::get('/pemantauan', 'monitor')->middleware('can:security.monitor')->name('security.monitor');
+                Route::post('/pemantauan/pindai', 'scan')->middleware(['can:security.monitor', 'throttle:5,1,security-scan'])->name('security.scan');
+                Route::get('/backup', 'backups')->middleware('can:backup.view')->name('backups.index');
+                Route::post('/backup', 'runBackup')->middleware(['can:backup.run', 'reauth', 'throttle:3,10,backup-run'])->name('backups.run');
+                Route::get('/backup/{backup}/unduh', 'downloadBackup')->middleware(['can:backup.download', 'reauth', 'throttle:10,1,backup-download'])->name('backups.download');
+            });
+            Route::get('/privasi', [SecurityOpsController::class, 'privacyRequests'])->middleware('can:privacy_request.view_any')->name('privacy.index');
+            Route::post('/privasi/{privacyRequest}', [SecurityOpsController::class, 'decidePrivacy'])->middleware(['can:privacy_request.process', 'reauth', 'throttle:20,1,privacy-decide'])->name('privacy.decide');
 
             Route::get('/audit', [AuditLogController::class, 'index'])->middleware('can:audit_log.view')->name('audit.index');
             Route::get('/audit/ekspor', [AuditLogController::class, 'export'])->middleware(['can:audit_log.export', 'throttle:5,1,audit-export'])->name('audit.export');

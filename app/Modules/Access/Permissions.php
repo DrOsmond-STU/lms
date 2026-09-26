@@ -46,6 +46,8 @@ final class Permissions
         'announcement' => ['view', 'manage'],
         'gradebook' => ['view', 'export'],
         'ai' => ['use', 'author'],
+        'security' => ['monitor'],
+        'backup' => ['view', 'run', 'download'],
     ];
 
     /**
@@ -65,7 +67,7 @@ final class Permissions
             'certificate_template.*', 'payment.*', 'coupon.*', 'discussion.view', 'discussion.moderate',
             'gamification.*', 'notification_setting.*', 'report.*', 'cms.*',
             'privacy_request.view_any', 'privacy_request.process', 'api_key.*', 'integration.*',
-            'system_setting.*', 'audit_log.*', 'referral.*', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*',
+            'system_setting.*', 'audit_log.*', 'referral.*', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*', 'security.*', 'backup.*',
         ],
         'academic_admin' => [
             'user.view_any', 'user.view', 'user.create', 'user.update', 'user.deactivate', 'user.assign_role', 'user.export',
@@ -78,7 +80,7 @@ final class Permissions
             'certificate.revoke', 'certificate.reissue', 'certificate.download', 'certificate_template.*',
             'payment.view_any', 'payment.view', 'discussion.view', 'discussion.moderate', 'gamification.*',
             'report.view_platform', 'report.export', 'cms.*', 'referral.view_any',
-            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*',
+            'privacy_request.view_any', 'privacy_request.process', 'audit_log.view', 'calendar.*', 'announcement.*', 'gradebook.*', 'ai.*', 'security.monitor',
         ],
         'finance_admin' => [
             'program.view_any', 'program.view', 'payment.*', 'coupon.*', 'report.view_platform', 'report.export', 'audit_log.view', 'referral.*',

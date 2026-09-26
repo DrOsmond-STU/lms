@@ -21,3 +21,8 @@ Schedule::command('stu:payments-expire')->hourly()->withoutOverlapping()->onOneS
 
 // Pengingat tenggat tugas/sesi, peserta tidak aktif, program baru (kanal sesuai preferensi).
 Schedule::command('stu:reminders')->hourly()->withoutOverlapping()->onOneServer();
+
+// Backup harian, pemindaian keamanan tiap jam, retensi data harian (dini hari).
+Schedule::command('stu:backup')->dailyAt('01:30')->timezone(display_tz())->withoutOverlapping()->onOneServer();
+Schedule::command('stu:security-scan')->hourly()->withoutOverlapping()->onOneServer();
+Schedule::command('stu:retention-prune')->dailyAt('03:30')->timezone(display_tz())->onOneServer();

@@ -10,8 +10,11 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Services\ConsentRecorder;
 use App\Modules\Identity\Services\DeviceSessions;
 use App\Modules\Identity\Services\RegistrationService;
+use App\Modules\Security\Models\PrivacyRequest;
+use App\Modules\Security\Services\PrivacyService;
 use App\Support\Privacy\Mask;
 use App\Support\Security\TokenHasher;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -154,7 +157,39 @@ final class AccountController
             'optional' => self::OPTIONAL_CONSENTS,
             'granted' => self::grantedOptional($user),
             'history' => DB::table('consents')->where('user_id', $user->id)->orderByDesc('accepted_at')->limit(30)->get(),
+            'deleteRequest' => PrivacyRequest::query()->where('user_id', $user->id)->where('kind', 'delete')->orderByDesc('created_at')->first(),
+            'canRequestDeletion' => $user->hasPermission('privacy_request.create'),
         ]);
+    }
+
+    /** Salinan data pribadi (JSON) — hak akses subjek data. */
+    public function exportData(Request $request, PrivacyService $privacy): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_unless($user->hasPermission('privacy_request.create'), 403);
+
+        return response()->json($privacy->export($user->load('roles')), 200, ['Content-Disposition' => 'attachment; filename="data-saya-'.now()->format('Ymd').'.json"', 'Cache-Control' => 'private, no-store'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    public function requestDeletion(Request $request, PrivacyService $privacy): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_unless($user->hasPermission('privacy_request.create'), 403);
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:500'], 'confirm' => ['accepted']]);
+        $privacy->requestDeletion($user, $data['note'] ?? null);
+
+        return back()->with('status', 'Permintaan penghapusan akun tercatat dan akan ditinjau admin.');
+    }
+
+    public function cancelDeletion(Request $request, PrivacyRequest $privacyRequest, PrivacyService $privacy): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $privacy->cancelRequest($user, $privacyRequest);
+
+        return back()->with('status', 'Permintaan penghapusan dibatalkan.');
     }
 
     public function updatePrivacy(Request $request): RedirectResponse

@@ -67,11 +67,14 @@ return [
         ['group' => 'Operasional', 'items' => [
             ['label' => 'Pembayaran', 'icon' => 'card', 'route' => 'admin.payments.index', 'permission' => 'payment.view_any'],
             ['label' => 'Basis Data Sertifikat', 'icon' => 'doc', 'route' => 'admin.certificates.index', 'permission' => 'certificate.view_any'],
+            ['label' => 'Permintaan Privasi', 'icon' => 'shield', 'route' => 'admin.privacy.index', 'permission' => 'privacy_request.view_any'],
         ]],
         ['group' => 'Laporan', 'items' => [
             ['label' => 'Per Organisasi', 'icon' => 'building', 'route' => 'admin.reports.organizations', 'permission' => 'report.view_platform'],
             ['label' => 'Referral', 'icon' => 'star', 'route' => 'admin.reports.referral', 'permission' => 'referral.view_any'],
             ['label' => 'Jejak Audit', 'icon' => 'history', 'route' => 'admin.audit.index', 'permission' => 'audit_log.view'],
+            ['label' => 'Pemantauan Keamanan', 'icon' => 'lock', 'route' => 'admin.security.monitor', 'permission' => 'security.monitor'],
+            ['label' => 'Backup', 'icon' => 'download', 'route' => 'admin.backups.index', 'permission' => 'backup.view'],
         ]],
         ['group' => 'Pengaturan', 'items' => [
             ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => 'admin.settings.edit', 'permission' => ['system_setting.view', 'cms.view'], 'active' => ['admin.settings.*', 'admin.landing.*']],
