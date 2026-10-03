@@ -162,7 +162,7 @@ final class ClassReportService
             ->selectRaw('questions.id, questions.stem_html, count(*) as answers, count(*) filter (where attempt_answers.is_correct) as correct')
             ->havingRaw('count(*) >= 3')->orderByRaw('count(*) filter (where attempt_answers.is_correct)::float / count(*) asc')->limit(5)->get();
 
-        return array_values($rows->map(fn ($r) => ['id' => (string) $r->id, 'stem' => trim(strip_tags((string) $r->stem_html)), 'answers' => (int) $r->answers, 'correct_rate' => round((int) $r->correct * 100 / max(1, (int) $r->answers), 1)])->all());
+        return array_values($rows->map(fn ($r) => ['id' => (string) $r->id, 'stem' => trim(html_entity_decode(strip_tags((string) $r->stem_html), ENT_QUOTES | ENT_HTML5, 'UTF-8')), 'answers' => (int) $r->answers, 'correct_rate' => round((int) $r->correct * 100 / max(1, (int) $r->answers), 1)])->all());
     }
 
     public static function duration(int $seconds): string
