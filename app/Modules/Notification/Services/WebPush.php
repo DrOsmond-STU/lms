@@ -6,6 +6,7 @@ namespace App\Modules\Notification\Services;
 
 use App\Modules\Cms\Models\SiteProfile;
 use App\Modules\Notification\Models\PushSubscription;
+use App\Support\Security\OutboundUrl;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -17,6 +18,15 @@ use RuntimeException;
 final class WebPush
 {
     private const CURVE_SPKI_PREFIX = '3059301306072a8648ce3d020106082a8648ce3d030107034200';
+
+    /** Layanan push peramban yang dikenal (selalu diizinkan tanpa resolusi DNS). */
+    public const KNOWN_PUSH_HOSTS = ['fcm.googleapis.com', 'android.googleapis.com', 'updates.push.services.mozilla.com', 'notify.windows.com', 'web.push.apple.com', 'push.apple.com'];
+
+    /** Endpoint langganan wajib https publik (anti-SSRF; RFC 8030 §... layanan push selalu publik). */
+    public static function endpointAllowed(string $endpoint): bool
+    {
+        return OutboundUrl::isPublicHttps($endpoint, self::KNOWN_PUSH_HOSTS);
+    }
 
     public static function configured(): bool
     {
@@ -56,12 +66,15 @@ final class WebPush
     public function send(PushSubscription $subscription, array $payload, int $ttl = 86400): array
     {
         $endpoint = $subscription->endpoint;
+        if (! self::endpointAllowed($endpoint)) {
+            return ['ok' => false, 'status' => 0, 'gone' => true, 'error' => 'Endpoint push ditolak (bukan layanan push publik).'];
+        }
         $origin = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
         $body = self::encrypt((string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $subscription->p256dh, $subscription->auth);
         $jwt = self::vapidToken($origin);
 
         try {
-            $response = Http::timeout(10)->withHeaders([
+            $response = Http::withoutRedirecting()->timeout(10)->withHeaders([
                 'Authorization' => 'vapid t='.$jwt.', k='.self::publicKey(),
                 'Content-Type' => 'application/octet-stream',
                 'Content-Encoding' => 'aes128gcm',

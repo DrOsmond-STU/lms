@@ -9,9 +9,11 @@ use App\Modules\Audit\Services\SecurityEventLogger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Services\DeviceSessions;
 use App\Modules\Identity\Services\OneTimeTokens;
+use App\Modules\Notification\Mail\PlainNotificationMail;
 use App\Modules\Notification\Services\Notifier;
 use App\Modules\Security\Models\PrivacyRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -79,7 +81,8 @@ final class PrivacyService
         if ($user->isPlatformStaff()) {
             throw ValidationException::withMessages(['decision_note' => 'Akun staf platform tidak dapat dianonimkan lewat permintaan privasi; cabut perannya terlebih dahulu.']);
         }
-        $this->notifier->send($user, 'security', 'Akun Anda dihapus', 'Sesuai permintaan Anda, data pribadi telah dianonimkan. Sertifikat yang pernah terbit tetap dapat diverifikasi.', null, email: true);
+        $email = $user->email;
+        $name = $user->name;
         DB::transaction(function () use ($actor, $request, $user, $note): void {
             $anonymousEmail = 'deleted-'.substr(hash('sha256', $user->id), 0, 16).'@anonymized.invalid';
             $user->forceFill([
@@ -94,12 +97,26 @@ final class PrivacyService
             DB::table('ai_conversations')->where('user_id', $user->id)->delete();
             DB::table('notifications')->where('user_id', $user->id)->delete();
             DB::table('participant_profiles')->where('user_id', $user->id)->delete();
+            DB::table('user_sessions')->where('user_id', $user->id)->delete();
+            DB::table('outbound_messages')->where('user_id', $user->id)->delete();
+            DB::table('ai_usages')->where('user_id', $user->id)->delete();
+            DB::table('notification_reminders')->where('user_id', $user->id)->delete();
+            DB::table('privacy_requests')->where('user_id', $user->id)->update(['note' => null]);
+            // Konten buatan pengguna disamarkan; rekam nilai/kelulusan & sertifikat tetap (kewajiban penyelenggara).
+            $redacted = '[dihapus atas permintaan pengguna]';
+            DB::table('assignment_submissions')->where('user_id', $user->id)->update(['text_answer' => null]);
+            DB::table('attempt_answers')->whereIn('exam_attempt_id', DB::table('exam_attempts')->where('user_id', $user->id)->select('id'))->whereNotNull('text_answer')->update(['text_answer' => $redacted]);
+            DB::table('discussion_threads')->where('author_id', $user->id)->update(['body' => $redacted, 'body_html' => '<p>'.$redacted.'</p>']);
+            DB::table('discussion_posts')->where('author_id', $user->id)->update(['body' => $redacted, 'body_html' => '<p>'.$redacted.'</p>']);
+            DB::table('class_messages')->where('user_id', $user->id)->update(['body' => $redacted, 'is_hidden' => true]);
             $request->forceFill(['status' => 'processed', 'decision_note' => $note, 'processed_by' => $actor->id, 'processed_at' => now()])->save();
             $this->audit->record('privacy.anonymized', $actor, 'user', $user->id, null, $note);
         });
         $this->tokens->revokeAll($user);
         $this->devices->revokeOthers($user, null, 'account_anonymized');
         $this->events->log('account_anonymized', 'info', $user->id, ['by' => $actor->id]);
+        // Pemberitahuan ke alamat lama hanya setelah transaksi berhasil (data benar-benar dianonimkan).
+        Mail::to($email)->queue(new PlainNotificationMail('Akun Anda dihapus', 'Halo '.$name.', sesuai permintaan Anda data pribadi telah dianonimkan. Sertifikat yang pernah terbit tetap dapat diverifikasi.', null));
     }
 
     public function reject(User $actor, PrivacyRequest $request, string $note): void

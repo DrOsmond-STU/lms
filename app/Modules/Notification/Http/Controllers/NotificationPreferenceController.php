@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /** Preferensi kanal notifikasi & langganan push milik pengguna sendiri. */
@@ -68,8 +69,14 @@ final class NotificationPreferenceController
             'keys.p256dh' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9_-]+$/'],
             'keys.auth' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9_-]+$/'],
         ]);
+        if (! WebPush::endpointAllowed($data['endpoint'])) {
+            throw ValidationException::withMessages(['endpoint' => 'Endpoint push harus layanan push publik (https).']);
+        }
         $hash = hash('sha256', $data['endpoint']);
-        PushSubscription::query()->where('endpoint_hash', $hash)->delete();
+        if (PushSubscription::query()->where('endpoint_hash', $hash)->where('user_id', '<>', $user->id)->exists()) {
+            abort(409, 'Endpoint sudah terdaftar pada akun lain.');
+        }
+        PushSubscription::query()->where('endpoint_hash', $hash)->where('user_id', $user->id)->delete();
         $subscription = new PushSubscription;
         $subscription->forceFill([
             'user_id' => $user->id, 'endpoint' => $data['endpoint'], 'endpoint_hash' => $hash,

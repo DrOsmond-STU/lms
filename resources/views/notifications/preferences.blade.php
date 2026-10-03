@@ -23,8 +23,10 @@
                     @endforeach
                 </div>
             </section>
-            <div class="flex flex-wrap gap-2"><button class="btn-primary w-auto">Simpan Preferensi</button><button formaction="{{ route('notifications.preferences.test') }}" formmethod="POST" class="btn-secondary w-auto">Kirim pesan uji</button></div>
+            <div class="flex flex-wrap gap-2"><button class="btn-primary w-auto">Simpan Preferensi</button><button type="submit" form="notif-test" class="btn-secondary w-auto">Kirim pesan uji</button></div>
         </form>
+        {{-- Form terpisah: tombol uji di atas memakai atribut form= agar tidak membawa _method=PUT dari form preferensi. --}}
+        <form id="notif-test" method="POST" action="{{ route('notifications.preferences.test') }}" class="hidden">@csrf</form>
 
         <section class="card p-6" aria-labelledby="push-heading">
             <h2 id="push-heading" class="card-title">Perangkat Push</h2>

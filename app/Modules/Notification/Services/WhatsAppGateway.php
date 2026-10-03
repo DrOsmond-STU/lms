@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Services;
 
+use App\Support\Security\OutboundUrl;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -20,12 +21,16 @@ final class WhatsAppGateway
     /** @return array{ok: bool, status: int, error: string|null} */
     public function send(string $phoneE164, string $message): array
     {
+        $endpoint = (string) setting('whatsapp.endpoint');
+        if (! OutboundUrl::isPublicHttps($endpoint)) {
+            return ['ok' => false, 'status' => 0, 'error' => 'Endpoint gateway harus https publik (bukan alamat privat/loopback).'];
+        }
         $to = ltrim($phoneE164, '+');
         $fields = array_filter(['to' => $to, 'message' => $message, 'sender' => (string) setting('whatsapp.sender')], fn ($v) => $v !== '');
-        $request = Http::timeout(15)->withToken((string) setting('whatsapp.token'))->acceptJson();
+        $request = Http::withoutRedirecting()->timeout(15)->withToken((string) setting('whatsapp.token'))->acceptJson();
 
         try {
-            $response = setting('whatsapp.payload') === 'form' ? $request->asForm()->post((string) setting('whatsapp.endpoint'), $fields) : $request->post((string) setting('whatsapp.endpoint'), $fields);
+            $response = setting('whatsapp.payload') === 'form' ? $request->asForm()->post($endpoint, $fields) : $request->post($endpoint, $fields);
         } catch (\Throwable $e) {
             return ['ok' => false, 'status' => 0, 'error' => $e->getMessage()];
         }

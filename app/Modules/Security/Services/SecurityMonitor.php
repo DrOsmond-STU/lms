@@ -45,10 +45,11 @@ final class SecurityMonitor
 
         // 2. Akun yang ditarget (banyak kegagalan pada satu akun).
         DB::table('security_events')->where('type', 'authn_login_fail')->where('occurred_at', '>=', now()->subHour())->whereNotNull('user_id')
-            ->selectRaw('user_id, count(*) as total, count(distinct ip) as ips')->groupBy('user_id')->havingRaw('count(*) >= ?', [max(3, intdiv($loginThreshold, 2))])->get()
+            ->selectRaw('user_id, count(*) as total, count(distinct ip) as ips')->groupBy('user_id')->havingRaw('count(*) >= ?', [max(5, intdiv($loginThreshold, 2))])->get()
             ->each(function (object $row) use (&$created): void {
                 $userId = (string) $row->user_id;
-                if ($this->alreadyAlerted('account_targeted', 'user_id', $userId)) {
+                // Email ke pemilik akun maksimal sekali per 24 jam agar tidak bisa dipakai menyepam korban.
+                if ($this->alreadyAlerted('account_targeted', 'user_id', $userId, 24)) {
                     return;
                 }
                 $this->events->log('account_targeted', 'warning', $userId, ['failed_logins_1h' => (int) $row->total, 'distinct_ips' => (int) $row->ips]);
@@ -59,9 +60,9 @@ final class SecurityMonitor
                 $created['account_targeted']++;
             });
 
-        // 3. Sesi dari ≥3 IP berbeda dalam 1 jam (indikasi berbagi akun/pembajakan).
+        // 3. Sesi dari ≥4 IP berbeda dalam 1 jam (indikasi berbagi akun/pembajakan; 2–3 IP wajar untuk ponsel+laptop+VPN).
         DB::table('user_sessions')->where('created_at', '>=', now()->subHour())->whereNull('revoked_at')
-            ->selectRaw('user_id, count(distinct ip) as ips')->groupBy('user_id')->havingRaw('count(distinct ip) >= 3')->get()
+            ->selectRaw('user_id, count(distinct ip) as ips')->groupBy('user_id')->havingRaw('count(distinct ip) >= 4')->get()
             ->each(function (object $row) use (&$created): void {
                 $userId = (string) $row->user_id;
                 if ($this->alreadyAlerted('session_anomaly', 'user_id', $userId)) {

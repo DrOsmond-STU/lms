@@ -42,7 +42,7 @@ final class TableExport
                     return;
                 }
                 fwrite($out, "\xEF\xBB\xBF");
-                fputcsv($out, $header, ';');
+                fputcsv($out, array_map(fn (string $h): string => self::neutralize($h), $header), ';');
                 foreach ($rows as $row) {
                     fputcsv($out, array_map(fn (mixed $v): string => self::neutralize(self::text($v)), $row), ';');
                 }

@@ -177,6 +177,9 @@ final class DiscussionController
         $this->member($request, $class);
         abort_unless($thread->course_class_id === $class->id && $user->hasPermission('discussion.report'), 404);
         $data = $request->validate(['post_id' => ['nullable', 'uuid'], 'reason' => ['required', 'string', 'min:5', 'max:500']]);
+        if (! empty($data['post_id']) && ! DiscussionPost::query()->where('thread_id', $thread->id)->whereKey($data['post_id'])->exists()) {
+            throw ValidationException::withMessages(['reason' => 'Balasan yang dilaporkan tidak ditemukan pada utas ini.']);
+        }
         $exists = DB::table('discussion_reports')->where('thread_id', $thread->id)->where('reporter_id', $user->id)->where('status', 'open')
             ->where('post_id', $data['post_id'] ?? null)->exists();
         if (! $exists) {

@@ -51,12 +51,16 @@ final class BackupService
     public function database(?User $actor = null): Backup
     {
         $backup = $this->start('db', 'db-'.now()->format('Ymd-His'), $actor);
+        $plain = self::directory().'/'.$backup->filename.'.tmp';
         try {
-            $plain = self::directory().'/'.$backup->filename.'.tmp';
             $method = $this->pgDump($plain) ? 'pg_dump' : $this->phpDump($plain);
             $this->finish($backup, $plain, $method);
         } catch (\Throwable $e) {
             $backup->forceFill(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 500), 'finished_at' => now()])->save();
+        } finally {
+            if (is_file($plain)) {
+                unlink($plain); // berkas mentah tak terenkripsi tidak boleh tertinggal
+            }
         }
         $this->audit->record('backup.database', $actor, 'backup', $backup->id, ['status' => $backup->status, 'method' => $backup->method]);
 
@@ -66,8 +70,8 @@ final class BackupService
     public function media(?User $actor = null): Backup
     {
         $backup = $this->start('media', 'media-'.now()->format('Ymd-His'), $actor);
+        $plain = self::directory().'/'.$backup->filename.'.tmp';
         try {
-            $plain = self::directory().'/'.$backup->filename.'.tmp';
             $source = storage_path('app/private');
             $tar = (new ExecutableFinder)->find('tar');
             if ($tar !== null && is_dir($source)) {
@@ -84,6 +88,10 @@ final class BackupService
             $this->finish($backup, $plain, $method);
         } catch (\Throwable $e) {
             $backup->forceFill(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 500), 'finished_at' => now()])->save();
+        } finally {
+            if (is_file($plain)) {
+                unlink($plain);
+            }
         }
         $this->audit->record('backup.media', $actor, 'backup', $backup->id, ['status' => $backup->status]);
 
@@ -166,27 +174,38 @@ final class BackupService
         $connection->statement("select set_config('app.is_platform_staff', 'on', false)");
         $tables = $connection->select("select tablename from pg_tables where schemaname = 'public' order by tablename");
         $manifest = ['generated_at' => now()->toIso8601String(), 'database' => $connection->getDatabaseName(), 'tables' => []];
-        foreach ($tables as $row) {
-            $table = (string) $row->tablename;
-            $tmp = tempnam(sys_get_temp_dir(), 'bk');
-            if ($tmp === false) {
-                throw new RuntimeException('Tidak dapat membuat berkas sementara.');
+        $temporary = [];
+        try {
+            foreach ($tables as $row) {
+                $table = (string) $row->tablename;
+                $tmp = tempnam(self::directory(), 'bk'); // di direktori backup (0700), bukan /tmp bersama
+                if ($tmp === false) {
+                    throw new RuntimeException('Tidak dapat membuat berkas sementara.');
+                }
+                $temporary[] = $tmp;
+                chmod($tmp, 0600);
+                $handle = fopen($tmp, 'w');
+                if ($handle === false) {
+                    throw new RuntimeException('Tidak dapat menulis berkas sementara.');
+                }
+                $count = 0;
+                foreach ($connection->table($table)->lazy(1000) as $record) {
+                    fwrite($handle, json_encode($record, JSON_UNESCAPED_UNICODE)."\n");
+                    $count++;
+                }
+                fclose($handle);
+                $zip->addFile($tmp, 'tables/'.$table.'.jsonl');
+                $manifest['tables'][$table] = $count;
             }
-            $handle = fopen($tmp, 'w');
-            if ($handle === false) {
-                throw new RuntimeException('Tidak dapat menulis berkas sementara.');
+            $zip->addFromString('manifest.json', (string) json_encode($manifest, JSON_PRETTY_PRINT));
+            $zip->close();
+        } finally {
+            foreach ($temporary as $tmp) {
+                if (is_file($tmp)) {
+                    unlink($tmp);
+                }
             }
-            $count = 0;
-            foreach ($connection->table($table)->lazy(1000) as $record) {
-                fwrite($handle, json_encode($record, JSON_UNESCAPED_UNICODE)."\n");
-                $count++;
-            }
-            fclose($handle);
-            $zip->addFile($tmp, 'tables/'.$table.'.jsonl');
-            $manifest['tables'][$table] = $count;
         }
-        $zip->addFromString('manifest.json', (string) json_encode($manifest, JSON_PRETTY_PRINT));
-        $zip->close();
 
         return 'php-jsonl';
     }

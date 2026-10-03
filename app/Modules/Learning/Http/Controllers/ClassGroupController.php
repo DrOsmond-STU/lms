@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
@@ -51,6 +52,9 @@ final class ClassGroupController
             'description' => ['nullable', 'string', 'max:300'],
             'mentor_id' => ['nullable', 'uuid', Rule::exists('users', 'id')],
         ]);
+        if (! empty($data['mentor_id']) && ! $this->mentorAllowed($class, $data['mentor_id'])) {
+            throw ValidationException::withMessages(['mentor_id' => 'Mentor harus trainer kelas ini atau peserta yang terdaftar.']);
+        }
         $group = new ClassGroup;
         $group->forceFill(['course_class_id' => $class->id, 'name' => trim($data['name']), 'description' => $data['description'] ?? null, 'mentor_id' => $data['mentor_id'] ?? null])->save();
         $this->audit->record('class_group.created', $user, 'course_class', $class->id, ['group_id' => $group->id, 'name' => $group->name]);
@@ -89,6 +93,13 @@ final class ClassGroupController
         $this->audit->record('class_group.assigned', $user, 'course_class', $class->id, ['changed' => $changed]);
 
         return back()->with('status', 'Pembagian kelompok disimpan ('.$changed.' perubahan).');
+    }
+
+    /** Mentor hanya boleh trainer pengampu atau peserta aktif kelas ini (cegah enumerasi pengguna lintas tenant). */
+    private function mentorAllowed(CourseClass $class, string $userId): bool
+    {
+        return DB::table('class_trainers')->where('course_class_id', $class->id)->where('user_id', $userId)->exists()
+            || Enrollment::query()->where('course_class_id', $class->id)->where('user_id', $userId)->whereIn('status', ['enrolled', 'in_progress', 'pending_approval', 'passed'])->exists();
     }
 
     private function authorize(Request $request, CourseClass $class, bool $edit = false): User

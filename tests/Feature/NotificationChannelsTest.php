@@ -48,7 +48,8 @@ it('encrypts web push payloads that the recipient can decrypt and signs valid VA
 });
 
 it('routes notifications by preference to email, push and whatsapp and stores secrets encrypted', function () {
-    Http::fake(['https://push.example.test/*' => Http::sequence()->push('', 201)->push('', 410), 'https://wa.example.test/*' => Http::response(['ok' => true], 200)]);
+    config(['security.outbound_allow_hosts' => ['wa.example.test']]);
+    Http::fake(['https://fcm.googleapis.com/*' => Http::sequence()->push('', 201)->push('', 410), 'https://wa.example.test/*' => Http::response(['ok' => true], 200)]);
     $admin = signIn(RoleCode::SuperAdmin);
     confirmAccess();
     $this->post(route('admin.settings.vapid'))->assertRedirect();
@@ -82,7 +83,8 @@ it('routes notifications by preference to email, push and whatsapp and stores se
     $recipient = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
     $details = openssl_pkey_get_details($recipient);
     $p256dh = WebPush::b64("\x04".str_pad($details['ec']['x'], 32, "\0", STR_PAD_LEFT).str_pad($details['ec']['y'], 32, "\0", STR_PAD_LEFT));
-    $this->postJson(route('notifications.push.subscribe'), ['endpoint' => 'https://push.example.test/sub/abc', 'keys' => ['p256dh' => $p256dh, 'auth' => WebPush::b64(random_bytes(16))]])->assertOk();
+    $this->postJson(route('notifications.push.subscribe'), ['endpoint' => 'https://fcm.googleapis.com/fcm/send/abc', 'keys' => ['p256dh' => $p256dh, 'auth' => WebPush::b64(random_bytes(16))]])->assertOk();
+    $this->postJson(route('notifications.push.subscribe'), ['endpoint' => 'https://10.0.0.5/internal', 'keys' => ['p256dh' => $p256dh, 'auth' => WebPush::b64(random_bytes(16))]])->assertStatus(422);
     $this->postJson(route('notifications.push.subscribe'), ['endpoint' => 'http://insecure.example.test/x', 'keys' => ['p256dh' => $p256dh, 'auth' => 'abc']])->assertStatus(422);
     $this->put(route('notifications.preferences.update'), ['email_enabled' => '1', 'push_enabled' => '1', 'whatsapp_enabled' => '1', 'muted' => ['referral', 'security']])->assertSessionHasNoErrors();
     $preference = asSystem(fn () => NotificationPreference::for($participant->fresh()));
@@ -91,7 +93,7 @@ it('routes notifications by preference to email, push and whatsapp and stores se
     asSystem(fn () => app(Notifier::class)->send($participant->fresh(), 'grading', 'Nilai terbit', 'Skor Anda 90.', '/peserta/nilai'));
     asSystem(fn () => app(Notifier::class)->send($participant->fresh(), 'referral', 'Komisi', 'Dibisukan.', '/peserta/referral'));
     Http::assertSentCount(2);
-    Http::assertSent(fn ($request) => str_starts_with($request->url(), 'https://push.example.test/') && str_starts_with((string) $request->header('Authorization')[0], 'vapid t=') && $request->hasHeader('Content-Encoding', 'aes128gcm'));
+    Http::assertSent(fn ($request) => str_starts_with($request->url(), 'https://fcm.googleapis.com/') && str_starts_with((string) $request->header('Authorization')[0], 'vapid t=') && $request->hasHeader('Content-Encoding', 'aes128gcm'));
     Http::assertSent(fn ($request) => $request->url() === 'https://wa.example.test/send' && $request['to'] === '628123456789' && str_contains((string) $request['message'], 'Nilai terbit') && $request->hasHeader('Authorization', 'Bearer rahasia-gateway'));
     expect(asSystem(fn () => DB::table('outbound_messages')->where('status', 'sent')->count()))->toBe(2);
     expect(asSystem(fn () => PushSubscription::query()->where('user_id', $participant->id)->value('last_used_at')))->not->toBeNull();

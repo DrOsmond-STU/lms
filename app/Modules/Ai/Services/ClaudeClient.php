@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Ai\Services;
 
 use App\Modules\Identity\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -58,10 +59,17 @@ final class ClaudeClient
         if (! self::configured()) {
             throw new AiUnavailableException('Asisten AI belum diaktifkan admin.');
         }
-        if (self::remainingToday($user) <= 0) {
-            throw new AiUnavailableException('Kuota asisten AI harian Anda habis. Coba lagi besok.');
-        }
         $model = self::model();
+        // Kuota dipesan atomik (kunci per pengguna) sebelum memanggil API agar permintaan paralel tidak melampaui batas.
+        $usageId = Cache::lock('ai-quota:'.$user->id, 10)->block(5, function () use ($user, $feature, $model): string {
+            if (self::remainingToday($user) <= 0) {
+                throw new AiUnavailableException('Kuota asisten AI harian Anda habis. Coba lagi besok.');
+            }
+            $id = (string) Str::uuid7();
+            DB::table('ai_usages')->insert(['id' => $id, 'user_id' => $user->id, 'feature' => $feature, 'model' => $model, 'status' => 'error', 'error' => 'pending', 'created_at' => now()]);
+
+            return $id;
+        });
         $started = hrtime(true);
         try {
             $response = Http::timeout(90)->withHeaders([
@@ -72,12 +80,12 @@ final class ClaudeClient
                 'system' => $system, 'messages' => $messages,
             ]);
         } catch (\Throwable $e) {
-            $this->log($user, $feature, $model, 0, 0, $started, 'error', $e->getMessage());
+            $this->log($usageId, 0, 0, $started, 'error', $e->getMessage());
             throw new AiUnavailableException('Asisten AI tidak dapat dihubungi. Coba lagi nanti.');
         }
         if (! $response->successful()) {
             $error = (string) ($response->json('error.message') ?? ('HTTP '.$response->status()));
-            $this->log($user, $feature, $model, 0, 0, $started, 'error', $error);
+            $this->log($usageId, 0, 0, $started, 'error', $error);
             throw new AiUnavailableException('Asisten AI menolak permintaan ('.Str::limit($error, 120).').');
         }
         $content = $response->json('content');
@@ -88,7 +96,7 @@ final class ClaudeClient
             }
         }
         $text = implode("\n", $texts);
-        $this->log($user, $feature, $model, (int) $response->json('usage.input_tokens', 0), (int) $response->json('usage.output_tokens', 0), $started, 'ok', null);
+        $this->log($usageId, (int) $response->json('usage.input_tokens', 0), (int) $response->json('usage.output_tokens', 0), $started, 'ok', null);
 
         return trim($text);
     }
@@ -116,12 +124,11 @@ final class ClaudeClient
         return $decoded;
     }
 
-    private function log(User $user, string $feature, string $model, int $in, int $out, int $started, string $status, ?string $error): void
+    private function log(string $usageId, int $in, int $out, int $started, string $status, ?string $error): void
     {
-        DB::table('ai_usages')->insert([
-            'id' => (string) Str::uuid7(), 'user_id' => $user->id, 'feature' => $feature, 'model' => $model,
+        DB::table('ai_usages')->where('id', $usageId)->update([
             'input_tokens' => $in, 'output_tokens' => $out, 'duration_ms' => (int) ((hrtime(true) - $started) / 1_000_000),
-            'status' => $status, 'error' => $error !== null ? mb_substr($error, 0, 300) : null, 'created_at' => now(),
+            'status' => $status, 'error' => $error !== null ? mb_substr($error, 0, 300) : null,
         ]);
     }
 }

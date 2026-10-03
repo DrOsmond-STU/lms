@@ -105,7 +105,8 @@ it('lets participants export their data and request deletion which admins anonym
     $fresh = asSystem(fn () => User::query()->findOrFail($participant->id));
     expect($fresh->status)->toBe('anonymized')->and($fresh->name)->toBe('Pengguna Dihapus')->and($fresh->email)->toEndWith('@anonymized.invalid')
         ->and(asSystem(fn () => DB::table('role_user')->where('user_id', $participant->id)->count()))->toBe(0)
-        ->and(asSystem(fn () => DB::table('enrollments')->where('user_id', $participant->id)->count()))->toBe(1);
+        ->and(asSystem(fn () => DB::table('enrollments')->where('user_id', $participant->id)->count()))->toBe(1)
+        ->and(asSystem(fn () => DB::table('user_sessions')->where('user_id', $participant->id)->count()))->toBe(0);
     expect(asSystem(fn () => $request->fresh()->status))->toBe('processed');
     $this->post('/keluar');
     nextRequest();

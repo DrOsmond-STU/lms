@@ -32,7 +32,8 @@ final class AiController
         $user = $this->participant($request, $enrollment);
         abort_unless($lesson->courseClassId() === $enrollment->course_class_id, 404);
 
-        return $this->attempt(fn () => $this->ai->summarize($user, $lesson, $request->boolean('ulang')), 'Rangkuman AI dibuat.');
+        // Pembuatan ulang rangkuman bersama hanya oleh trainer/admin (peserta cukup memakai cache).
+        return $this->attempt(fn () => $this->ai->summarize($user, $lesson, $request->boolean('ulang') && $user->hasPermission('ai.author')), 'Rangkuman AI dibuat.');
     }
 
     public function recommend(Request $request, Enrollment $enrollment): RedirectResponse

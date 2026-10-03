@@ -72,6 +72,10 @@ return [
     // Proxy tepercaya (rentang IP CDN/LB), dipisah koma. Kosong = tidak ada proxy; jangan '*'.
     'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
 
+    // Host tambahan yang diizinkan untuk permintaan keluar (push/WhatsApp) tanpa pemeriksaan IP publik,
+    // dipisah koma — mis. gateway WhatsApp internal. Kosong = hanya host publik.
+    'outbound_allow_hosts' => array_values(array_filter(array_map('trim', explode(',', (string) env('OUTBOUND_ALLOW_HOSTS', ''))))),
+
     // Kunci enkripsi berkas backup (base64 dari 32 byte acak; kosong = backup tidak dienkripsi).
     // Bangkitkan: php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
     'backup_encryption_key' => env('BACKUP_ENCRYPTION_KEY'),

@@ -38,9 +38,6 @@
                 @endforeach
             </fieldset>
         @endforeach
-        @if ($tab === 'integrasi')
-            @include('settings._integrasi')
-        @endif
         @if ($canUpdate)
             <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" class="btn-primary w-auto">Simpan {{ $tabLabel }}</button>
@@ -50,4 +47,7 @@
             <p class="card p-4 text-sm text-slate-600">Anda hanya dapat melihat pengaturan ini.</p>
         @endif
     </form>
+    @if ($tab === 'integrasi')
+        @include('settings._integrasi')
+    @endif
 </x-layouts.app>
