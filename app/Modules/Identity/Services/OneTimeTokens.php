@@ -53,13 +53,16 @@ final class OneTimeTokens
             ->latest('created_at')
             ->first();
 
-        if ($token === null || ! $token->isUsable() || $token->attempts >= $maxAttempts) {
+        if ($token === null || ! $token->isUsable()) {
+            return null;
+        }
+
+        // Cadangkan satu percobaan secara atomik (UPDATE bersyarat) agar permintaan paralel tidak melampaui batas.
+        if (OneTimeToken::query()->whereKey($token->id)->where('attempts', '<', $maxAttempts)->increment('attempts') === 0) {
             return null;
         }
 
         if (preg_match('/^\d{6}$/', $code) !== 1 || ! hash_equals($token->token_hash, self::otpHash($token->id, $code))) {
-            OneTimeToken::query()->whereKey($token->id)->increment('attempts');
-
             return null;
         }
 

@@ -24,7 +24,8 @@ trait ServesPaymentFiles
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ], true, null, false, true);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, 'bukti-'.$transaction->order_id.'.'.pathinfo($asset->storage_key, PATHINFO_EXTENSION), 'bukti');
+        // Gambar aman ditampilkan inline; PDF unggahan pengguna diperlakukan sebagai lampiran (pertahanan berlapis).
+        $response->setContentDisposition($asset->mime_type === 'application/pdf' ? ResponseHeaderBag::DISPOSITION_ATTACHMENT : ResponseHeaderBag::DISPOSITION_INLINE, 'bukti-'.$transaction->order_id.'.'.pathinfo($asset->storage_key, PATHINFO_EXTENSION), 'bukti');
 
         return $response;
     }

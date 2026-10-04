@@ -58,3 +58,15 @@ it('builds a valid minimal xlsx workbook', function () {
     unlink($path);
     expect($sheet)->toContain('&apos;=Rumus')->toContain('<v>90.5</v>')->toContain('r="B3"');
 });
+
+it('cannot be broken out of a csv cell with a backslash before a quote', function () {
+    $response = TableExport::download('csv', 'uji', 'Uji', ['Nama'], [['\\";=HYPERLINK("https://evil.example";"Klik")'], ['=1+1'], ["\t+2"]]);
+    ob_start();
+    $response->sendContent();
+    $csv = (string) ob_get_clean();
+
+    $lines = array_values(array_filter(explode("\n", $csv)));
+    expect($lines[1])->toBe('"\\"";=HYPERLINK(""https://evil.example"";""Klik"")"')
+        ->and($lines[2])->toBe("'=1+1")
+        ->and($lines[3])->toStartWith("\"'\t+2");
+});

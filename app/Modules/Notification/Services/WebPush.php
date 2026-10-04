@@ -66,7 +66,8 @@ final class WebPush
     public function send(PushSubscription $subscription, array $payload, int $ttl = 86400): array
     {
         $endpoint = $subscription->endpoint;
-        if (! self::endpointAllowed($endpoint)) {
+        $target = OutboundUrl::resolve($endpoint, self::KNOWN_PUSH_HOSTS);
+        if ($target === null) {
             return ['ok' => false, 'status' => 0, 'gone' => true, 'error' => 'Endpoint push ditolak (bukan layanan push publik).'];
         }
         $origin = parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST);
@@ -74,7 +75,7 @@ final class WebPush
         $jwt = self::vapidToken($origin);
 
         try {
-            $response = Http::withoutRedirecting()->timeout(10)->withHeaders([
+            $response = Http::withoutRedirecting()->withOptions(['curl' => OutboundUrl::curlPin($target)])->timeout(10)->withHeaders([
                 'Authorization' => 'vapid t='.$jwt.', k='.self::publicKey(),
                 'Content-Type' => 'application/octet-stream',
                 'Content-Encoding' => 'aes128gcm',

@@ -38,7 +38,8 @@ final class SettingsController
 
         $values = [];
         foreach (SystemSettings::forTab($tab) as $key => $definition) {
-            $values[$key] = SystemSettings::get($key);
+            // Nilai rahasia tidak pernah diteruskan ke view: cukup penanda "sudah tersimpan".
+            $values[$key] = $definition['type'] === 'secret' ? ((string) SystemSettings::get($key) !== '' ? '•' : '') : SystemSettings::get($key);
         }
 
         return view('settings.tab', [

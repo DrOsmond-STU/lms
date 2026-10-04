@@ -23,8 +23,10 @@ final class ApprovalRequestController
     {
         /** @var User $user */
         $user = $request->user();
-        $open = ApprovalRequest::query()->with('requester:id,name')->whereNull('decision')->where('expires_at', '>', now())->orderBy('requested_at')->get();
-        $recent = ApprovalRequest::query()->with('requester:id,name')->whereNotNull('decision')->orderByDesc('decided_at')->limit(20)->get();
+        // Hanya permintaan yang relevan: jenis aksi yang boleh diputus peran ini, atau yang diajukan sendiri.
+        $relevant = fn (ApprovalRequest $item): bool => $item->requested_by === $user->id || $this->workflow->canDecideAction($item->action, $user);
+        $open = ApprovalRequest::query()->with('requester:id,name')->whereNull('decision')->where('expires_at', '>', now())->orderBy('requested_at')->get()->filter($relevant)->values();
+        $recent = ApprovalRequest::query()->with('requester:id,name')->whereNotNull('decision')->orderByDesc('decided_at')->limit(60)->get()->filter($relevant)->take(20)->values();
 
         return view('approvals.index', [
             'open' => $open,

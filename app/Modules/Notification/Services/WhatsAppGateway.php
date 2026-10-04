@@ -22,12 +22,13 @@ final class WhatsAppGateway
     public function send(string $phoneE164, string $message): array
     {
         $endpoint = (string) setting('whatsapp.endpoint');
-        if (! OutboundUrl::isPublicHttps($endpoint)) {
+        $target = OutboundUrl::resolve($endpoint);
+        if ($target === null) {
             return ['ok' => false, 'status' => 0, 'error' => 'Endpoint gateway harus https publik (bukan alamat privat/loopback).'];
         }
         $to = ltrim($phoneE164, '+');
         $fields = array_filter(['to' => $to, 'message' => $message, 'sender' => (string) setting('whatsapp.sender')], fn ($v) => $v !== '');
-        $request = Http::withoutRedirecting()->timeout(15)->withToken((string) setting('whatsapp.token'))->acceptJson();
+        $request = Http::withoutRedirecting()->withOptions(['curl' => OutboundUrl::curlPin($target)])->timeout(15)->withToken((string) setting('whatsapp.token'))->acceptJson();
 
         try {
             $response = setting('whatsapp.payload') === 'form' ? $request->asForm()->post($endpoint, $fields) : $request->post($endpoint, $fields);

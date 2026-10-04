@@ -7,8 +7,11 @@ namespace App\Modules\Identity\Http\Controllers;
 use App\Modules\Audit\Services\AuditLogger;
 use App\Modules\Audit\Services\SecurityEventLogger;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Notifications\MfaChangedNotification;
+use App\Modules\Identity\Services\DeviceSessions;
 use App\Modules\Identity\Services\MfaService;
 use App\Modules\Identity\Services\SessionAuthenticator;
+use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\Totp;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
@@ -29,10 +32,13 @@ final class MfaSetupController
 {
     private const SESSION_SECRET = 'mfa.setup_secret';
 
-    public function show(Request $request): View
+    public function show(Request $request): View|RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
+        if ($user->hasConfirmedMfa() && ! $this->recentlyConfirmed($request)) {
+            return $this->requireConfirmation($request);
+        }
 
         $secret = $request->session()->get(self::SESSION_SECRET);
         if (! is_string($secret)) {
@@ -50,10 +56,14 @@ final class MfaSetupController
         ]);
     }
 
-    public function store(Request $request, MfaService $mfa, Hasher $hasher, SessionAuthenticator $authenticator): RedirectResponse
+    public function store(Request $request, MfaService $mfa, Hasher $hasher, SessionAuthenticator $authenticator, DeviceSessions $devices): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
+        $reEnrollment = $user->hasConfirmedMfa();
+        if ($reEnrollment && ! $this->recentlyConfirmed($request)) {
+            return $this->requireConfirmation($request);
+        }
         $data = $request->validate([
             'password' => ['required', 'string', 'max:128'],
             'code' => ['required', 'digits:6'],
@@ -75,9 +85,30 @@ final class MfaSetupController
 
         $request->session()->forget(self::SESSION_SECRET);
         $authenticator->markMfaVerified($request);
+        if ($reEnrollment) {
+            // Autentikator diganti: cabut sesi di perangkat lain dan beri tahu pemilik akun (SEC-AUTH-19).
+            $user->forceFill(['session_version' => $user->session_version + 1])->save();
+            $request->session()->regenerate(true);
+            $request->session()->put(SessionAuthenticator::KEY_VERSION, $user->session_version);
+            $current = $request->session()->get(DeviceSessions::SESSION_KEY);
+            $devices->revokeOthers($user, is_string($current) ? $current : null, 'mfa_reenrolled');
+            $user->notify(new MfaChangedNotification);
+        }
         $request->session()->flash('mfa.recovery_codes', $codes);
 
         return redirect()->route('mfa.recovery-codes');
+    }
+
+    private function recentlyConfirmed(Request $request): bool
+    {
+        return now()->getTimestamp() - (int) $request->session()->get(RequireRecentAuth::SESSION_KEY, 0) <= (int) config('auth.password_timeout', 900);
+    }
+
+    private function requireConfirmation(Request $request): RedirectResponse
+    {
+        $request->session()->put('url.intended', route('mfa.setup'));
+
+        return redirect()->route('password.confirm')->with('status', 'Konfirmasi identitas Anda sebelum mengganti aplikasi autentikator.');
     }
 
     public function recoveryCodes(Request $request): View|RedirectResponse

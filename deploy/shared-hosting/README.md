@@ -22,7 +22,7 @@ Domainesia). Shared hosting **bukan** target produksi penuh — lihat
 
 ```
 */6 * * * *  /usr/bin/flock -n $HOME/.lms-setup.lock /bin/bash $HOME/lms-setup.sh
-*/8 * * * *  cd $HOME/lms-app && /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+*/8 * * * *  cd $HOME/lms-app && /opt/alt/php83/usr/bin/php artisan schedule:run >> $HOME/lms-app/storage/logs/schedule.log 2>&1
 */9 * * * *  cd $HOME/lms-app && /usr/bin/flock -n $HOME/.lms-queue.lock /opt/alt/php83/usr/bin/php artisan queue:work database --stop-when-empty --tries=3 --max-time=100 >> /dev/null 2>&1
 */7 * * * *  /bin/bash $HOME/lms-verify.sh >> /dev/null 2>&1
 ```

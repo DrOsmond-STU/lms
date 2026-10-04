@@ -75,13 +75,23 @@ final class RegistrationService
             return;
         }
 
-        // Samakan beban kerja dengan jalur akun baru (hash Argon2id) agar waktu respons tidak membocorkan keberadaan akun.
-        $this->hasher->make($data['password']);
-
         if ($this->isSelfRegistrationPending($existing)) {
+            // Akun pending dibuat oleh siapa pun yang pertama mengirim formulir, mungkin bukan pemilik email.
+            // Kiriman terbaru menimpa kata sandi/nama/HP sehingga yang memverifikasi OTP (pemilik kotak masuk)
+            // memakai kredensialnya sendiri, bukan kredensial pendaftar sebelumnya (anti pre-registration hijack).
+            DB::transaction(function () use ($existing, $data): void {
+                $existing->forceFill(['name' => trim($data['name']), 'password' => $data['password'], 'phone_encrypted' => null, 'phone_bidx' => null]);
+                $this->applyPhone($existing, $data['phone'] ?? null);
+                $existing->save();
+            });
+            $this->tokens->revokeAll($existing, OneTimeTokens::PURPOSE_EMAIL_VERIFICATION);
             $this->sendCode($existing, $metadata);
-        } elseif (RateLimiter::attempt('register:exists:'.$existing->id, 1, static fn () => true, 3600)) {
-            $existing->notify(new AccountAlreadyExistsNotification);
+        } else {
+            // Samakan beban kerja dengan jalur akun baru (hash Argon2id) agar waktu respons tidak membocorkan keberadaan akun.
+            $this->hasher->make($data['password']);
+            if (RateLimiter::attempt('register:exists:'.$existing->id, 1, static fn () => true, 3600)) {
+                $existing->notify(new AccountAlreadyExistsNotification);
+            }
         }
 
         $this->securityEvents->log('authn_registration_duplicate', 'info', $existing->id);
@@ -253,7 +263,7 @@ final class RegistrationService
 
         $index = TokenHasher::hash($normalized, 'phone-bidx');
         // Nomor yang sudah dipakai akun lain diabaikan diam-diam agar tidak menjadi oracle.
-        if (DB::table('users')->where('phone_bidx', $index)->exists()) {
+        if (DB::table('users')->where('phone_bidx', $index)->when($user->exists, fn ($q) => $q->where('id', '!=', $user->id))->exists()) {
             return;
         }
 

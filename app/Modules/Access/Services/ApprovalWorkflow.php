@@ -75,7 +75,13 @@ final class ApprovalWorkflow
             return false;
         }
 
-        return match ($request->action) {
+        return $this->canDecideAction($request->action, $user);
+    }
+
+    /** Apakah peran pengguna berwenang memutus jenis aksi ini (tanpa memandang status/pemohon). */
+    public function canDecideAction(string $action, User $user): bool
+    {
+        return match ($action) {
             'certificate.revoke' => $user->hasPermission('certificate.revoke'),
             'role.assign_super_admin' => $user->hasRole(RoleCode::SuperAdmin),
             'certificate_template.activate' => $user->hasPermission('certificate_template.activate'),

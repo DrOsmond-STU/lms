@@ -26,8 +26,24 @@ final class RetentionPruner
         $outboundDays = (int) setting('retention.outbound_days');
         $deleted['pesan_keluar'] = DB::table('outbound_messages')->where('created_at', '<', now()->subDays($outboundDays))->delete();
         $deleted['pengingat'] = DB::table('notification_reminders')->where('sent_at', '<', now()->subDays(90))->delete();
-        $deleted['event_keamanan'] = DB::connection('pgsql_migrator')->table('security_events')->where('occurred_at', '<', now()->subDays((int) setting('retention.security_events_days')))->delete();
+        $deleted['event_keamanan'] = $this->pruneSecurityEvents((int) setting('retention.security_events_days'));
 
         return $deleted;
+    }
+
+    /**
+     * security_events bersifat append-only (trigger menolak UPDATE/DELETE). Satu-satunya pengecualian adalah
+     * DELETE oleh pemilik tabel (koneksi migrator) dalam transaksi yang menyetel GUC `app.retention_prune`
+     * secara lokal; peran aplikasi tidak memiliki hak DELETE sehingga tidak dapat memakai jalur ini.
+     */
+    private function pruneSecurityEvents(int $days): int
+    {
+        $owner = DB::connection('pgsql_migrator');
+
+        return (int) $owner->transaction(function () use ($owner, $days): int {
+            $owner->statement("select set_config('app.retention_prune', 'on', true)");
+
+            return $owner->table('security_events')->where('occurred_at', '<', now()->subDays($days))->delete();
+        });
     }
 }

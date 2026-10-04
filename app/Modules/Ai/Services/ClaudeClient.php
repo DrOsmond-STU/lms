@@ -86,7 +86,7 @@ final class ClaudeClient
         if (! $response->successful()) {
             $error = (string) ($response->json('error.message') ?? ('HTTP '.$response->status()));
             $this->log($usageId, 0, 0, $started, 'error', $error);
-            throw new AiUnavailableException('Asisten AI menolak permintaan ('.Str::limit($error, 120).').');
+            throw new AiUnavailableException($response->status() === 429 ? 'Asisten AI sedang sibuk. Coba lagi beberapa saat.' : 'Asisten AI tidak dapat memproses permintaan ini. Admin dapat memeriksa log pemakaian AI.');
         }
         $content = $response->json('content');
         $texts = [];

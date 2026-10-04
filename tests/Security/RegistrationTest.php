@@ -8,6 +8,7 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Notifications\AccountAlreadyExistsNotification;
 use App\Modules\Identity\Notifications\RegistrationCodeNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
@@ -224,3 +225,23 @@ it('sends time-limited registration mail over the urgent queue connection, same 
     Notification::assertSentTo(registeredUser($payload['email']), RegistrationCodeNotification::class, fn ($notification): bool => $notification->viaConnections() === ['mail' => 'deferred']);
     Notification::assertSentTo($existing, AccountAlreadyExistsNotification::class, fn ($notification): bool => $notification->viaConnections() === ['mail' => 'deferred']);
 })->group('SEC-AUTH-06');
+
+it('lets the verifying registrant keep their own password when a pending account already exists', function () {
+    // Penyerang mendaftar lebih dulu dengan email korban; korban mendaftar belakangan dengan kata sandinya sendiri.
+    $email = 'korban.'.Str::lower(Str::random(6)).'@contoh.test';
+    $attacker = registrationPayload(['email' => $email, 'name' => 'Penyerang']);
+    $this->post('/daftar', $attacker)->assertRedirect(route('register.verify'));
+    $user = registeredUser($email);
+    expect($user->status)->toBe('pending_verification');
+
+    nextRequest();
+    $victim = registrationPayload(['email' => $email, 'name' => 'Pemilik Email']);
+    $this->post('/daftar', $victim)->assertRedirect(route('register.verify'))->assertSessionHas('status', RegistrationController::SENT_MESSAGE);
+    $this->post('/verifikasi-email', ['code' => sentRegistrationCode($user->fresh())])->assertRedirect(route('participant.dashboard'));
+
+    $user->refresh();
+    expect($user->status)->toBe('active')
+        ->and($user->name)->toBe('Pemilik Email')
+        ->and(Hash::check($victim['password'], (string) $user->password))->toBeTrue()
+        ->and(Hash::check($attacker['password'], (string) $user->password))->toBeFalse();
+})->group('FR-AUTH-001', 'SEC-AUTH-01');

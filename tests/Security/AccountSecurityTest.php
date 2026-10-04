@@ -16,6 +16,7 @@ beforeEach(function () {
 
 it('requires the current password to change it', function () {
     $user = signIn(RoleCode::Participant);
+    confirmAccess();
 
     $password = freshPassword();
     $this->post('/akun/keamanan/kata-sandi', [
@@ -30,6 +31,10 @@ it('requires the current password to change it', function () {
 it('changes the password, keeps this session and revokes the others', function () {
     $user = signIn(RoleCode::Participant);
     $versionBefore = $user->fresh()->session_version;
+
+    // Tanpa konfirmasi identitas terbaru, aksi diarahkan ke halaman konfirmasi (SEC-AUTH-19).
+    $this->post('/akun/keamanan/kata-sandi', ['current_password' => UserFactory::PASSWORD, 'password' => 'x', 'password_confirmation' => 'x'])->assertRedirect(route('password.confirm'));
+    confirmAccess();
 
     $password = freshPassword();
     $this->post('/akun/keamanan/kata-sandi', [
@@ -49,6 +54,7 @@ it('changes the password, keeps this session and revokes the others', function (
 
 it('enforces the privileged minimum length on password change', function () {
     signIn(RoleCode::Trainer);
+    confirmAccess();
 
     $this->post('/akun/keamanan/kata-sandi', [
         'current_password' => UserFactory::PASSWORD,

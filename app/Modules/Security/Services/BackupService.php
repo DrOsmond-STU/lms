@@ -262,18 +262,24 @@ final class BackupService
             throw new RuntimeException('Header tidak terbaca.');
         }
         $state = sodium_crypto_secretstream_xchacha20poly1305_init_pull($header, $key);
+        $final = false;
         while (! feof($in)) {
             $chunk = fread($in, 1024 * 1024 + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES);
             if ($chunk === false || $chunk === '') {
                 break;
             }
             $result = sodium_crypto_secretstream_xchacha20poly1305_pull($state, $chunk);
-            if ($result === false) {
+            if ($result === false || $final) {
                 throw new RuntimeException('Berkas backup rusak atau kunci salah.');
             }
             fwrite($out, $result[0]);
+            $final = $result[1] === SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL;
         }
         fclose($in);
         fclose($out);
+        if (! $final) {
+            @unlink($target);
+            throw new RuntimeException('Berkas backup terpotong: tag akhir tidak ditemukan.');
+        }
     }
 }

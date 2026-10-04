@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Modules\Access\Http\Middleware\RequireWorkspace;
 use App\Modules\Access\Permissions;
+use App\Modules\Identity\Http\Middleware\EnsureMfaVerified;
 use App\Modules\Identity\Models\User;
 use App\Modules\Settings\Services\SystemSettings;
 use App\Support\Media\ClamdScanner;
 use App\Support\Media\MalwareScanner;
 use App\Support\Media\UnscannedScanner;
+use App\Support\Security\Middleware\RequireRecentAuth;
 use App\Support\Security\ProductionGuard;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
@@ -22,6 +26,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -42,11 +47,19 @@ final class AppServiceProvider extends ServiceProvider
         $uuid = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
         // Pengaturan UI (dalam batas aman) menimpa konfigurasi baseline.
         SystemSettings::applyToConfig();
+        // Permintaan Livewire (/livewire/update) memutar ulang middleware rute asal: MFA, area kerja, izin.
+        Livewire::addPersistentMiddleware([
+            EnsureMfaVerified::class,
+            RequireWorkspace::class,
+            Authorize::class,
+            RequireRecentAuth::class,
+        ]);
 
         Route::patterns(array_fill_keys([
             'organization', 'user', 'domain', 'assignment', 'program', 'class', 'module', 'chapter', 'lesson', 'enrollment',
             'assessment', 'attempt', 'bank', 'question', 'certificate', 'template', 'approval', 'member', 'media', 'notification', 'session',
-            'slide', 'testimonial', 'partner',
+            'slide', 'testimonial', 'partner', 'transaction', 'thread', 'post', 'poll', 'report', 'group', 'announcement', 'event',
+            'subscription', 'submission', 'backup', 'privacyRequest', 'commission',
         ], $uuid) + ['token' => '[A-Za-z0-9_-]{16,128}']);
 
         // Verifikasi publik: 10/menit & 100/hari per IP (keamanan/07 SEC-CERT-12).

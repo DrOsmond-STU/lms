@@ -42,9 +42,10 @@ final class TableExport
                     return;
                 }
                 fwrite($out, "\xEF\xBB\xBF");
-                fputcsv($out, array_map(fn (string $h): string => self::neutralize($h), $header), ';');
+                // escape '' → setiap tanda kutip digandakan; tanpa ini `\"` lolos dan dapat memutus sel (injeksi formula).
+                fputcsv($out, array_map(fn (string $h): string => self::neutralize($h), $header), ';', '"', '');
                 foreach ($rows as $row) {
-                    fputcsv($out, array_map(fn (mixed $v): string => self::neutralize(self::text($v)), $row), ';');
+                    fputcsv($out, array_map(fn (mixed $v): string => self::neutralize(self::text($v)), $row), ';', '"', '');
                 }
                 fclose($out);
             }, $filename, $headers + ['Content-Type' => 'text/csv; charset=UTF-8']),
@@ -137,7 +138,7 @@ final class TableExport
         $xml = '<row r="'.$number.'">';
         foreach (array_values($cells) as $index => $cell) {
             $ref = self::column($index).$number;
-            if (is_int($cell) || is_float($cell)) {
+            if (is_int($cell) || (is_float($cell) && is_finite($cell))) {
                 $xml .= '<c r="'.$ref.'"'.($bold ? ' s="1"' : '').'><v>'.$cell.'</v></c>';
             } else {
                 $text = self::neutralize(self::text($cell));
@@ -163,12 +164,13 @@ final class TableExport
 
     private static function text(mixed $value): string
     {
-        return is_scalar($value) ? (string) $value : '';
+        // Karakter kontrol (selain tab/baris baru) tidak sah dalam XML dan tidak berguna dalam CSV.
+        return is_scalar($value) ? (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', (string) $value) : '';
     }
 
-    /** Cegah injeksi formula spreadsheet (keamanan/09). */
+    /** Cegah injeksi formula spreadsheet (keamanan/09): awalan formula (setelah spasi) dinetralkan dengan apostrof. */
     private static function neutralize(string $value): string
     {
-        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
+        return preg_match('/^\s*[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
     }
 }

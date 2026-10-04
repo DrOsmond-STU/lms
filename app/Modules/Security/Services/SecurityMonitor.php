@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class SecurityMonitor
 {
-    public const ALERT_TYPES = ['brute_force_suspected', 'account_targeted', 'session_anomaly', 'mass_export'];
+    public const ALERT_TYPES = ['brute_force_suspected', 'account_targeted', 'session_anomaly', 'mass_export', 'backup_failed', 'audit_chain_broken'];
 
     private const EXPORT_ACTIONS = ['report.exported', 'gradebook.exported', 'audit_log.exported', 'certificate.exported', 'attendance.exported'];
 
@@ -30,6 +30,20 @@ final class SecurityMonitor
         $loginThreshold = max(3, (int) setting('monitor.failed_login_threshold'));
         $exportThreshold = max(3, (int) setting('monitor.export_threshold'));
         $created = array_fill_keys(self::ALERT_TYPES, 0);
+
+        // 0. Integritas operasional: rantai audit rusak (dicatat stu:audit-verify) dan backup gagal 24 jam terakhir.
+        if (DB::table('security_events')->where('type', 'audit_chain_broken')->where('occurred_at', '>=', now()->subHours(25))->exists()
+            && ! $this->alreadyAlerted('audit_chain_broken', 'source', 'monitor', 25)) {
+            $this->events->log('audit_chain_broken', 'critical', null, ['source' => 'monitor', 'notified' => true]);
+            $this->notifyAdmins('Rantai jejak audit rusak', 'Verifikasi harian menemukan ketidaksesuaian hash pada jejak audit. Periksa log keamanan dan tabel audit_logs segera.');
+            $created['audit_chain_broken']++;
+        }
+        $failedBackups = DB::table('backups')->where('status', 'failed')->where('started_at', '>=', now()->subHours(25))->count();
+        if ($failedBackups > 0 && ! $this->alreadyAlerted('backup_failed', 'source', 'backups', 24)) {
+            $this->events->log('backup_failed', 'high', null, ['source' => 'backups', 'failed_24h' => $failedBackups]);
+            $this->notifyAdmins('Backup gagal', $failedBackups.' backup gagal dalam 24 jam terakhir. Buka menu Backup untuk melihat pesan kesalahannya.');
+            $created['backup_failed']++;
+        }
 
         // 1. Brute force per IP (1 jam terakhir).
         DB::table('security_events')->where('type', 'authn_login_fail')->where('occurred_at', '>=', now()->subHour())->whereNotNull('ip')
@@ -109,7 +123,7 @@ final class SecurityMonitor
     private function alreadyAlerted(string $type, string $key, string $value, int $hours = 6): bool
     {
         return DB::table('security_events')->where('type', $type)->where('occurred_at', '>=', now()->subHours($hours))
-            ->when($key === 'user_id', fn ($q) => $q->where('user_id', $value), fn ($q) => $q->whereRaw("details->>'ip' = ?", [$value]))->exists();
+            ->when($key === 'user_id', fn ($q) => $q->where('user_id', $value), fn ($q) => $q->whereRaw("details->>'".($key === 'source' ? 'source' : 'ip')."' = ?", [$value]))->exists();
     }
 
     private function notifyAdmins(string $title, string $body): void

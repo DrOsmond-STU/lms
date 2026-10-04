@@ -12,6 +12,7 @@ use App\Support\Security\TokenHasher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -49,6 +50,9 @@ final class PasswordResetController
         RateLimiter::hit($ipKey, 3600);
 
         $status = Password::sendResetLink(['email' => $email]);
+        if ($status !== Password::RESET_LINK_SENT) {
+            Hash::make(Str::random(40)); // samakan beban kerja (Argon2id) agar waktu respons tidak menjadi oracle keberadaan akun
+        }
         $securityEvents->log('authn_password_reset_requested', 'info', null, ['broker_status' => $status]);
 
         return back()->with('status', self::GENERIC_SENT);

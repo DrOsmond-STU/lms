@@ -9,6 +9,7 @@ use App\Modules\Security\Models\Backup;
 use App\Modules\Security\Models\PrivacyRequest;
 use App\Modules\Security\Services\BackupService;
 use Database\Factories\UserFactory;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -67,6 +68,11 @@ it('detects brute force and mass exports, notifies admins, and prunes by retenti
         }
         DB::table('notifications')->insert(['id' => (string) Str::uuid7(), 'user_id' => $victim->id, 'category' => 'system', 'title' => 'Lama', 'body' => 'x', 'created_at' => now()->subDays(400)]);
     });
+    // Event lama ditulis lewat koneksi pemilik (di luar transaksi uji) karena pemangkasan berjalan pada koneksi itu.
+    $oldEventId = (string) Str::uuid7();
+    DB::connection('pgsql_migrator')->table('security_events')->insert(['id' => $oldEventId, 'occurred_at' => now()->subDays(400), 'type' => 'authn_login_success', 'severity' => 'info', 'user_id' => null, 'ip' => '203.0.113.9', 'details' => '{"lama":true}']);
+    expect(fn () => asSystem(fn () => DB::transaction(fn () => DB::table('security_events')->where('id', $oldEventId)->delete())))->toThrow(QueryException::class); // peran aplikasi tidak dapat menghapus (savepoint agar transaksi uji tetap hidup)
+    expect(fn () => DB::connection('pgsql_migrator')->table('security_events')->where('id', $oldEventId)->delete())->toThrow(QueryException::class); // pemilik tabel tanpa GUC retensi tetap ditolak
 
     $this->artisan('stu:security-scan')->assertSuccessful();
     $this->artisan('stu:security-scan')->assertSuccessful(); // idempoten dalam jendela dedup
@@ -80,6 +86,8 @@ it('detects brute force and mass exports, notifies admins, and prunes by retenti
 
     $this->artisan('stu:retention-prune')->assertSuccessful();
     expect(asSystem(fn () => DB::table('notifications')->where('title', 'Lama')->exists()))->toBeFalse();
+    expect(asSystem(fn () => DB::table('security_events')->where('type', 'brute_force_suspected')->exists()))->toBeTrue();
+    expect(DB::connection('pgsql_migrator')->table('security_events')->where('id', $oldEventId)->exists())->toBeFalse();
 });
 
 it('lets participants export their data and request deletion which admins anonymize', function () {

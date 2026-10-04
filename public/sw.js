@@ -6,7 +6,11 @@ self.addEventListener('push', (event) => {
 });
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const url = (event.notification.data && event.notification.data.url) || '/notifikasi';
+    let url = '/notifikasi';
+    try {
+        const target = new URL((event.notification.data && event.notification.data.url) || '/notifikasi', self.location.origin);
+        if (target.origin === self.location.origin) { url = target.href; }
+    } catch { /* URL tidak valid → halaman notifikasi */ }
     event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
         for (const client of clients) { if ('focus' in client) { client.navigate(url); return client.focus(); } }
         return self.clients.openWindow(url);

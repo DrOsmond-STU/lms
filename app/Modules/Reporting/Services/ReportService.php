@@ -8,6 +8,7 @@ use App\Modules\Enrollment\Models\Enrollment;
 use App\Modules\Organization\Models\Organization;
 use App\Modules\Referral\Models\ReferralCommission;
 use App\Modules\Referral\Models\ReferralPayout;
+use App\Support\Database\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
@@ -56,7 +57,7 @@ final class ReportService
             ->selectSub(DB::table('payment_transactions')->selectRaw('count(*)')->whereColumn('organization_id', 'o.id')->where('status', 'settled')->whereBetween('settled_at', $bindings), 'payments')
             ->selectSub(DB::table('payment_transactions')->selectRaw('coalesce(sum(gross_amount), 0)')->whereColumn('organization_id', 'o.id')->where('status', 'settled')->whereBetween('settled_at', $bindings), 'revenue')
             ->when($search !== '', function (Builder $query) use ($search): void {
-                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $search).'%';
+                $like = Like::contains($search);
                 $query->where(fn (Builder $q) => $q->where('o.name', 'ilike', $like)->orWhere('o.code', 'ilike', $like));
             })
             ->orderBy('o.name')->get();
@@ -97,7 +98,7 @@ final class ReportService
             ->selectSub($commission('void'), 'void')
             ->selectSub(DB::table('referral_commissions')->selectRaw('coalesce(sum(amount), 0)')->whereColumn('referrer_id', 'u.id')->where('status', 'pending'), 'pending_all_time')
             ->when($search !== '', function (Builder $query) use ($search): void {
-                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $search).'%';
+                $like = Like::contains($search);
                 $query->where(fn (Builder $q) => $q->where('u.name', 'ilike', $like)->orWhere('u.email', 'ilike', $like)->orWhere('p.code', 'ilike', $like));
             })
             ->orderByDesc('pending_all_time')->orderByDesc('paid')->orderBy('u.name')->get()

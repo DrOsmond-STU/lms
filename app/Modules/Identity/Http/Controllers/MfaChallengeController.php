@@ -10,6 +10,7 @@ use App\Modules\Identity\Services\MfaService;
 use App\Modules\Identity\Services\SessionAuthenticator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -41,11 +42,23 @@ final class MfaChallengeController
             'recovery_code' => ['nullable', 'string', 'max:16'],
         ]);
 
+        // Kunci per akun lintas sesi/IP: login ulang dengan kata sandi yang benar tidak memberi 5 percobaan baru.
+        $shortKey = 'mfa:user:'.$user->id;
+        $dayKey = 'mfa:user:day:'.$user->id;
+        if (RateLimiter::tooManyAttempts($shortKey, (int) config('security.mfa.max_attempts')) || RateLimiter::tooManyAttempts($dayKey, 20)) {
+            $request->session()->forget(['login.pending_user_id', 'login.pending_at', 'login.mfa_attempts']);
+            $securityEvents->log('authn_mfa_lockout', 'high', $user->id, ['scope' => 'account']);
+
+            return redirect()->route('login')->withErrors(['email' => 'Terlalu banyak percobaan kode untuk akun ini. Coba lagi dalam 15 menit.']);
+        }
+
         $valid = isset($data['recovery_code']) && $data['recovery_code'] !== ''
             ? $mfa->useRecoveryCode($user, $data['recovery_code'])
             : $mfa->verifyTotp($user, (string) ($data['code'] ?? ''));
 
         if (! $valid) {
+            RateLimiter::hit($shortKey, 900);
+            RateLimiter::hit($dayKey, 86400);
             $attempts = (int) $request->session()->increment('login.mfa_attempts');
             $securityEvents->log('authn_mfa_fail', 'warning', $user->id, ['attempt' => $attempts]);
 
@@ -59,6 +72,7 @@ final class MfaChallengeController
             throw ValidationException::withMessages(['code' => 'Kode autentikasi tidak valid.']);
         }
 
+        RateLimiter::clear($shortKey);
         $authenticator->complete($request, $user, mfaVerified: true);
 
         return redirect()->intended(route('dashboard'));

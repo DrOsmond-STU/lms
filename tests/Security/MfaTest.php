@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Modules\Access\RoleCode;
+use App\Modules\Identity\Notifications\MfaChangedNotification;
 use App\Modules\Identity\Services\MfaService;
 use App\Support\Security\Totp;
 use Database\Factories\UserFactory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(fn () => cache()->flush());
 
@@ -109,3 +111,41 @@ it('expires a pending MFA login after five minutes', function () {
     $this->post('/masuk/mfa', ['code' => Totp::codeAt($secret, Totp::currentStep())])->assertRedirect(route('login'));
     $this->assertGuest();
 })->group('SEC-AUTH-36');
+
+it('locks MFA attempts per account even across fresh password logins', function () {
+    $user = makeUser(RoleCode::Trainer);
+    enrollTotp($user);
+    foreach (range(1, 2) as $_) {
+        $this->post('/masuk', ['email' => $user->email, 'password' => UserFactory::PASSWORD]);
+        foreach (range(1, 3) as $_) {
+            $this->post('/masuk/mfa', ['code' => '000000']);
+        }
+    }
+    // 6 kegagalan pada akun ini (dua sesi berbeda) → terkunci walau kata sandi benar dan sesi baru.
+    $this->post('/masuk', ['email' => $user->email, 'password' => UserFactory::PASSWORD]);
+    $this->post('/masuk/mfa', ['code' => '000000'])->assertRedirect(route('login'))->assertSessionHasErrors('email');
+    expect(DB::table('security_events')->where('type', 'authn_mfa_lockout')->where('user_id', $user->id)->exists())->toBeTrue();
+})->group('SEC-AUTH-13');
+
+it('requires recent re-authentication, revokes other sessions and notifies when re-enrolling TOTP', function () {
+    Notification::fake();
+    $user = makeUser(RoleCode::Trainer);
+    $secret = enrollTotp($user);
+    loginAs($user, $secret);
+    nextRequest();
+    $versionBefore = $user->fresh()->session_version;
+
+    $this->get('/akun/mfa/aktifkan')->assertRedirect(route('password.confirm'));
+    $this->post('/akun/mfa/aktifkan', ['password' => UserFactory::PASSWORD, 'code' => '123456'])->assertRedirect(route('password.confirm'));
+
+    confirmAccess();
+    $this->get('/akun/mfa/aktifkan')->assertOk();
+    $newSecret = session('mfa.setup_secret');
+    $this->post('/akun/mfa/aktifkan', ['password' => UserFactory::PASSWORD, 'code' => Totp::codeAt($newSecret, Totp::currentStep())])
+        ->assertRedirect(route('mfa.recovery-codes'));
+
+    expect($user->fresh()->session_version)->toBe($versionBefore + 1);
+    Notification::assertSentTo($user, MfaChangedNotification::class);
+    nextRequest();
+    $this->get('/akun/keamanan')->assertOk(); // sesi ini tetap berlaku
+})->group('SEC-AUTH-13', 'SEC-AUTH-19');

@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 // Verifikasi harian rantai hash audit (keamanan/11 SEC-LOG-13).
-Schedule::command('stu:audit-verify')->dailyAt('02:30')->timezone(display_tz())->onOneServer();
+Schedule::command('stu:audit-verify')->dailyAt('02:30')->timezone(display_tz())->withoutOverlapping()->onOneServer()->onFailure(fn () => Log::channel('security')->error('Jadwal gagal: stu:audit-verify'));
 
 // Minimisasi data: registrasi tak terverifikasi & token kedaluwarsa (keamanan/12).
-Schedule::command('stu:prune-unverified')->dailyAt('03:00')->timezone(display_tz())->onOneServer();
+Schedule::command('stu:prune-unverified')->dailyAt('03:00')->timezone(display_tz())->withoutOverlapping()->onOneServer();
 
 // Auto-submit attempt ujian yang melewati deadline (keamanan/08 SEC-EXAM-05).
 Schedule::command('stu:exams-auto-submit')->everyMinute()->withoutOverlapping()->onOneServer();
@@ -23,6 +24,6 @@ Schedule::command('stu:payments-expire')->hourly()->withoutOverlapping()->onOneS
 Schedule::command('stu:reminders')->hourly()->withoutOverlapping()->onOneServer();
 
 // Backup harian, pemindaian keamanan tiap jam, retensi data harian (dini hari).
-Schedule::command('stu:backup')->dailyAt('01:30')->timezone(display_tz())->withoutOverlapping()->onOneServer();
-Schedule::command('stu:security-scan')->hourly()->withoutOverlapping()->onOneServer();
-Schedule::command('stu:retention-prune')->dailyAt('03:30')->timezone(display_tz())->onOneServer();
+Schedule::command('stu:backup')->dailyAt('01:30')->timezone(display_tz())->withoutOverlapping()->onOneServer()->onFailure(fn () => Log::channel('security')->error('Jadwal gagal: stu:backup'));
+Schedule::command('stu:security-scan')->hourly()->withoutOverlapping()->onOneServer()->onFailure(fn () => Log::channel('security')->error('Jadwal gagal: stu:security-scan'));
+Schedule::command('stu:retention-prune')->dailyAt('03:30')->timezone(display_tz())->withoutOverlapping()->onOneServer()->onFailure(fn () => Log::channel('security')->error('Jadwal gagal: stu:retention-prune'));

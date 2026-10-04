@@ -70,6 +70,9 @@ final class ClassChat extends Component
 
     public function render(): View
     {
+        /** @var User $user */
+        $user = auth()->user();
+        app(ClassMembership::class)->require($user, CourseClass::query()->findOrFail($this->classId));
         $messages = ClassMessage::query()->with('user:id,name')->where('course_class_id', $this->classId)->where('is_hidden', false)
             ->orderByDesc('created_at')->limit(100)->get()->reverse()->values();
 

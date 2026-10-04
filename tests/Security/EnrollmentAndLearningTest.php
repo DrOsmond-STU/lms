@@ -10,6 +10,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 beforeEach(fn () => cache()->flush());
 
@@ -164,6 +165,13 @@ it('serves private media only through short-lived URLs bound to the viewer', fun
 
     $this->get($url)->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
     $this->get(route('media.stream', ['media' => $asset->id]))->assertForbidden(); // tanpa tanda tangan
+    $this->get(preg_replace('/c=lesson%3A[0-9a-f-]+/', 'c=lesson%3A'.Str::uuid7(), $url))->assertForbidden(); // konteks diubah → tanda tangan tidak cocok
+
+    // Hak akses diperiksa ulang setiap permintaan: enrollment dibatalkan → URL yang masih berlaku tidak lagi dapat dipakai.
+    asSystem(fn () => $enrollment->forceFill(['status' => 'cancelled'])->save());
+    $this->get($url)->assertNotFound();
+    asSystem(fn () => $enrollment->forceFill(['status' => 'in_progress'])->save());
+    $this->get($url)->assertOk();
 
     $this->post('/keluar');
     nextRequest();

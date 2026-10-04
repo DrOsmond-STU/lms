@@ -148,7 +148,7 @@ Route::middleware('auth')->group(function (): void {
 
         Route::get('/akun/keamanan', [AccountSecurityController::class, 'show'])->name('account.security');
         Route::post('/akun/keamanan/kata-sandi', [AccountSecurityController::class, 'updatePassword'])
-            ->middleware('throttle:5,1,account-password-update')->name('account.password.update');
+            ->middleware(['reauth', 'throttle:5,1,account-password-update'])->name('account.password.update');
         Route::get('/konfirmasi-akses', [ConfirmAccessController::class, 'show'])->name('password.confirm');
         Route::post('/konfirmasi-akses', [ConfirmAccessController::class, 'store'])->middleware('throttle:10,1,password-confirm-store')->name('password.confirm.store');
 

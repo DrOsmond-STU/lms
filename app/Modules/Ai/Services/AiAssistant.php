@@ -147,7 +147,7 @@ final class AiAssistant
                 }
                 $rubric = null;
                 if ($type === 'essay' && is_array($item['rubric'] ?? null)) {
-                    $rubric = array_values(array_filter(array_map(fn ($c) => is_array($c) && is_string($c['name'] ?? null) ? ['name' => Str::limit(trim($c['name']), 60, ''), 'max' => max(1, (float) ($c['max'] ?? 10)), 'description' => Str::limit(trim((string) ($c['description'] ?? '')), 200, '')] : null, $item['rubric'])));
+                    $rubric = array_values(array_filter(array_map(fn ($c) => is_array($c) && is_string($c['name'] ?? null) ? ['name' => Str::limit(trim($c['name']), 60, ''), 'max' => is_numeric($c['max'] ?? null) && is_finite((float) $c['max']) ? max(1.0, min(1000.0, (float) $c['max'])) : 10.0, 'description' => Str::limit(trim((string) ($c['description'] ?? '')), 200, '')] : null, $item['rubric'])));
                     $rubric = $rubric === [] ? null : array_slice($rubric, 0, 6);
                 }
                 $question = new Question;
@@ -184,7 +184,13 @@ final class AiAssistant
         $max = (float) $question->points;
         $rubric = is_array($question->rubric) ? collect($question->rubric)->map(fn ($c) => '- '.$c['name'].' (maks '.$c['max'].'): '.($c['description'] ?? ''))->implode("\n") : '';
         $result = $this->claude->json($user, 'essay_feedback', self::BASE_SYSTEM."\nAnda membantu trainer menilai jawaban esai. Nilai secara objektif terhadap pertanyaan".($rubric !== '' ? " dan rubrik berikut:\n".$rubric : '').". Keluaran: {\"score\": angka 0–{$max}, \"feedback\": umpan balik 2–4 kalimat untuk peserta (apa yang baik, apa yang kurang, saran perbaikan)".($rubric !== '' ? ', "rubric": {nama_kriteria: skor}' : '').'}', [['role' => 'user', 'content' => "Pertanyaan:\n".strip_tags($question->stem_html)."\n\nJawaban peserta:\n".$text]], 800);
-        $suggestion = ['score' => max(0.0, min($max, round((float) ($result['score'] ?? 0), 1))), 'feedback' => Str::limit(trim((string) ($result['feedback'] ?? '')), 1500, ''), 'rubric' => is_array($result['rubric'] ?? null) ? $result['rubric'] : null, 'at' => now()->toIso8601String()];
+        $rubricScores = [];
+        foreach (is_array($result['rubric'] ?? null) ? $result['rubric'] : [] as $name => $value) {
+            if (is_string($name) && trim($name) !== '' && is_numeric($value) && is_finite((float) $value) && count($rubricScores) < 10) {
+                $rubricScores[Str::limit(trim($name), 60, '')] = max(0.0, min($max, round((float) $value, 1)));
+            }
+        }
+        $suggestion = ['score' => max(0.0, min($max, round((float) ($result['score'] ?? 0), 1))), 'feedback' => Str::limit(trim((string) ($result['feedback'] ?? '')), 1500, ''), 'rubric' => $rubricScores === [] ? null : $rubricScores, 'at' => now()->toIso8601String()];
         $answer->forceFill(['ai_suggestion' => $suggestion])->save();
 
         return ['score' => $suggestion['score'], 'feedback' => $suggestion['feedback']];

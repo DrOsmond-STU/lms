@@ -42,7 +42,7 @@
                             </div>
                             @if ($answer?->ai_suggestion)
                                 <p class="mt-2"><span class="font-mono font-bold">{{ fmt_score($answer->ai_suggestion['score']) }}</span> / {{ fmt_score($question->points) }} poin — {{ $answer->ai_suggestion['feedback'] }}</p>
-                                @if (! empty($answer->ai_suggestion['rubric']))<p class="mt-1 text-xs text-slate-500">Rubrik: {{ collect($answer->ai_suggestion['rubric'])->map(fn ($v, $k) => $k.' '.$v)->implode(', ') }}</p>@endif
+                                @if (! empty($answer->ai_suggestion['rubric']))<p class="mt-1 text-xs text-slate-500">Rubrik: {{ collect($answer->ai_suggestion['rubric'])->filter(fn ($v) => is_scalar($v))->map(fn ($v, $k) => $k.' '.fmt_score((float) $v))->implode(', ') }}</p>@endif
                                 <p class="mt-1 text-[11px] text-slate-500">Saran, bukan keputusan — umpan balik sudah diisikan ke kolom di atas bila masih kosong; sesuaikan poin sendiri.</p>
                             @else
                                 <p class="mt-1 text-xs text-slate-500">AI membaca pertanyaan, rubrik, dan jawaban peserta lalu mengusulkan poin & umpan balik.</p>
